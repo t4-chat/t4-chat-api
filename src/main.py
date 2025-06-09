@@ -1,8 +1,10 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from fastapi import FastAPI
-from api.routes import health_checks, ai_providers, chats
+
+from src.api.routes import health_checks, ai_providers, chats
 
 app = FastAPI(
     title="Agg AI API",
