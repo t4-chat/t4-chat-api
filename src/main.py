@@ -1,5 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
-from datetime import datetime, timezone
+from api.routes import health_checks, ai_providers
 
 app = FastAPI(
     title="Agg AI API",
@@ -7,9 +10,5 @@ app = FastAPI(
     version="0.1.0",
 )
 
-@app.get("/ping")
-def ping():
-    return {
-        "status": "ok",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+app.include_router(health_checks.router)
+app.include_router(ai_providers.router)

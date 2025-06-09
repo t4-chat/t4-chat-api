@@ -1,0 +1,34 @@
+# Migration Commands
+
+All commands should be run from the `src/storage` directory.
+
+## Create a New Migration
+```
+alembic revision --autogenerate -m "description of changes"
+```
+
+## Apply Migrations
+```
+alembic upgrade head
+```
+
+# Apply specific number of migrations
+```
+alembic upgrade +n
+```
+
+# Rollback specific number of migrations
+```
+alembic downgrade -n
+```
+
+# Rollback all migrations
+```
+alembic downgrade base
+```
+
+## Check Current Status
+```
+alembic current  # Show current revision
+alembic history  # Show migration history
+```
