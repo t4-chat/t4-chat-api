@@ -4,7 +4,7 @@ from api.models.ai_provider import AiProviderResponse
 from typing import List
 
 router = APIRouter(
-    prefix="/ai-providers",
+    prefix="/api/ai-providers",
     tags=["ai-providers"]
 )
 

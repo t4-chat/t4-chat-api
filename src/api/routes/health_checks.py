@@ -6,7 +6,7 @@ router = APIRouter(
     tags=["health"]
 )
 
-@router.get("live")
+@router.get("/live")
 def ping():
     return {
         "status": "ok",
