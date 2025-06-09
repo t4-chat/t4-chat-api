@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  agg-ai-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: agg-ai-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app
+    environment:
+      - ENVIRONMENT=development
+    restart: unless-stopped 
