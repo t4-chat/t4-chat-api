@@ -12,13 +12,13 @@ services:
       - ./src:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agg-ai
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agg-ai
     depends_on:
       - db
     restart: unless-stopped
 
   db:
-    image: postgres:15
+    image: postgres:17
     container_name: agg-ai-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -27,7 +27,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=agg-ai
     ports:
-      - "5432:5432"
+      - "5433:5432"
     restart: unless-stopped
 
 volumes:

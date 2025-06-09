@@ -6,9 +6,10 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from storage.models.base import Base
-from storage.models.ai_provider import AiProvider
-from storage.models.ai_provider_model import AiProviderModel
+from models import Base, AiProvider, AiProviderModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
