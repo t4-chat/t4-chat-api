@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from typing import Callable
@@ -8,6 +9,9 @@ from src.services.auth.token_service import TokenService
 
 def create_auth_middleware(token_service: TokenService) -> Callable:
     async def auth_middleware(request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip authentication completely if DISABLE_AUTH env var is set
         if os.getenv("DISABLE_AUTH", "").lower() == "true":
             return await call_next(request)
@@ -19,7 +23,7 @@ def create_auth_middleware(token_service: TokenService) -> Callable:
             "/redoc", 
             "/openapi.json",
             "/health/live",
-            "/auth/google",
+            "/api/auth/google",
         ] or request.url.path.startswith("/static/"):
             return await call_next(request)
         
@@ -42,7 +46,8 @@ def create_auth_middleware(token_service: TokenService) -> Callable:
             )
             
         # Set user ID in request state and continue
-        request.state.user_id = payload.get("sub")
+        request.state.user_id = UUID(payload.get("sub"))
+        request.state.user_email = payload.get("email")
         return await call_next(request)
     
     return auth_middleware 
