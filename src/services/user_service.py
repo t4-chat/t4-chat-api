@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -19,6 +20,9 @@ class UserService:
         self.db.commit()
         self.db.refresh(user)
         return user
+    
+    def get_user_by_id(self, user_id: UUID) -> User:
+        return self.db.query(User).filter(User.id == user_id).first()
 
 def get_user_service(db: Session = Depends(get_db)) -> UserService:
     return UserService(db)
