@@ -13,6 +13,7 @@ class ChatCompletionRequest(BaseModel):
     provider: ModelProvider
     model: str
     options: Optional[TextGenerationOptions] = None
+    chat_id: Optional[UUID] = None
 
 
 class ChatMessageResponse(BaseModel):
