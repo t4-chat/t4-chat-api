@@ -143,8 +143,7 @@ class ChatService:
         yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata })}\n\n"
 
         assistant_content = ""
-        # async for chunk in self.generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
-        async for chunk in self.fake_stream_response(messages[-1]["content"]):
+        async for chunk in self.generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
             assistant_content += chunk
             content_metadata = { 'type': 'text', 'text': chunk }
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
