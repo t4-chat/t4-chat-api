@@ -76,7 +76,7 @@ alembic downgrade base  # Rollback all migrations
 
 ### Local Development
 ```bash
-uvicorn src.main:app --reload --port 8000
+uvicorn src.main:app --reload --port 9001
 ```
 
 ### Using Docker Compose
@@ -84,19 +84,19 @@ uvicorn src.main:app --reload --port 8000
 docker-compose up -d
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at `http://localhost:9001`
 
 ## API Documentation
 
 Once the application is running, you can access:
-- Swagger UI documentation: `http://localhost:8000/docs`
-- ReDoc documentation: `http://localhost:8000/redoc`
+- Swagger UI documentation: `http://localhost:9001/docs`
+- ReDoc documentation: `http://localhost:9001/redoc`
 
 ## Testing
 
 ### Test SSE Endpoint
 ```bash
-curl -X POST "http://localhost:8000/api/chats/messages" \
+curl -X POST "http://localhost:9001/api/chats/messages" \
   -H "Content-Type: application/json" \
   -d '{"message": "Hello, how are you?"}'
 ```

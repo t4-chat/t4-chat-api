@@ -1,8 +1,7 @@
 from datetime import UTC, datetime
 import uuid
-from uuid import UUID
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
@@ -31,12 +30,11 @@ class ChatMessage(BaseModel):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chat_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chats.id", ondelete="CASCADE"), nullable=False)
+    model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
+    
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     
-    # Model and provider information
-    provider = Column(String, nullable=True)
-    model = Column(String, nullable=True)
-    
-    chat = relationship("Chat", back_populates="messages") 
+    chat = relationship("Chat", back_populates="messages")
+    model = relationship("AiProviderModel") # we don't need have all messages that are associated with a model, so we don't have a back_populates

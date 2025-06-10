@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from src.services.inference.models_shared import ModelProvider
-from src.services.inference.config import TextGenerationOptions
+from src.services.inference.config import DefaultResponseGenerationOptions
 
 
 class TextGenerationRequest(BaseModel):
@@ -11,4 +11,4 @@ class TextGenerationRequest(BaseModel):
     provider: ModelProvider
     model: str
     prompt: str
-    options: Optional[TextGenerationOptions] = None 
+    options: Optional[DefaultResponseGenerationOptions] = None 

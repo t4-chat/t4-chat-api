@@ -1,20 +1,20 @@
 from fastapi import APIRouter, HTTPException
 
-from src.api.models.inference import TextGenerationRequest, TextGenerationResponse
+from src.api.models.inference import ResponseGenerationRequest, ResponseGenerationResponse
 from src.services.inference.inference_service import inference_service
-from src.services.inference.models_shared.text_provider import TextGenerationOptions
+from src.services.inference.models_shared.model_provider import DefaultResponseGenerationOptions
 
 router = APIRouter(prefix="/api/inference", tags=["inference"])
 
 
-@router.post("", response_model=TextGenerationResponse)
-async def inference(request: TextGenerationRequest, service: inference_service):
+@router.post("", response_model=ResponseGenerationResponse)
+async def inference(request: ResponseGenerationRequest, service: inference_service):
     """Generate text using the specified provider and model"""
     try:
-        options = request.options if request.options else TextGenerationOptions()
+        options = request.options if request.options else DefaultResponseGenerationOptions()
 
-        text = await service.generate_text(provider=request.provider, model=request.model, prompt=request.prompt, options=options)
-        return TextGenerationResponse(text=text)
+        text = await service.generate_response(provider_id=request.provider_id, model_id=request.model_id, prompt=request.prompt, options=options)
+        return ResponseGenerationResponse(text=text)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

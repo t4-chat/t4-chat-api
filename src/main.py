@@ -7,10 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routes import health_checks, ai_providers, chats, inference, auth
 from src.api.middleware.auth import create_auth_middleware
-from src.services.inference.setup import setup_inference_service
 from src.services.auth.token_service import token_service
-
-setup_inference_service()
 
 app = FastAPI(
     title="Agg AI API",

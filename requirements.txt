@@ -28,3 +28,4 @@ anthropic==0.47.1
 google-auth==2.38.0
 pyjwt==2.10.1
 requests==2.32.3
+litellm==1.62.1
