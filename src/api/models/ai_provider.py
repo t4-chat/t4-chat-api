@@ -11,6 +11,7 @@ class AiProviderModelResponse(BaseModel):
 class AiProviderResponse(BaseModel):
     id: int
     name: str
+    slug: str
     models: List[AiProviderModelResponse] = []
 
     class Config:

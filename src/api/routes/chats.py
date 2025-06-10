@@ -59,7 +59,7 @@ async def send_message(
             provider_id=message.provider_id,
             model_id=message.model_id,
             options=message.options,
-            chat_id=message.chat_id
+            chat_id=message.chat_id,
         ), 
         media_type="text/event-stream"
     )

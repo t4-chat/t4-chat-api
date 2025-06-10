@@ -6,13 +6,13 @@ from typing import Annotated, Dict, Any, Optional
 import uuid
 
 from src.storage.models.user import User
-
+from src.config import settings
 
 class TokenService:
     def __init__(self):
-        self.jwt_secret = os.getenv("JWT_SECRET_KEY")
+        self.jwt_secret = settings.JWT_SECRET_KEY
         self.jwt_algorithm = "HS256"
-        self.jwt_expiration = int(os.getenv("JWT_EXPIRATION_MINUTES", "60"))
+        self.jwt_expiration = settings.JWT_EXPIRATION_MINUTES
 
     def create_token_from_user(self, user: User) -> str:
         dict = {

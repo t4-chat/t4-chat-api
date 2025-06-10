@@ -10,14 +10,14 @@ from src.services.user_service import UserService, get_user_service
 from src.storage.db import get_db
 from src.storage.models.user import User
 from src.services.auth.token_service import TokenService, get_token_service
-
+from src.config import settings
 
 class AuthService:
     def __init__(self, db: Session, token_service: TokenService, user_service: UserService):
         self.db = db
         self.token_service = token_service
         self.user_service = user_service
-        self.google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+        self.google_client_id = settings.GOOGLE_CLIENT_ID
 
     def verify_google_token(self, token: str) -> Dict[str, Any]:
         try:

@@ -6,8 +6,9 @@ from uuid import UUID
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from src.config import settings
 from src.services.errors.errors import NotFoundError
-from src.services.inference import InferenceService, ModelProvider
+from src.services.inference import InferenceService
 from src.services.inference.config import DefaultResponseGenerationOptions
 from src.services.inference.inference_service import get_inference_service
 from src.storage.db import get_db
@@ -23,8 +24,8 @@ class ChatService:
         self.db = db
         self.inference_service = inference_service
 
-    def create_chat(self, user_id: UUID, title: str) -> Chat:
-        chat = Chat(user_id=user_id, title=title)
+    def create_chat(self, user_id: UUID) -> Chat:
+        chat = Chat(user_id=user_id)
         self.db.add(chat)
         self.db.commit()
         self.db.refresh(chat)
@@ -38,6 +39,9 @@ class ChatService:
 
     def get_model(self, model_id: int) -> Optional[AiProviderModel]:
         return self.db.query(AiProviderModel).filter(AiProviderModel.id == model_id).first()
+
+    def get_provider_by_slug(self, slug: str) -> Optional[AiProvider]:
+        return self.db.query(AiProvider).filter(AiProvider.slug == slug).first()
 
     def get_provider(self, provider_id: int) -> Optional[AiProvider]:
         return self.db.query(AiProvider).filter(AiProvider.id == provider_id).first()
@@ -71,17 +75,17 @@ class ChatService:
         self.db.delete(chat)
         self.db.commit()
         return True
-    
+
     def _prompt_or_default(self, prompt: Optional[str]) -> str:
         if prompt:
             return prompt
         else:
-            return "You are a helpful assistant that can answer questions and help with tasks." # TODO: not sure if we should handle this here, or on the database level
+            return "You are a helpful assistant that can answer questions and help with tasks."  # TODO: not sure if we should handle this here, or on the database level
 
-    async def generate_completion(self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None) -> str:
+    async def _generate_completion(self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None) -> str:
         return await self.inference_service.generate_response(provider=provider, model=model, messages=messages, options=options)
 
-    async def generate_completion_stream(
+    async def _generate_completion_stream(
         self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None
     ) -> AsyncGenerator[str, None]:
         async for chunk in self.inference_service.generate_response_stream(provider=provider, model=model, messages=messages, options=options):
@@ -114,6 +118,37 @@ class ChatService:
             if content:  # Skip empty messages
                 self.add_message(chat_id=chat_id, role=role, content=content, model_id=model_id)
 
+    async def _generate_and_update_chat_title(self, chat_id: UUID, messages: List[dict]) -> None:
+        """Generate a title for the chat based on the first message and update it in the database."""
+        chat = self.get_chat(chat_id)
+        if not chat:
+            return
+
+        provider_slug, model_name = settings.TITLE_GENERATION_MODEL.split("/")
+        provider = self.get_provider_by_slug(provider_slug)
+        model = [m for m in provider.models if m.name == model_name][0]
+
+        messages = [
+            {
+                "role": "system",
+                "content": "Generate a concise and engaging title that summarizes the main topic or theme of the conversation between a user and an AI (or just the user question). The title should be clear, relevant, and attention-grabbing, ideally no longer than 8 words. Consider the key points, questions, or issues discussed in the conversation.",
+            },
+            *messages,
+        ]
+
+        # Generate title
+        title = await self._generate_completion(provider=provider, model=model, messages=messages)
+
+        # Update the chat title
+        chat.title = title.strip()
+        self.db.commit()
+
+    def get_chat_title(self, chat_id: UUID) -> Optional[str]:
+        chat = self.get_chat(chat_id)
+        if not chat:
+            return None
+        return chat.title
+
     async def chat_completion_stream(
         self,
         user_id: UUID,
@@ -124,14 +159,14 @@ class ChatService:
         chat_id: Optional[UUID] = None,
     ) -> AsyncGenerator[str, None]:
         if not chat_id:
-            chat = self.create_chat(
-                user_id=user_id, title="New Chat test"
-            )  # TODO: use inference service to generate title based on the first message from the user (in the background)
+            chat = self.create_chat(user_id=user_id)
             chat_id = chat.id
         else:
             chat = self.get_chat(chat_id)
             if not chat:
                 raise NotFoundError(resource_name="Chat", resource_id=chat_id)
+
+        await self._generate_and_update_chat_title(chat_id=chat_id, messages=messages)
 
         # TODO: rewrite this logic (we need it to allow the user to edit the chat history, but might come up with a better solution)
         await self._rewrite_chat_history(chat_id, messages, model_id)
@@ -155,9 +190,9 @@ class ChatService:
         ] + messages  # we don't want to expose the system prompt to the user, so we add it to the beginning of the message history
 
         assistant_content = ""
-        async for chunk in self.generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
+        async for chunk in self._generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
             assistant_content += chunk
-            content_metadata = {"type": "text", "text": assistant_content}
+            content_metadata = {"type": "text", "text": chunk}
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
             # TODO: do we also want to save intermediate messages to the db?
 
