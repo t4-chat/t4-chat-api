@@ -24,6 +24,7 @@ def create_auth_middleware(token_service: TokenService) -> Callable:
             "/openapi.json",
             "/health/live",
             "/api/auth/google",
+            "/api/ai-providers",
         ] or request.url.path.startswith("/static/"):
             return await call_next(request)
         
