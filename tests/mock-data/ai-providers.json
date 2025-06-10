@@ -2,39 +2,27 @@
   "providers": [
     {
       "name": "OpenAI",
+      "slug": "openai",
       "base_url": "https://api.openai.com/v1",
       "is_active": true,
       "models": [
         {
-          "name": "gpt-4",
+          "name": "gpt-4o",
           "is_active": true,
           "price_input_token": 0.00003,
           "price_output_token": 0.00006,
           "context_length": 8192
-        },
-        {
-          "name": "gpt-3.5-turbo",
-          "is_active": true,
-          "price_input_token": 0.000001,
-          "price_output_token": 0.000002,
-          "context_length": 4096
         }
       ]
     },
     {
       "name": "Anthropic",
+      "slug": "anthropic",
       "base_url": "https://api.anthropic.com/v1",
       "is_active": true,
       "models": [
         {
-          "name": "claude-3-opus",
-          "is_active": true,
-          "price_input_token": 0.00015,
-          "price_output_token": 0.00075,
-          "context_length": 200000
-        },
-        {
-          "name": "claude-3-sonnet",
+          "name": "claude-3.7-sonnet",
           "is_active": true,
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,

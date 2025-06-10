@@ -18,14 +18,14 @@ class ModelProvider:
         self, provider: AiProvider, model: AiProviderModel, messages: List[Dict[str, Any]], options: Optional[DefaultResponseGenerationOptions] = None, **kwargs
     ) -> str:
         """Generate text based on the prompt (non-streaming)"""
-        response = await acompletion(model=f"{provider.name.lower()}/{model.name}", messages=messages, mock_response="It's simple to use and easy to get started", **kwargs) # TODO: fix this lower, add slug to the provider 
+        response = await acompletion(model=f"{provider.slug}/{model.name}", messages=messages, **kwargs) # TODO: fix this lower, add slug to the provider 
         return response.choices[0].message.content
 
     async def generate_response_stream(
         self, provider: AiProvider, model: AiProviderModel, messages: List[Dict[str, Any]], options: Optional[DefaultResponseGenerationOptions] = None, **kwargs
     ) -> AsyncGenerator[str, None]:
         """Generate text based on the prompt with streaming"""
-        response = await acompletion(model=f"{provider.name.lower()}/{model.name}", messages=messages, stream=True, mock_response="It's simple to use and easy to get started", **kwargs) # TODO: fix this lower, add slug to the provider 
+        response = await acompletion(model=f"{provider.slug}/{model.name}", messages=messages, stream=True, **kwargs) # TODO: fix this lower, add slug to the provider 
         async for chunk in response:
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content

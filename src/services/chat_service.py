@@ -71,6 +71,12 @@ class ChatService:
         self.db.delete(chat)
         self.db.commit()
         return True
+    
+    def _prompt_or_default(self, prompt: Optional[str]) -> str:
+        if prompt:
+            return prompt
+        else:
+            return "You are a helpful assistant that can answer questions and help with tasks." # TODO: not sure if we should handle this here, or on the database level
 
     async def generate_completion(self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None) -> str:
         return await self.inference_service.generate_response(provider=provider, model=model, messages=messages, options=options)
@@ -145,7 +151,7 @@ class ChatService:
             raise NotFoundError(resource_name="Provider", resource_id=model.provider_id)
 
         messages = [
-            {"role": "system", "content": model.prompt}
+            {"role": "system", "content": self._prompt_or_default(model.prompt)}
         ] + messages  # we don't want to expose the system prompt to the user, so we add it to the beginning of the message history
 
         assistant_content = ""
