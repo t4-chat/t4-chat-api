@@ -19,5 +19,4 @@ class AiProviderService:
 def get_ai_provider_service(db: Session = Depends(get_db)) -> AiProviderService:
     return AiProviderService(db)
 
-
 ai_provider_service = Annotated[AiProviderService, Depends(get_ai_provider_service)]

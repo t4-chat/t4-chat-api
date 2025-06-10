@@ -1,7 +1,12 @@
 from pydantic import BaseModel
 from typing import List
 
-from src.api.models.ai_provider_model import AiProviderModelResponse
+class AiProviderModelResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
 
 class AiProviderResponse(BaseModel):
     id: int

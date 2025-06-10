@@ -144,7 +144,7 @@ class ChatService:
 
         assistant_content = ""
         # async for chunk in self.generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
-        async for chunk in self.fake_stream_response():
+        async for chunk in self.fake_stream_response(messages[-1]["content"]):
             assistant_content += chunk
             content_metadata = { 'type': 'text', 'text': chunk }
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
@@ -160,11 +160,11 @@ class ChatService:
                 'title': chat.title,
             }
         }
-        yield f"data: {json.dumps({ 'type': 'chat_metadata', 'chat': chat_metadata })}\n\n"
+        yield f"data: {json.dumps(chat_metadata)}\n\n"
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-    async def fake_stream_response(message: str):
+    async def fake_stream_response(self, message: str):
         # Simulate AI thinking and generating response
         response_parts = [
             "I'm thinking about",
