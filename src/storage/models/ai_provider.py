@@ -6,7 +6,7 @@ from src.storage.models.base import BaseModel
 
 class AiProvider(BaseModel):
     __tablename__ = "ai_providers"
-    __table_args__ = {"schema": "ai_providers"}
+    __table_args__ = {"schema": "agg_ai"}
 
     name = Column(String, nullable=False)
     base_url = Column(String, nullable=False)
