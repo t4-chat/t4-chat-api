@@ -1,13 +1,18 @@
-from logging.config import fileConfig
 import os
+import sys
+from pathlib import Path
+from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+# Add root directory to Python path
+# we need this to run migrations from the root directory
+root_dir = Path(__file__).parent.parent.parent.parent
+sys.path.append(str(root_dir))
 
 from alembic import context
-
-from models import Base, AiProvider, AiProviderModel
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
+from src.storage.models import Base
 
 load_dotenv()
 
@@ -71,9 +76,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
