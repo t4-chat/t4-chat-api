@@ -7,7 +7,6 @@
       "models": [
         {
           "name": "gpt-4",
-          "modalities": ["text"],
           "is_active": true,
           "price_input_token": 0.00003,
           "price_output_token": 0.00006,
@@ -15,7 +14,6 @@
         },
         {
           "name": "gpt-3.5-turbo",
-          "modalities": ["text"],
           "is_active": true,
           "price_input_token": 0.000001,
           "price_output_token": 0.000002,
@@ -30,7 +28,6 @@
       "models": [
         {
           "name": "claude-3-opus",
-          "modalities": ["text", "vision"],
           "is_active": true,
           "price_input_token": 0.00015,
           "price_output_token": 0.00075,
@@ -38,7 +35,6 @@
         },
         {
           "name": "claude-3-sonnet",
-          "modalities": ["text", "vision"],
           "is_active": true,
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,

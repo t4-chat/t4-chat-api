@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class TextGenerationOptions(BaseModel):
+class DefaultResponseGenerationOptions(BaseModel):
     """Options for text generation"""
     temperature: float = Field(
         default=0.7,

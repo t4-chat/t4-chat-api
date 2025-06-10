@@ -1,12 +1,10 @@
-import asyncio
-import json
 from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import StreamingResponse
 
-from src.api.models.chat import ChatResponse, ChatCompletionRequest, StreamChunk
+from src.api.models.chat import ChatResponse, ChatCompletionRequest
 from src.services.chat_service import chat_service
 
 
@@ -56,8 +54,8 @@ async def send_message(
         chat_service.chat_completion_stream(
             user_id=user_id,
             messages=message.messages,
-            provider=message.provider,
-            model=message.model,
+            provider_id=message.provider_id,
+            model_id=message.model_id,
             options=message.options,
             chat_id=message.chat_id
         ), 

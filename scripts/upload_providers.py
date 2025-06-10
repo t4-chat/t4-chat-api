@@ -39,7 +39,6 @@ def upload_providers(db: Session, data: dict):
             model = AiProviderModel(
                 name=model_data["name"],
                 provider_id=provider.id,
-                modalities=model_data["modalities"],
                 is_active=model_data["is_active"],
                 price_input_token=model_data["price_input_token"],
                 price_output_token=model_data["price_output_token"],

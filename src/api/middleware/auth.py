@@ -1,12 +1,17 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from typing import Callable
+import os
 
 from src.services.auth.token_service import TokenService
 
 
 def create_auth_middleware(token_service: TokenService) -> Callable:
     async def auth_middleware(request: Request, call_next):
+        # Skip authentication completely if DISABLE_AUTH env var is set
+        if os.getenv("DISABLE_AUTH", "").lower() == "true":
+            return await call_next(request)
+            
         # Skip authentication for public endpoints
         if request.url.path in [
             "/",
