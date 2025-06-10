@@ -15,12 +15,13 @@ class Chat(BaseModel):
     __table_args__ = {"schema": "agg_ai"}
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(PGUUID(as_uuid=True), nullable=False)
+    user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     
     messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="chats")
 
 
 class ChatMessage(BaseModel):

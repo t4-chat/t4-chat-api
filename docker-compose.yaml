@@ -9,10 +9,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./src:/app
+      - .:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agg-ai
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:5433/agg-ai
     depends_on:
       - db
     restart: unless-stopped
