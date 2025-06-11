@@ -24,8 +24,8 @@ class ChatService:
         self.db = db
         self.inference_service = inference_service
 
-    def create_chat(self, user_id: UUID) -> Chat:
-        chat = Chat(user_id=user_id)
+    def create_chat(self, user_id: UUID, title: Optional[str] = None) -> Chat:
+        chat = Chat(user_id=user_id, title=title)
         self.db.add(chat)
         self.db.commit()
         self.db.refresh(chat)
@@ -40,8 +40,12 @@ class ChatService:
     def get_model(self, model_id: int) -> Optional[AiProviderModel]:
         return self.db.query(AiProviderModel).filter(AiProviderModel.id == model_id).first()
 
-    def get_provider_by_slug(self, slug: str) -> Optional[AiProvider]:
-        return self.db.query(AiProvider).filter(AiProvider.slug == slug).first()
+    def get_model_by_path(self, path: str) -> Optional[AiProviderModel]:
+        provider_slug, model_name = path.split("/")
+        return self.db.query(AiProviderModel).join(AiProviderModel.provider).filter(
+            AiProvider.slug == provider_slug,
+            AiProviderModel.name == model_name
+        ).first()
 
     def get_provider(self, provider_id: int) -> Optional[AiProvider]:
         return self.db.query(AiProvider).filter(AiProvider.id == provider_id).first()
@@ -118,15 +122,8 @@ class ChatService:
             if content:  # Skip empty messages
                 self.add_message(chat_id=chat_id, role=role, content=content, model_id=model_id)
 
-    async def _generate_and_update_chat_title(self, chat_id: UUID, messages: List[dict]) -> None:
-        """Generate a title for the chat based on the first message and update it in the database."""
-        chat = self.get_chat(chat_id)
-        if not chat:
-            return
-
-        provider_slug, model_name = settings.TITLE_GENERATION_MODEL.split("/")
-        provider = self.get_provider_by_slug(provider_slug)
-        model = [m for m in provider.models if m.name == model_name][0]
+    async def _generate_chat_title(self, messages: List[dict]) -> None:
+        model = self.get_model_by_path(settings.TITLE_GENERATION_MODEL)
 
         messages = [
             {
@@ -137,12 +134,9 @@ class ChatService:
         ]
 
         # Generate title
-        title = await self._generate_completion(provider=provider, model=model, messages=messages)
-
-        # Update the chat title
-        chat.title = title.strip()
-        self.db.commit()
-
+        title = await self._generate_completion(provider=model.provider, model=model, messages=messages)
+        return title.strip()
+    
     def get_chat_title(self, chat_id: UUID) -> Optional[str]:
         chat = self.get_chat(chat_id)
         if not chat:
@@ -159,14 +153,13 @@ class ChatService:
         chat_id: Optional[UUID] = None,
     ) -> AsyncGenerator[str, None]:
         if not chat_id:
-            chat = self.create_chat(user_id=user_id)
+            title = await self._generate_chat_title(messages=messages)
+            chat = self.create_chat(user_id=user_id, title=title)
             chat_id = chat.id
         else:
             chat = self.get_chat(chat_id)
             if not chat:
                 raise NotFoundError(resource_name="Chat", resource_id=chat_id)
-
-        await self._generate_and_update_chat_title(chat_id=chat_id, messages=messages)
 
         # TODO: rewrite this logic (we need it to allow the user to edit the chat history, but might come up with a better solution)
         await self._rewrite_chat_history(chat_id, messages, model_id)
