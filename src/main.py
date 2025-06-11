@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models
+from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models, files
 from src.api.middleware.auth import create_auth_middleware
 from src.containers.containers import AppContainer
 from src.logging.logging_config import configure_logging, get_logger
@@ -37,5 +37,6 @@ app.include_router(chats.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(ai_models.router)
+app.include_router(files.router)
 
 app.container = container

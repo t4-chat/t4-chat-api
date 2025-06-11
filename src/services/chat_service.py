@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 from typing import AsyncGenerator, List, Optional
 from uuid import UUID
@@ -13,16 +14,20 @@ from src.services.inference import InferenceService
 from src.services.inference.config import DefaultResponseGenerationOptions
 from src.services.inference.models.response_models import StreamGenerationResponse, TextGenerationResponse
 from src.services.prompts_service import PromptsService
-from src.storage.models import Chat, ChatMessage
+from src.storage.models import Chat, ChatMessage  # need to find a good way of differentiating between models and schemas
+from src.api.schemas.chat import ChatMessages
 from src.storage.models.ai_provider import AiProvider
 from src.storage.models.ai_provider_model import AiProviderModel
+from src.services.files_service import FilesService
+from src.services import utils
 
 
 class ChatService:
-    def __init__(self, db: Session, inference_service: InferenceService, prompts_service: PromptsService):
+    def __init__(self, db: Session, inference_service: InferenceService, prompts_service: PromptsService, files_service: FilesService):
         self.db = db
         self.inference_service = inference_service
         self.prompts_service = prompts_service
+        self.files_service = files_service
 
     async def create_chat(self, user_id: UUID, title: Optional[str] = None) -> Chat:
         chat = Chat(user_id=user_id, title=title)
@@ -36,7 +41,7 @@ class ChatService:
         return results.scalars().first()
 
     async def get_user_chats(self, user_id: UUID) -> List[Chat]:
-        results = await self.db.execute(select(Chat).options(selectinload(Chat.messages)).filter(Chat.user_id == user_id))
+        results = await self.db.execute(select(Chat).filter(Chat.user_id == user_id))
         return results.scalars().all()
 
     async def get_model(self, model_id: int) -> Optional[AiProviderModel]:
@@ -129,7 +134,7 @@ class ChatService:
         user_id: UUID,
         provider: AiProvider,
         model: AiProviderModel,
-        messages: List[dict],
+        messages: ChatMessages,
         options: Optional[DefaultResponseGenerationOptions] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[StreamGenerationResponse, None]:
@@ -148,7 +153,7 @@ class ChatService:
         # Send done event
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-    async def _rewrite_chat_history(self, chat_id: UUID, messages: List[dict], model_id: int) -> None:
+    async def _rewrite_chat_history(self, chat_id: UUID, messages: List[ChatMessage], model_id: int) -> None:
         """
         Rewrite the entire message history for a chat.
         This deletes all existing messages and adds the new ones.
@@ -159,23 +164,26 @@ class ChatService:
 
         # Add all new messages
         for message in messages:
-            role = message.get("role", "user")
-            content = message.get("content", "")
+            role = message.role
+            content = message.content
             if content:  # Skip empty messages
                 await self.add_message(chat_id=chat_id, role=role, content=content, model_id=model_id)
 
-    async def _generate_chat_title(self, user_id: UUID, messages: List[dict], background_tasks: BackgroundTasks = None) -> str:
+    async def _generate_chat_title(self, user_id: UUID, messages: List[ChatMessage], background_tasks: BackgroundTasks = None) -> str:
         model = await self.get_model_by_path(settings.TITLE_GENERATION_MODEL)
         if not model:
             print(f"Error: Title generation model not found: {settings.TITLE_GENERATION_MODEL}")
             return "New Chat"
+
+        # Convert ChatMessage objects to dictionaries for the model
+        messages_dict = [{"role": msg.role, "content": msg.content} for msg in messages]
 
         messages_for_title = [
             {
                 "role": "system",
                 "content": await self.prompts_service.get_prompt("title_generation"),
             },
-            *messages,
+            *messages_dict,
         ]
 
         title_response = await self._generate_completion(user_id=user_id, provider=model.provider, model=model, messages=messages_for_title, background_tasks=background_tasks)
@@ -191,15 +199,14 @@ class ChatService:
     async def chat_completion_stream(
         self,
         user_id: UUID,
-        messages: List[dict],
+        messages: List[ChatMessage],
         model_id: int,
         options: Optional[DefaultResponseGenerationOptions] = None,
         chat_id: Optional[UUID] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
         if not chat_id:
-            user_messages_for_title = [m for m in messages if m.get("role") == "user"]
-            title = await self._generate_chat_title(user_id=user_id, messages=user_messages_for_title, background_tasks=background_tasks)
+            title = await self._generate_chat_title(user_id=user_id, messages=messages, background_tasks=background_tasks)
             chat = await self.create_chat(user_id=user_id, title=title)
             chat_id = chat.id
         else:
@@ -223,7 +230,16 @@ class ChatService:
         if not provider:
             raise NotFoundError(resource_name="Provider", resource_id=model.provider_id)
 
-        inference_messages = [{"role": "system", "content": await self.prompts_service.get_prompt(model.prompt_path)}] + messages
+        # Process attachments and add them to messages
+        processed_messages = await self._prepare_messages(messages)
+
+        # Use processed messages for inference
+        inference_messages = [
+            {
+                "role": "system",
+                "content": await self.prompts_service.get_prompt(model.prompt_path)
+            }
+        ] + processed_messages
 
         assistant_content = ""
         async for chunk in self._generate_completion_stream(
@@ -247,6 +263,29 @@ class ChatService:
         yield f"data: {json.dumps(chat_metadata)}\n\n"
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    async def _prepare_messages(self, messages: List[ChatMessage]) -> List[dict]:
+        if not messages:
+            return []
+
+        model_messages = []
+        for message in messages:
+            content = [{"type": "text", "text": message.content}] if message.attachments else message.content
+            
+            if message.attachments:
+                for attachment_id in message.attachments:
+                    file_content = await self.files_service.get_file(attachment_id)
+                    content.append(utils.prepare_file(
+                        file_content["metadata"]["content_type"], 
+                        file_content["data"]
+                    ))
+            
+            model_messages.append({
+                "role": message.role,
+                "content": content
+            })
+            
+        return model_messages
 
     async def fake_stream_response(self, message: str):
         # Simulate AI thinking and generating response

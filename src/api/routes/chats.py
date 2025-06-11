@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Body, Request, Depends, Background
 from fastapi.responses import StreamingResponse
 from dependency_injector.wiring import inject, Provide
 
-from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest
+from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest, ChatListItemResponse
 from src.services.chat_service import ChatService
 from src.containers.containers import AppContainer
 
@@ -21,7 +21,7 @@ async def create_chat(request: Request, service: ChatService = Depends(Provide[A
     return chat
 
 
-@router.get("/", response_model=List[ChatResponse])
+@router.get("/", response_model=List[ChatListItemResponse])
 @inject
 async def get_chats(request: Request, service: ChatService = Depends(Provide[AppContainer.chat_service])):
     user_id = request.state.user_id
@@ -58,10 +58,10 @@ async def send_message(
     return StreamingResponse(
         chat_service.chat_completion_stream(
             user_id=user_id,
-            messages=message.messages,
-            model_id=message.model_id,
-            options=message.options,
             chat_id=message.chat_id,
+            model_id=message.model_id,
+            messages=message.messages,
+            options=message.options,
             background_tasks=background_tasks,
         ),
         media_type="text/event-stream",
