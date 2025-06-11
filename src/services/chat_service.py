@@ -79,6 +79,26 @@ class ChatService:
         self.db.delete(chat)
         self.db.commit()
         return True
+    
+    def update_chat_title(self, chat_id: UUID, title: str):
+        chat = self.get_chat(chat_id)
+        if not chat:
+            return None
+
+        chat.title = title
+        self.db.commit()
+        self.db.refresh(chat)
+        return chat
+    
+    def pin_chat(self, chat_id: UUID):
+        chat = self.get_chat(chat_id)
+        if not chat:
+            return None
+
+        chat.pinned = not chat.pinned
+        self.db.commit()
+        self.db.refresh(chat)
+        return chat
 
     def _prompt_or_default(self, prompt: Optional[str]) -> str:
         if prompt:
@@ -142,7 +162,7 @@ class ChatService:
         if not chat:
             return None
         return chat.title
-
+    
     async def chat_completion_stream(
         self,
         user_id: UUID,
