@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status
-from uuid import UUID
 
 from src.api.models.auth import GoogleAuthRequest, TokenResponse
 from src.services.auth.auth_service import auth_service

@@ -5,6 +5,8 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
+from src.config import settings
+
 
 class DatabaseSession:
     _instance: Optional["DatabaseSession"] = None
@@ -16,7 +18,7 @@ class DatabaseSession:
         if DatabaseSession._instance is not None:
             raise RuntimeError("DatabaseSession is a singleton. Use DatabaseSession.get_instance()")
 
-        self._database_url = os.getenv("DATABASE_URL")
+        self._database_url = settings.DATABASE_URL
 
     @classmethod
     def get_instance(cls) -> "DatabaseSession":

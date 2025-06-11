@@ -7,8 +7,6 @@ from src.services.inference.config import DefaultResponseGenerationOptions
 
 
 class ChatCompletionRequest(BaseModel):
-    """Request model for chat completion"""
-
     messages: List[dict] = []  # List of message objects with role and content
     provider_id: int
     model_id: int
@@ -17,8 +15,6 @@ class ChatCompletionRequest(BaseModel):
 
 
 class ChatMessageResponse(BaseModel):
-    """Response model for a chat message"""
-
     id: UUID
     role: str
     content: str
@@ -29,8 +25,6 @@ class ChatMessageResponse(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    """Response model for a chat"""
-
     id: UUID
     title: str
     user_id: UUID
@@ -43,7 +37,5 @@ class ChatResponse(BaseModel):
 
 
 class StreamChunk(BaseModel):
-    """Streaming chunk response"""
-
     type: str  # "content" or "done"
     content: Optional[str] = None

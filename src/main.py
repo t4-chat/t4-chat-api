@@ -1,18 +1,15 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routes import health_checks, ai_providers, chats, inference, auth, users
 from src.api.middleware.auth import create_auth_middleware
 from src.services.auth.token_service import get_token_service
+from src.config import settings
 
 app = FastAPI(
-    title="Agg AI API",
-    description="API for aggregating multiple AI providers",
-    version="0.1.0",
+    title=settings.PROJECT_NAME,
+    description=settings.PROJECT_DESCRIPTION,
+    version=settings.VERSION,
 )
 
 app.add_middleware(

@@ -9,15 +9,12 @@ from dotenv import load_dotenv
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
 
-# Load environment variables
-load_dotenv(root_dir / ".env")
-
 from sqlalchemy.orm import Session
 
 from src.storage.db import get_db
 from src.storage.models import AiProvider, AiProviderModel
 from src.storage.models.user import User
-
+from src.config import settings
 
 def load_json_data(filename):
     """Load JSON data from the mock-data directory."""
@@ -91,7 +88,7 @@ def setup_test_users(db: Session):
 
 def main():
     print("Setting up test environment...")
-    print(f"Database URL: {os.getenv('DATABASE_URL')}")
+    print(f"Database URL: {settings.DATABASE_URL}")
     
     # Get database session
     db = next(get_db())
