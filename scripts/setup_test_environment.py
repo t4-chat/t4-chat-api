@@ -42,12 +42,8 @@ def setup_providers(db: Session):
         # Create models for the provider
         for model_data in provider_data["models"]:
             model = AiProviderModel(
-                name=model_data["name"],
                 provider_id=provider.id,
-                is_active=model_data["is_active"],
-                price_input_token=model_data["price_input_token"],
-                price_output_token=model_data["price_output_token"],
-                context_length=model_data["context_length"]
+                **model_data
             )
             db.add(model)
     

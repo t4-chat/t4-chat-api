@@ -1,19 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routes import health_checks, ai_providers, chats, inference, auth, users, ai_models
+from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models
 from src.api.middleware.auth import create_auth_middleware
-from src.services.auth.token_service import get_token_service
-from src.api.telemetry.otel import configure_telemetry
-from src.config import settings
+from src.containers.containers import AppContainer
 
+# Create and configure the container
+container = AppContainer()
+
+# Create the FastAPI application
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description=settings.PROJECT_DESCRIPTION,
-    version=settings.VERSION,
+    title=container.config().PROJECT_NAME,
+    description=container.config().PROJECT_DESCRIPTION,
+    version=container.config().VERSION,
 )
-
-# configure_telemetry(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,12 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.middleware("http")(create_auth_middleware(get_token_service()))
+app.middleware("http")(create_auth_middleware(container.token_service()))
 
 app.include_router(health_checks.router)
 app.include_router(ai_providers.router)
 app.include_router(chats.router)
-app.include_router(inference.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(ai_models.router)
+
+app.container = container

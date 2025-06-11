@@ -1,15 +1,12 @@
-import os
-from typing import Annotated, Dict, Any
+from typing import Dict, Any
 
-from fastapi import Depends
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from sqlalchemy.orm import Session
 
-from src.services.user_service import UserService, get_user_service
-from src.storage.db import get_db
+from src.services.user_service import UserService
 from src.storage.models.user import User
-from src.services.auth.token_service import TokenService, get_token_service
+from src.services.auth.token_service import TokenService
 from src.config import settings
 
 class AuthService:
@@ -43,13 +40,3 @@ class AuthService:
 
         user = self.user_service.create_if_not_exists(user=user)
         return self.token_service.create_token_from_user(user=user)
-
-
-def get_auth_service(
-    db: Session = Depends(get_db),
-    token_service: TokenService = Depends(get_token_service),
-    user_service: UserService = Depends(get_user_service)
-) -> AuthService:
-    return AuthService(db, token_service, user_service)
-
-auth_service = Annotated[AuthService, Depends(get_auth_service)]

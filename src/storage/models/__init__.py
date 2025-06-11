@@ -4,4 +4,6 @@ from .ai_provider_model import AiProviderModel
 from .chat import Chat, ChatMessage
 from .prompts import Prompt
 from .user import User
-__all__ = ['Base', 'AiProvider', 'AiProviderModel', 'Chat', 'ChatMessage', 'Prompt', 'User']
+from .usage import Usage
+
+__all__ = ['Base', 'AiProvider', 'AiProviderModel', 'Chat', 'ChatMessage', 'Prompt', 'User', 'Usage']

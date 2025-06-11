@@ -1,49 +1,81 @@
-from typing import Annotated, AsyncGenerator, Dict, List, Optional, Any
+from typing import AsyncGenerator, Dict, List, Optional, Any
+from uuid import UUID
 
-from fastapi import Depends
 from requests import Session
+from fastapi import BackgroundTasks
 
 from src.services.inference.config import DefaultResponseGenerationOptions
+from src.services.inference.models.response_models import TextGenerationResponse, StreamGenerationResponse
 from src.services.inference.models_shared import ModelProvider
-from src.storage.db import get_db
+from src.services.background_task_service import BackgroundTaskService
+
 from src.storage.models.ai_provider import AiProvider
 from src.storage.models.ai_provider_model import AiProviderModel
 
 
 class InferenceService:
-    """Service for handling inference across different AI providers"""
 
-    def __init__(self, db: Session):
+    def __init__(
+        self, 
+        db: Session, 
+        models_provider: ModelProvider, 
+        background_task_service: BackgroundTaskService
+    ):
         self._db = db
-        self._models_provider = ModelProvider()
+        self._models_provider = models_provider
+        self._background_task_service = background_task_service
 
     async def generate_response(
         self,
+        user_id: UUID,
         provider: AiProvider,
         model: AiProviderModel,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptions] = None,
+        background_tasks: BackgroundTasks = None,
         **kwargs,
-    ) -> str:
-        """Generate response using the specified provider and model (non-streaming)"""
-        return await self._models_provider.generate_response(provider=provider, model=model, messages=messages, options=options, **kwargs)
+    ) -> TextGenerationResponse:
+        resp = await self._models_provider.generate_response(
+            provider=provider,
+            model=model,
+            messages=messages,
+            options=options,
+            **kwargs,
+        )
+
+        background_tasks.add_task(
+            self._background_task_service.track_model_usage,
+            user_id=user_id,
+            model_id=model.id,
+            usage=resp.usage
+        )
+        return resp
 
     async def generate_response_stream(
         self,
+        user_id: UUID,
         provider: AiProvider,
         model: AiProviderModel,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptions] = None,
+        background_tasks: BackgroundTasks = None,
         **kwargs,
-    ) -> AsyncGenerator[str, None]:
-        """Generate response using the specified provider and model with streaming"""
-        async for text_chunk in self._models_provider.generate_response_stream(provider=provider, model=model, messages=messages, options=options, **kwargs):
-            yield text_chunk
-
-
-def get_inference_service(db: Session = Depends(get_db)) -> InferenceService:
-    """Get the inference service instance"""
-    return InferenceService(db)
-
-
-inference_service = Annotated[InferenceService, Depends(get_inference_service)]
+    ) -> AsyncGenerator[StreamGenerationResponse, None]:
+        usage = None
+        async for chunk in self._models_provider.generate_response_stream(
+            provider=provider,
+            model=model,
+            messages=messages,
+            options=options,
+            **kwargs,
+        ):
+            if chunk.usage:
+                usage = chunk.usage
+            yield chunk
+            
+        background_tasks.add_task(
+            self._background_task_service.track_model_usage,
+            user_id=user_id,
+            model_id=model.id,
+            usage=usage
+        )

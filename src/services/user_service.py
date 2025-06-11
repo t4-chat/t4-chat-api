@@ -1,10 +1,7 @@
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from src.storage.db import get_db
 from src.storage.models import User
 
 class UserService:
@@ -23,8 +20,3 @@ class UserService:
     
     def get_user_by_id(self, user_id: UUID) -> User:
         return self.db.query(User).filter(User.id == user_id).first()
-
-def get_user_service(db: Session = Depends(get_db)) -> UserService:
-    return UserService(db)
-
-user_service = Annotated[UserService, Depends(get_user_service)]

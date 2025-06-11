@@ -8,7 +8,8 @@ class AiProviderModel(BaseModel):
     __tablename__ = "ai_provider_models"
     __table_args__ = {"schema": "agg_ai"}
 
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False) # this is what the user sees
+    slug = Column(String, nullable=False) # this is what we need to use to call the model
 
     provider_id = Column(Integer, ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE"))
     prompt_id = Column(Integer, ForeignKey("agg_ai.prompts.id", ondelete="CASCADE"))
