@@ -29,7 +29,7 @@ class AuthService:
         except Exception as e:
             raise ValueError(f"Invalid token: {str(e)}")
 
-    def authenticate_with_google(self, google_token: str) -> str:
+    async def authenticate_with_google(self, google_token: str) -> str:
         google_user_info = self.verify_google_token(google_token)
         user = User(
             email=google_user_info["email"],
@@ -38,5 +38,5 @@ class AuthService:
             profile_image_url=google_user_info.get("picture"),
         )
 
-        user = self.user_service.create_if_not_exists(user=user)
+        user = await self.user_service.create_if_not_exists(user=user)
         return self.token_service.create_token_from_user(user=user)

@@ -10,10 +10,11 @@ class UsageTrackingService:
     def __init__(self, db: Session):
         self.db = db
 
-    def track_usage(self, user_id: UUID, model_id: int, usage: Usage):
-        existing_usage = self.db.execute(
+    async def track_usage(self, user_id: UUID, model_id: int, usage: Usage):
+        results = await self.db.execute(
             select(UsageModel).where(UsageModel.user_id == user_id, UsageModel.model_id == model_id)
-        ).scalar_one_or_none()
+        )
+        existing_usage = results.scalar_one_or_none()
 
         if existing_usage:
             # Update existing record by adding new token counts
@@ -32,4 +33,4 @@ class UsageTrackingService:
                 )
             )
 
-        self.db.commit()
+        await self.db.commit()

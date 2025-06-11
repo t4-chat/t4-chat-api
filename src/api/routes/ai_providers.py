@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from dependency_injector.wiring import inject, Provide
 
-from src.api.models.ai_provider import AiProviderResponse
+from src.api.schemas.ai_provider import AiProviderResponse
 from src.services.ai_providers.ai_provider_service import AiProviderService
 from src.containers.containers import AppContainer
 

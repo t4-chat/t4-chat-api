@@ -8,6 +8,11 @@ from src.storage.models.ai_provider import AiProvider
 from src.storage.models.ai_provider_model import AiProviderModel
 from src.config import settings
 
+# TODO:
+# - add prompt caching when supported by the model provider
+# - Citations API
+
+
 
 class ModelProvider:
     """

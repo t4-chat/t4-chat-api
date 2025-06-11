@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from typing import TypeVar, Type, Any
 
 
@@ -14,15 +14,15 @@ class SessionFactory:
     """
     
     @staticmethod
-    @contextmanager
-    def create_service_with_session(service_class: Type[T], *args: Any, **kwargs: Any) -> T:
+    @asynccontextmanager
+    async def create_service_with_session(service_class: Type[T], *args: Any, **kwargs: Any) -> T:
         """
         Create a service instance with a fresh database session.
         Handles session creation and cleanup automatically.
         
         Usage:
-            with SessionFactory.create_service_with_session(UsageTrackingService) as service:
-                service.track_usage(...)
+            async with SessionFactory.create_service_with_session(UsageTrackingService) as service:
+                await service.track_usage(...)
         
         Args:
             service_class: The service class to instantiate
@@ -31,11 +31,15 @@ class SessionFactory:
         Returns:
             An instance of the service with a fresh database session
         """
-        db = get_fresh_session()
+        db = await get_fresh_session()
         try:
             # Create the service with the fresh session
             service = service_class(db, *args, **kwargs)
             yield service
+        except Exception:
+            # Rollback transaction on error
+            await db.rollback()
+            raise
         finally:
             # Always clean up the session
-            db.close() 
+            await db.close() 

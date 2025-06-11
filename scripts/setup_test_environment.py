@@ -1,4 +1,5 @@
 import json
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -9,7 +10,8 @@ from dotenv import load_dotenv
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from src.storage.db import get_db
 from src.storage.models import AiProvider, AiProviderModel
@@ -23,7 +25,7 @@ def load_json_data(filename):
         return json.load(f)
 
 
-def setup_providers(db: Session):
+async def setup_providers(db: AsyncSession):
     """Set up AI providers and their models."""
     print("Setting up AI providers...")
     data = load_json_data("ai-providers.json")
@@ -37,7 +39,7 @@ def setup_providers(db: Session):
             is_active=provider_data["is_active"]
         )
         db.add(provider)
-        db.flush()  # Flush to get the provider ID
+        await db.flush()  # Flush to get the provider ID
 
         # Create models for the provider
         for model_data in provider_data["models"]:
@@ -50,22 +52,26 @@ def setup_providers(db: Session):
     print("AI providers setup complete.")
 
 
-def setup_test_users(db: Session):
+async def setup_test_users(db: AsyncSession):
     """Set up test users for development."""
     print("Setting up test users...")
     
     # Create main test user with fixed UUID
     test_user_id = UUID('123e4567-e89b-12d3-a456-426614174000')
-    test_user = User(
-        id=test_user_id, 
-        email="test@test.com", 
-        first_name="Test", 
-        last_name="User"
-    )
     
     # Check if user already exists
-    existing_user = db.query(User).filter(User.id == test_user_id).first()
+    result = await db.execute(
+        select(User).where(User.id == test_user_id)
+    )
+    existing_user = result.scalar_one_or_none()
+
     if not existing_user:
+        test_user = User(
+            id=test_user_id, 
+            email="test@test.com", 
+            first_name="Test", 
+            last_name="User"
+        )
         db.add(test_user)
         print(f"Created test user: {test_user.email}")
     else:
@@ -77,34 +83,34 @@ def setup_test_users(db: Session):
 
 
 # Add more setup functions as needed
-# def setup_conversations(db: Session):
+# async def setup_conversations(db: AsyncSession):
 #     """Set up test conversations."""
 #     pass
 
 
-def main():
+async def main():
     print("Setting up test environment...")
     print(f"Database URL: {settings.DATABASE_URL}")
     
     # Get database session
-    db = next(get_db())
-
-    try:
-        # Run all setup functions
-        setup_providers(db)
-        setup_test_users(db)
-        # Add more setup functions here as needed
-        # setup_conversations(db)
-        
-        # Commit all changes
-        db.commit()
-        print("Test environment setup complete!")
-    except Exception as e:
-        print(f"Error setting up test environment: {e}")
-        db.rollback()
-    finally:
-        db.close()
+    async for db in get_db():
+        try:
+            # Run all setup functions
+            await setup_providers(db)
+            await setup_test_users(db)
+            # Add more setup functions here as needed
+            # await setup_conversations(db)
+            
+            # Commit all changes
+            await db.commit()
+            print("Test environment setup complete!")
+        except Exception as e:
+            print(f"Error setting up test environment: {e}")
+            await db.rollback()
+        finally:
+            # Session is automatically closed by the async context manager in get_db
+            pass
 
 
 if __name__ == "__main__":
-    main() 
+    asyncio.run(main()) 

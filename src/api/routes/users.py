@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from dependency_injector.wiring import inject, Provide
 
-from src.api.models.users import UserResponse
+from src.api.schemas.users import UserResponse
 from src.services.user_service import UserService
 from src.containers.containers import AppContainer
 
@@ -19,5 +19,5 @@ async def get_current_user(
     user_service: UserService = Depends(Provide[AppContainer.user_service])
 ):
     user_id = request.state.user_id
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     return user
