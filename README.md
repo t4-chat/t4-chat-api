@@ -108,3 +108,8 @@ To create new database migrations:
 alembic revision --autogenerate -m "description of changes"
 alembic upgrade head
 ```
+
+To seed database with data
+```
+python scripts/setup_test_environment.py
+```

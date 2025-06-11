@@ -8,7 +8,6 @@ from src.services.inference.config import DefaultResponseGenerationOptions
 
 class ChatCompletionRequest(BaseModel):
     messages: List[dict] = []  # List of message objects with role and content
-    provider_id: int
     model_id: int
     options: Optional[DefaultResponseGenerationOptions] = None
     chat_id: Optional[UUID] = None

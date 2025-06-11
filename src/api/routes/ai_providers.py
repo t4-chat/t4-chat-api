@@ -1,9 +1,9 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from src.api.models.ai_provider import AiProviderResponse
-from src.services.ai_provider_service import ai_provider_service
+from src.services.ai_providers.ai_provider_service import ai_provider_service
 
 router = APIRouter(prefix="/api/ai-providers", tags=["ai-providers"])
 

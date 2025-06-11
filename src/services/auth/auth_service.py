@@ -38,6 +38,7 @@ class AuthService:
             email=google_user_info["email"],
             first_name=google_user_info.get("given_name"),
             last_name=google_user_info.get("family_name"),
+            profile_image_url=google_user_info.get("picture"),
         )
 
         user = self.user_service.create_if_not_exists(user=user)

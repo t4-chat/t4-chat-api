@@ -167,7 +167,6 @@ class ChatService:
         self,
         user_id: UUID,
         messages: List[dict],
-        provider_id: int,
         model_id: int,
         options: Optional[DefaultResponseGenerationOptions] = None,
         chat_id: Optional[UUID] = None,
