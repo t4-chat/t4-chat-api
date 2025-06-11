@@ -30,6 +30,7 @@ class ChatResponse(BaseModel):
     user_id: UUID
     created_at: datetime
     updated_at: datetime
+    pinned: bool
     messages: List[ChatMessageResponse] = []
 
     class Config:
@@ -39,3 +40,6 @@ class ChatResponse(BaseModel):
 class StreamChunk(BaseModel):
     type: str  # "content" or "done"
     content: Optional[str] = None
+
+class UpdateChatTitleRequest(BaseModel):
+    title: str

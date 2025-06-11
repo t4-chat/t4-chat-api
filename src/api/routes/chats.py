@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Body, Request
 from fastapi.responses import StreamingResponse
 
-from src.api.models.chat import ChatResponse, ChatCompletionRequest
+from src.api.models.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest
 from src.services.chat_service import chat_service
 
 
@@ -12,17 +12,15 @@ router = APIRouter(prefix="/api/chats", tags=["chats"])
 
 
 @router.post("/", response_model=ChatResponse)
-async def create_chat(title: str, service: chat_service):
-    # For demo, using a fixed user ID
-    user_id = UUID('123e4567-e89b-12d3-a456-426614174000')
+async def create_chat(request: Request, title: str, service: chat_service):
+    user_id = request.state.user_id
     chat = service.create_chat(user_id=user_id, title=title)
     return chat
 
 
 @router.get("/", response_model=List[ChatResponse])
-async def get_chats(service: chat_service):
-    # For demo, using a fixed user ID
-    user_id = UUID('123e4567-e89b-12d3-a456-426614174000')
+async def get_chats(request: Request, service: chat_service):
+    user_id = request.state.user_id
     return service.get_user_chats(user_id=user_id)
 
 
@@ -41,17 +39,13 @@ async def delete_chat(chat_id: UUID, service: chat_service):
         raise HTTPException(status_code=404, detail="Chat not found")
     return {"status": "success", "message": "Chat deleted"}
 
-
 @router.post("/conversation", response_class=StreamingResponse)
 async def send_message(
     request: Request,
     chat_service: chat_service,
     message: ChatCompletionRequest = Body(...)
 ):
-    # user_id = UUID('123e4567-e89b-12d3-a456-426614174000')
     user_id = request.state.user_id
-
-    # The service now handles all the SSE formatting
     return StreamingResponse(
         chat_service.chat_completion_stream(
             user_id=user_id,
@@ -63,3 +57,18 @@ async def send_message(
         ), 
         media_type="text/event-stream"
     )
+
+@router.patch("/{chat_id}/title")
+async def update_chat_title(chat_id: UUID, request: UpdateChatTitleRequest, service: chat_service):
+    chat = service.update_chat_title(chat_id=chat_id, title=request.title)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat
+
+@router.patch("/{chat_id}/pin")
+async def pin_chat(chat_id: UUID, service: chat_service):
+    chat = service.pin_chat(chat_id=chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat
+
