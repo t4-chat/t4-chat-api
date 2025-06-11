@@ -1,14 +1,15 @@
 from typing import List
 from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.api.schemas.ai_models import AiModelResponse
-
+from src.services.context import Context
 from src.storage.models import AiProviderModel
 
 
 class AiModelService:
-    def __init__(self, db: Session):
+    def __init__(self, context: Context, db: AsyncSession):
+        self.context = context
         self.db = db
 
     async def get_ai_models(self) -> List[AiProviderModel]:

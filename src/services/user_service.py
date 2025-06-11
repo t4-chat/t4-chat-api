@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from src.storage.models import User
+from src.services.context import Context
 
 class UserService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, context: Context = None, db: AsyncSession = None):
+        self.context = context
         self.db = db
     
     async def create_if_not_exists(self, user: User) -> User:

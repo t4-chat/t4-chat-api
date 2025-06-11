@@ -13,7 +13,7 @@ def get_attachment_type(content_type: str) -> str:
         return "text"
 
 
-def prepare_file(content_type: str, file_data: bytes) -> str:
+def prepare_file(content_type: str, file_data: bytes) -> dict:
     encoded_file = base64.b64encode(file_data).decode("utf-8")
     base64_url = f"data:{content_type};base64,{encoded_file}"
     attachment_type = get_attachment_type(content_type)

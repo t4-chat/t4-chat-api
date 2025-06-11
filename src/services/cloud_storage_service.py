@@ -1,54 +1,40 @@
-import os
-import json
+from contextvars import Context
+from google.cloud import storage
 
+from src.config import settings
+
+# TODO: rework to async
 class CloudStorageService:
-    def __init__(self):
-        # Create .files directory if it doesn't exist
-        os.makedirs('./.files', exist_ok=True)
+    def __init__(self, context: Context):
+        self.context = context
+
+        self.client = storage.Client()
+        self.bucket = self.client.bucket(settings.GCP_BUCKET_NAME)
 
     async def upload_file(self, path: str, contents: bytes, metadata: dict = None) -> str:
-        # Save file to .files directory
-        file_path = os.path.join('./.files', path)
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'wb') as f:
-            f.write(contents)
-        
-        # Save metadata in a sidecar file if provided
+        blob = self.bucket.blob(path)
+
+        # Upload the file contents
+        blob.upload_from_string(contents)
+
+        # Set metadata if provided
         if metadata:
-            metadata_path = f"{file_path}.meta.json"
-            with open(metadata_path, 'w') as f:
-                json.dump(metadata, f)
-            
+            blob.metadata = metadata
+            blob.patch()
+
         return path
 
-    async def get_file(self, path: str) -> bytes:
-        file_path = os.path.join('./.files', path)
-        with open(file_path, 'rb') as f:
-            return f.read()
-            
-    async def get_file_metadata(self, path: str) -> dict:
-        file_path = os.path.join('./.files', path)
-        metadata_path = f"{file_path}.meta.json"
-        try:
-            with open(metadata_path, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {}
+    async def get_file(self, path: str) -> dict:
+        blob = self.bucket.blob(path)
+        return {
+            "data": blob.download_as_bytes(),
+            "metadata": blob.metadata or {}
+        }
 
     async def delete_file(self, path: str) -> bool:
-        file_path = os.path.join('./.files', path)
-        metadata_path = f"{file_path}.meta.json"
-        
-        # Delete the metadata file if it exists
+        blob = self.bucket.blob(path)
         try:
-            os.remove(metadata_path)
-        except FileNotFoundError:
-            pass
-            
-        # Delete the main file
-        try:
-            os.remove(file_path)
+            blob.delete()
             return True
-        except FileNotFoundError:
+        except Exception:
             return False

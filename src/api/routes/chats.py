@@ -15,17 +15,15 @@ router = APIRouter(prefix="/api/chats", tags=["chats"])
 
 @router.post("/", response_model=ChatResponse)
 @inject
-async def create_chat(request: Request, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    user_id = request.state.user_id
-    chat = await service.create_chat(user_id=user_id)
+async def create_chat(service: ChatService = Depends(Provide[AppContainer.chat_service])):
+    chat = await service.create_chat()
     return chat
 
 
 @router.get("/", response_model=List[ChatListItemResponse])
 @inject
-async def get_chats(request: Request, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    user_id = request.state.user_id
-    return await service.get_user_chats(user_id=user_id)
+async def get_chats(service: ChatService = Depends(Provide[AppContainer.chat_service])):
+    return await service.get_user_chats()
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
@@ -49,15 +47,12 @@ async def delete_chat(chat_id: UUID, service: ChatService = Depends(Provide[AppC
 @router.post("/conversation", response_class=StreamingResponse)
 @inject
 async def send_message(
-    request: Request,
     message: ChatCompletionRequest = Body(...),
     chat_service: ChatService = Depends(Provide[AppContainer.chat_service]),
     background_tasks: BackgroundTasks = None,
 ):
-    user_id = request.state.user_id
     return StreamingResponse(
         chat_service.chat_completion_stream(
-            user_id=user_id,
             chat_id=message.chat_id,
             model_id=message.model_id,
             messages=message.messages,

@@ -12,10 +12,6 @@ class ChatMessage(BaseModel):
     attachments: Optional[List[str]] = None
 
 
-class ChatMessages(BaseModel):
-    messages: List[ChatMessage]
-
-
 class ChatCompletionRequest(BaseModel):
     model_id: int
     messages: List[ChatMessage]

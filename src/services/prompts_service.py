@@ -1,7 +1,10 @@
+from src.services.context import Context
+
+
 class PromptsService:
     # TODO: will connect to cloud storage
-    def __init__(self):
-        ...
+    def __init__(self, context: Context):
+        self.context = context
 
     async def get_prompt(self, prompt_path: str) -> str:
         if prompt_path == "title_generation":

@@ -1,13 +1,14 @@
 from uuid import UUID
 from litellm import Usage
-from requests import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from src.services.context import Context
 from src.storage.models.usage import Usage as UsageModel
 
 
 class UsageTrackingService:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def track_usage(self, user_id: UUID, model_id: int, usage: Usage):

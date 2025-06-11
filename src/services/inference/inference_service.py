@@ -1,9 +1,10 @@
 from typing import AsyncGenerator, Dict, List, Optional, Any
 from uuid import UUID
 
-from requests import Session
 from fastapi import BackgroundTasks
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.services.context import Context
 from src.services.inference.config import DefaultResponseGenerationOptions
 from src.services.inference.models.response_models import TextGenerationResponse, StreamGenerationResponse
 from src.services.inference.models_shared import ModelProvider
@@ -17,17 +18,18 @@ class InferenceService:
 
     def __init__(
         self, 
-        db: Session, 
+        context: Context,
+        db: AsyncSession, 
         models_provider: ModelProvider, 
         background_task_service: BackgroundTaskService
     ):
+        self._context = context
         self._db = db
         self._models_provider = models_provider
         self._background_task_service = background_task_service
 
     async def generate_response(
         self,
-        user_id: UUID,
         provider: AiProvider,
         model: AiProviderModel,
         messages: List[Dict[str, Any]],
@@ -45,7 +47,7 @@ class InferenceService:
 
         background_tasks.add_task(
             self._background_task_service.track_model_usage,
-            user_id=user_id,
+            user_id=self._context.user_id,
             model_id=model.id,
             usage=resp.usage
         )
@@ -53,7 +55,6 @@ class InferenceService:
 
     async def generate_response_stream(
         self,
-        user_id: UUID,
         provider: AiProvider,
         model: AiProviderModel,
         messages: List[Dict[str, Any]],
@@ -75,7 +76,7 @@ class InferenceService:
             
         background_tasks.add_task(
             self._background_task_service.track_model_usage,
-            user_id=user_id,
+            user_id=self._context.user_id,
             model_id=model.id,
             usage=usage
         )

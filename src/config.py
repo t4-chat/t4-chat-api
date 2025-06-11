@@ -29,7 +29,12 @@ class Settings(BaseSettings):
     # OpenTelemetry settings
     OTEL_SERVICE_NAME: str = Field("agg-ai-api", env="OTEL_SERVICE_NAME")
     OTEL_EXPORTER_OTLP_ENDPOINT: str = Field("jaeger:4317", env="OTEL_EXPORTER_OTLP_ENDPOINT")
-
+    
+    FERNET_KEY: str = Field(..., env="FERNET_KEY")
+    
+    GCP_BUCKET_NAME: str = Field("agg-ai-bucket", env="GCP_BUCKET_NAME")
+    GCP_PROJECT_ID: str = Field("dev-agg-ai", env="GCP_PROJECT_ID")
+    
     MODEL_PROVIDERS: Dict[str, ModelProviderSettings] = Field(default_factory=dict)
 
     def __init__(self, **kwargs):
