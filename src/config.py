@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5433/agg-ai"
     
+    # OpenTelemetry settings
+    OTEL_SERVICE_NAME: str = "agg-ai-api"
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "jaeger:4317"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.routes import health_checks, ai_providers, chats, inference, auth, users
 from src.api.middleware.auth import create_auth_middleware
 from src.services.auth.token_service import get_token_service
+from src.api.telemetry.otel import configure_telemetry
 from src.config import settings
 
 app = FastAPI(
@@ -11,6 +12,8 @@ app = FastAPI(
     description=settings.PROJECT_DESCRIPTION,
     version=settings.VERSION,
 )
+
+configure_telemetry(app)
 
 app.add_middleware(
     CORSMiddleware,
