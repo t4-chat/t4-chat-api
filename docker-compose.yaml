@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  agg-ai-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: agg-ai-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5433/agg-ai
+      - OTEL_SERVICE_NAME=agg-ai-api
+    depends_on:
+      - db
+      - jaeger
+    restart: unless-stopped
+    networks:
+      - agg-ai-network
+
+  db:
+    image: postgres:17
+    container_name: agg-ai-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agg-ai
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    networks:
+      - agg-ai-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC endpoint
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    networks:
+      - agg-ai-network
+
+volumes:
+  postgres_data:
+
+networks:
+  agg-ai-network:
+    driver: bridge
