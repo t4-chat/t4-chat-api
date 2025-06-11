@@ -1,9 +1,7 @@
-import os
-from typing import Optional, Generator
-from contextlib import contextmanager
+from typing import Optional, AsyncGenerator
+from contextlib import asynccontextmanager
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from src.config import settings
 
@@ -18,7 +16,10 @@ class DatabaseSession:
         if DatabaseSession._instance is not None:
             raise RuntimeError("DatabaseSession is a singleton. Use DatabaseSession.get_instance()")
 
+        # Convert the database URL to async format if it's not already
         self._database_url = settings.DATABASE_URL
+        if not self._database_url.startswith("postgresql+asyncpg://"):
+            self._database_url = self._database_url.replace("postgresql://", "postgresql+asyncpg://")
 
     @classmethod
     def get_instance(cls) -> "DatabaseSession":
@@ -28,24 +29,34 @@ class DatabaseSession:
 
     def _initialize_connection(self):
         if self._engine is None:
-            self._engine = create_engine(self._database_url)
-            self._SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
+            self._engine = create_async_engine(
+                self._database_url,
+                echo=False,
+                future=True
+            )
+            self._SessionLocal = async_sessionmaker(
+                self._engine,
+                class_=AsyncSession,
+                expire_on_commit=False,
+                autocommit=False,
+                autoflush=False
+            )
 
-    @contextmanager
-    def get_db(self) -> Generator[Session, None, None]:
+    @asynccontextmanager
+    async def get_db(self) -> AsyncGenerator[AsyncSession, None]:
         if self._SessionLocal is None:
             self._initialize_connection()
 
-        db = self._SessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+        async with self._SessionLocal() as session:
+            try:
+                yield session
+            finally:
+                await session.close()
             
-    def get_fresh_session(self) -> Session:
+    async def get_fresh_session(self) -> AsyncSession:
         """
         Create a completely new database session.
-        This is useful  for background tasks that need to operate
+        This is useful for background tasks that need to operate
         outside the request lifecycle.
         
         Note: The caller is responsible for closing this session.
@@ -55,10 +66,10 @@ class DatabaseSession:
             
         return self._SessionLocal()
 
-def get_db() -> Generator[Session, None, None]:
-    with DatabaseSession.get_instance().get_db() as session:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with DatabaseSession.get_instance().get_db() as session:
         yield session
         
-def get_fresh_session() -> Session:
-    return DatabaseSession.get_instance().get_fresh_session()
+async def get_fresh_session() -> AsyncSession:
+    return await DatabaseSession.get_instance().get_fresh_session()
 

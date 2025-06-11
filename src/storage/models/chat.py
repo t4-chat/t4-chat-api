@@ -1,7 +1,6 @@
-from datetime import UTC, datetime
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
@@ -17,8 +16,6 @@ class Chat(BaseModel):
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=True)
     pinned = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     
     messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan")
     user = relationship("User", back_populates="chats")
@@ -35,7 +32,6 @@ class ChatMessage(BaseModel):
     
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     
     chat = relationship("Chat", back_populates="messages")
     model = relationship("AiProviderModel") # we don't need have all messages that are associated with a model, so we don't have a back_populates

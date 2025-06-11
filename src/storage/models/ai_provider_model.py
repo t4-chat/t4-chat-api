@@ -12,7 +12,7 @@ class AiProviderModel(BaseModel):
     slug = Column(String, nullable=False) # this is what we need to use to call the model
 
     provider_id = Column(Integer, ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE"))
-    prompt_id = Column(Integer, ForeignKey("agg_ai.prompts.id", ondelete="CASCADE"))
+    prompt_path = Column(String, nullable=False)
 
     price_input_token = Column(Float, nullable=False)
     price_output_token = Column(Float, nullable=False)
@@ -21,4 +21,3 @@ class AiProviderModel(BaseModel):
     is_active = Column(Boolean, nullable=False, default=True)
 
     provider = relationship("AiProvider", back_populates="models")
-    prompt = relationship("Prompt", back_populates="models")
