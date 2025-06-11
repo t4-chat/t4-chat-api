@@ -12,10 +12,14 @@ services:
       - .:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:5433/agg-ai
+      - DATABASE_URL=postgresql://postgres:postgres@db:5433/agg-ai
+      - OTEL_SERVICE_NAME=agg-ai-api
     depends_on:
       - db
+      - jaeger
     restart: unless-stopped
+    networks:
+      - agg-ai-network
 
   db:
     image: postgres:17
@@ -29,6 +33,24 @@ services:
     ports:
       - "5433:5432"
     restart: unless-stopped
+    networks:
+      - agg-ai-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC endpoint
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    networks:
+      - agg-ai-network
 
 volumes:
   postgres_data:
+
+networks:
+  agg-ai-network:
+    driver: bridge

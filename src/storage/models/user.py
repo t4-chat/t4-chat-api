@@ -1,4 +1,3 @@
-
 import uuid
 
 from sqlalchemy import Column, String
@@ -15,5 +14,6 @@ class User(BaseModel):
     email = Column(String, nullable=False, unique=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
+    profile_image_url = Column(String, nullable=True)
 
     chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan")

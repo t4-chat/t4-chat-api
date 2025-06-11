@@ -50,7 +50,6 @@ async def send_message(
         chat_service.chat_completion_stream(
             user_id=user_id,
             messages=message.messages,
-            provider_id=message.provider_id,
             model_id=message.model_id,
             options=message.options,
             chat_id=message.chat_id,
