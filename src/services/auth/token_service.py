@@ -1,8 +1,6 @@
-import os
 from datetime import datetime, timedelta, UTC
-from fastapi import Depends
 import jwt
-from typing import Annotated, Dict, Any, Optional
+from typing import Dict, Any, Optional
 import uuid
 
 from src.storage.models.user import User
@@ -45,9 +43,3 @@ class TokenService:
             return uuid.UUID(payload["sub"])
         except ValueError:
             return None
-
-
-def get_token_service() -> TokenService:
-    return TokenService()
-
-token_service = Annotated[TokenService, Depends(get_token_service)]

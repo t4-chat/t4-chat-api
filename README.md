@@ -18,7 +18,7 @@ cd agg-ai-api
 
 2. Create and activate a Conda environment:
 ```bash
-conda create -n agg-ai-api python=3.8
+conda create -n agg-ai-api python=3.11
 conda activate agg-ai-api
 ```
 

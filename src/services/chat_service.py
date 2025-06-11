@@ -1,16 +1,16 @@
 import asyncio
 import json
-from typing import Annotated, AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy.orm import Session
+from fastapi import BackgroundTasks
 
 from src.config import settings
 from src.services.errors.errors import NotFoundError
 from src.services.inference import InferenceService
 from src.services.inference.config import DefaultResponseGenerationOptions
-from src.services.inference.inference_service import get_inference_service
+from src.services.inference.models.response_models import StreamGenerationResponse, TextGenerationResponse
 from src.storage.db import get_db
 from src.storage.models import Chat, ChatMessage
 from src.storage.models.ai_provider import AiProvider
@@ -18,8 +18,6 @@ from src.storage.models.ai_provider_model import AiProviderModel
 
 
 class ChatService:
-    """Service for handling chat operations"""
-
     def __init__(self, db: Session, inference_service: InferenceService):
         self.db = db
         self.inference_service = inference_service
@@ -42,10 +40,12 @@ class ChatService:
 
     def get_model_by_path(self, path: str) -> Optional[AiProviderModel]:
         provider_slug, model_name = path.split("/")
-        return self.db.query(AiProviderModel).join(AiProviderModel.provider).filter(
-            AiProvider.slug == provider_slug,
-            AiProviderModel.name == model_name
-        ).first()
+        return (
+            self.db.query(AiProviderModel)
+            .join(AiProviderModel.provider)
+            .filter(AiProvider.slug == provider_slug, AiProviderModel.name == model_name)
+            .first()
+        )
 
     def get_provider(self, provider_id: int) -> Optional[AiProvider]:
         return self.db.query(AiProvider).filter(AiProvider.id == provider_id).first()
@@ -79,7 +79,7 @@ class ChatService:
         self.db.delete(chat)
         self.db.commit()
         return True
-    
+
     def update_chat_title(self, chat_id: UUID, title: str):
         chat = self.get_chat(chat_id)
         if not chat:
@@ -89,7 +89,7 @@ class ChatService:
         self.db.commit()
         self.db.refresh(chat)
         return chat
-    
+
     def pin_chat(self, chat_id: UUID):
         chat = self.get_chat(chat_id)
         if not chat:
@@ -106,13 +106,31 @@ class ChatService:
         else:
             return "You are a helpful assistant that can answer questions and help with tasks."  # TODO: not sure if we should handle this here, or on the database level
 
-    async def _generate_completion(self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None) -> str:
-        return await self.inference_service.generate_response(provider=provider, model=model, messages=messages, options=options)
+    async def _generate_completion(
+        self,
+        user_id: UUID,
+        provider: AiProvider,
+        model: AiProviderModel,
+        messages: List[dict],
+        options: Optional[DefaultResponseGenerationOptions] = None,
+        background_tasks: BackgroundTasks = None,
+    ) -> TextGenerationResponse:
+        return await self.inference_service.generate_response(
+            user_id=user_id, provider=provider, model=model, messages=messages, options=options, background_tasks=background_tasks
+        )
 
     async def _generate_completion_stream(
-        self, provider: AiProvider, model: AiProviderModel, messages: List[dict], options: Optional[DefaultResponseGenerationOptions] = None
-    ) -> AsyncGenerator[str, None]:
-        async for chunk in self.inference_service.generate_response_stream(provider=provider, model=model, messages=messages, options=options):
+        self,
+        user_id: UUID,
+        provider: AiProvider,
+        model: AiProviderModel,
+        messages: List[dict],
+        options: Optional[DefaultResponseGenerationOptions] = None,
+        background_tasks: BackgroundTasks = None,
+    ) -> AsyncGenerator[StreamGenerationResponse, None]:
+        async for chunk in self.inference_service.generate_response_stream(
+            user_id=user_id, provider=provider, model=model, messages=messages, options=options, background_tasks=background_tasks
+        ):
             yield chunk
 
     # TODO: remove?
@@ -142,27 +160,29 @@ class ChatService:
             if content:  # Skip empty messages
                 self.add_message(chat_id=chat_id, role=role, content=content, model_id=model_id)
 
-    async def _generate_chat_title(self, messages: List[dict]) -> None:
+    async def _generate_chat_title(self, user_id: UUID, messages: List[dict], background_tasks: BackgroundTasks = None) -> str:
         model = self.get_model_by_path(settings.TITLE_GENERATION_MODEL)
 
         messages = [
             {
                 "role": "system",
-                "content": "Generate a concise and engaging title that summarizes the main topic or theme of the conversation between a user and an AI (or just the user question). The title should be clear, relevant, and attention-grabbing, ideally no longer than 8 words. Consider the key points, questions, or issues discussed in the conversation.",
+                "content": "Generate a concise and engaging title that summarizes the main topic or theme of the conversation between a user and an AI (or just the user question). The title should be clear, relevant, and attention-grabbing, ideally no longer than 3-4 words. Consider the key points, questions, or issues discussed in the conversation.",
             },
             *messages,
         ]
 
         # Generate title
-        title = await self._generate_completion(provider=model.provider, model=model, messages=messages)
-        return title.strip()
-    
+        title = await self._generate_completion(
+            user_id=user_id, provider=model.provider, model=model, messages=messages, background_tasks=background_tasks
+        )
+        return title.text.strip()
+
     def get_chat_title(self, chat_id: UUID) -> Optional[str]:
         chat = self.get_chat(chat_id)
         if not chat:
             return None
         return chat.title
-    
+
     async def chat_completion_stream(
         self,
         user_id: UUID,
@@ -170,9 +190,10 @@ class ChatService:
         model_id: int,
         options: Optional[DefaultResponseGenerationOptions] = None,
         chat_id: Optional[UUID] = None,
+        background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
         if not chat_id:
-            title = await self._generate_chat_title(messages=messages)
+            title = await self._generate_chat_title(user_id=user_id, messages=messages, background_tasks=background_tasks)
             chat = self.create_chat(user_id=user_id, title=title)
             chat_id = chat.id
         else:
@@ -202,9 +223,11 @@ class ChatService:
         ] + messages  # we don't want to expose the system prompt to the user, so we add it to the beginning of the message history
 
         assistant_content = ""
-        async for chunk in self._generate_completion_stream(provider=provider, model=model, messages=messages, options=options):
-            assistant_content += chunk
-            content_metadata = {"type": "text", "text": chunk}
+        async for chunk in self._generate_completion_stream(
+            user_id=user_id, provider=provider, model=model, messages=messages, options=options, background_tasks=background_tasks
+        ):
+            assistant_content += chunk.text
+            content_metadata = {"type": "text", "text": chunk.text}
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
             # TODO: do we also want to save intermediate messages to the db?
 
@@ -241,10 +264,3 @@ class ChatService:
         for part in response_parts:
             yield part
             await asyncio.sleep(0.5)  # Add delay between chunks
-
-
-def get_chat_service(db: Session = Depends(get_db), inference_service=Depends(get_inference_service)) -> ChatService:
-    return ChatService(db=db, inference_service=inference_service)
-
-
-chat_service = Annotated[ChatService, Depends(get_chat_service)]

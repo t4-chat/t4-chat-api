@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from dependency_injector.wiring import inject, Provide
 
 from src.api.models.auth import GoogleAuthRequest, TokenResponse
-from src.services.auth.auth_service import auth_service
+from src.services.auth.auth_service import AuthService
+from src.containers.containers import AppContainer
 
 router = APIRouter(
     prefix="/api/auth",
@@ -10,7 +12,11 @@ router = APIRouter(
 
 
 @router.post("/google", response_model=TokenResponse)
-async def google_login(request: GoogleAuthRequest, auth_service: auth_service):
+@inject
+async def google_login(
+    request: GoogleAuthRequest, 
+    auth_service: AuthService = Depends(Provide[AppContainer.auth_service])
+):
     try:
         token = auth_service.authenticate_with_google(request.token)
         return TokenResponse(access_token=token)

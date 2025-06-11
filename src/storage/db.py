@@ -41,8 +41,24 @@ class DatabaseSession:
             yield db
         finally:
             db.close()
-
+            
+    def get_fresh_session(self) -> Session:
+        """
+        Create a completely new database session.
+        This is useful  for background tasks that need to operate
+        outside the request lifecycle.
+        
+        Note: The caller is responsible for closing this session.
+        """
+        if self._SessionLocal is None:
+            self._initialize_connection()
+            
+        return self._SessionLocal()
 
 def get_db() -> Generator[Session, None, None]:
     with DatabaseSession.get_instance().get_db() as session:
         yield session
+        
+def get_fresh_session() -> Session:
+    return DatabaseSession.get_instance().get_fresh_session()
+
