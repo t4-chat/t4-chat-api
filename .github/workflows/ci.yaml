@@ -97,3 +97,25 @@ jobs:
           echo "Image pushed to ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}"
           echo "Environment: ${{ env.env }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+      
+      # Update Cloud Run service with new image (only if not a PR)
+      - name: Update Cloud Run service with new image
+        if: ${{ github.event_name != 'pull_request' }}
+        id: update
+        run: |
+          # Only update the image of the existing Cloud Run service created by Terraform
+          gcloud run services update ${{ env.env }}-${{ github.event.repository.name }} \
+            --region=${{ env.GAR_LOCATION }} \
+            --image=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.env }} \
+            --project=${{ env.PROJECT_ID }}
+          
+          # Get the URL of the service
+          CLOUD_RUN_URL=$(gcloud run services describe ${{ env.env }}-${{ github.event.repository.name }} --region=${{ env.GAR_LOCATION }} --project=${{ env.PROJECT_ID }} --format="value(status.url)")
+          echo "url=$CLOUD_RUN_URL" >> $GITHUB_OUTPUT
+      
+      # Output the Cloud Run URL
+      - name: Show Cloud Run URL
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "Updated Cloud Run service at: ${{ steps.update.outputs.url }}"
+          echo "Note: This service requires authentication to access (not publicly accessible)"
