@@ -16,27 +16,36 @@ jobs:
       id-token: write
 
     steps:
-      - name: Set environment based on branch
-        id: set-env
+      - name: Determine environment
+        id: env-step
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            echo "env=prd" >> $GITHUB_ENV
-            echo "ENV_UPPERCASE=PRD" >> $GITHUB_ENV
+            echo "env=prd" >> $GITHUB_OUTPUT
+            echo "env_uppercase=PRD" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "env=stg" >> $GITHUB_ENV
-            echo "ENV_UPPERCASE=STG" >> $GITHUB_ENV
+            echo "env=stg" >> $GITHUB_OUTPUT
+            echo "env_uppercase=STG" >> $GITHUB_OUTPUT
           else
-            echo "env=dev" >> $GITHUB_ENV
-            echo "ENV_UPPERCASE=DEV" >> $GITHUB_ENV
+            echo "env=dev" >> $GITHUB_OUTPUT
+            echo "env_uppercase=DEV" >> $GITHUB_OUTPUT
           fi
+      
+      - name: Set environment variables
+        run: |
+          # First set base environment variables
+          echo "env=${{ steps.env-step.outputs.env }}" >> $GITHUB_ENV
+          echo "ENV_UPPERCASE=${{ steps.env-step.outputs.env_uppercase }}" >> $GITHUB_ENV
           
-          # Set GCP variables based on environment
-          echo "GAR_LOCATION=${{ secrets[format('{0}_GAR_LOCATION', env.ENV_UPPERCASE)] }}" >> $GITHUB_ENV
-          echo "PROJECT_ID=${{ secrets[format('{0}_GCP_PROJECT_ID', env.ENV_UPPERCASE)] }}" >> $GITHUB_ENV
-          echo "REPOSITORY=${{ secrets[format('{0}_GAR_REPOSITORY', env.ENV_UPPERCASE)] }}" >> $GITHUB_ENV
+          # Wait for env vars to be available 
+          sleep 1
+          
+          # Now set derived variables based on the environment
+          echo "GAR_LOCATION=${{ secrets[format('{0}_GAR_LOCATION', steps.env-step.outputs.env_uppercase)] }}" >> $GITHUB_ENV
+          echo "PROJECT_ID=${{ secrets[format('{0}_GCP_PROJECT_ID', steps.env-step.outputs.env_uppercase)] }}" >> $GITHUB_ENV
+          echo "REPOSITORY=${{ secrets[format('{0}_GAR_REPOSITORY', steps.env-step.outputs.env_uppercase)] }}" >> $GITHUB_ENV
           echo "IMAGE_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-          echo "WORKLOAD_IDENTITY_PROVIDER=${{ secrets[format('{0}_GCP_WORKLOAD_IDENTITY_PROVIDER', env.ENV_UPPERCASE)] }}" >> $GITHUB_ENV
-          echo "SERVICE_ACCOUNT=${{ secrets[format('{0}_GCP_SERVICE_ACCOUNT', env.ENV_UPPERCASE)] }}" >> $GITHUB_ENV
+          echo "WORKLOAD_IDENTITY_PROVIDER=${{ secrets[format('{0}_GCP_WORKLOAD_IDENTITY_PROVIDER', steps.env-step.outputs.env_uppercase)] }}" >> $GITHUB_ENV
+          echo "SERVICE_ACCOUNT=${{ secrets[format('{0}_GCP_SERVICE_ACCOUNT', steps.env-step.outputs.env_uppercase)] }}" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,6 +53,9 @@ jobs:
       - name: Show Environment Info
         run: |
           echo "Using environment: ${{ env.env }}"
+          echo "GCP Project: ${{ env.PROJECT_ID }}"
+          echo "GAR Location: ${{ env.GAR_LOCATION }}"
+          echo "Repository: ${{ env.REPOSITORY }}"
 
       # Setup Docker Buildx for multi-platform builds
       - name: Set up Docker Buildx
