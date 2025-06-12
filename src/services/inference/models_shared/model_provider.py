@@ -39,7 +39,6 @@ class ModelProvider:
         **kwargs,
     ) -> Tuple[Optional[TextGenerationResponse], Optional[Exception]]:
         try:
-            self.logger.info(f"Generating response for {provider.slug}/{model.slug}. Current cost: {litellm._current_cost}/{litellm.max_budget}")
             response = await acompletion(
                 model=f"{provider.slug}/{model.slug}",
                 messages=messages,
@@ -75,7 +74,6 @@ class ModelProvider:
         or, in case of an error, yield a single Exception object and then stop.
         """
         try:
-            self.logger.info(f"Generating response for {provider.slug}/{model.slug}. Current cost: {litellm._current_cost}/{litellm.max_budget}")
             response = await acompletion(
                 model=f"{provider.slug}/{model.slug}",
                 messages=messages,
@@ -104,19 +102,9 @@ class ModelProvider:
             raise e
 
     async def count_tokens(self, messages: List[Dict[str, Any]], provider: AiProvider, model: AiProviderModel) -> int:
-        try:
-            return await token_counter(
-                model=f"{provider.slug}/{model.slug}",
-                messages=messages,
-                api_key=settings.MODEL_PROVIDERS[provider.slug].api_key,
-            )
-        except litellm.BudgetExceededError as e:
-            raise BudgetExceededError(e)
-        except Exception as e:
-            self.logger.error(f"Error in count_tokens: {str(e)}")
-            self.logger.error(traceback.format_exc())
-            raise e
+        return token_counter(model=f"{provider.slug}/{model.slug}", messages=messages)
 
     async def cost_per_token(self, model: AiProviderModel, usage: Usage) -> float:
-        prompt_tokens_cost_usd, completion_tokens_cost_usd = litellm.cost_per_token(model=f"{model.provider.slug}/{model.slug}", prompt_tokens=usage.prompt_tokens, completion_tokens=usage.completion_tokens)
+        prompt_tokens_cost_usd = model.price_input_token * usage.prompt_tokens
+        completion_tokens_cost_usd = model.price_output_token * usage.completion_tokens
         return prompt_tokens_cost_usd + completion_tokens_cost_usd

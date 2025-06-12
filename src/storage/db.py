@@ -20,8 +20,7 @@ def _get_session_maker():
             _engine,
             class_=AsyncSession,
             expire_on_commit=False,
-            autocommit=False,
-            autoflush=False
+            autoflush=True
         )
     return _SessionLocal
 

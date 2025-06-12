@@ -11,14 +11,15 @@ class BudgetService:
         self.context = context
         self.db = db
 
-    async def add_usage(self, usage: float) -> None:
+    async def add_usage(self, cost: float) -> None:
         results = await self.db.execute(select(Budget).order_by(Budget.created_at.desc()).limit(1))
         budget = results.scalar_one_or_none()
         if not budget:
             raise NotFoundError("Budget", "No budget found")
 
-        budget.usage += usage
+        budget.usage += cost
         await self.db.commit()
+        await self.db.refresh(budget)
 
         if budget.usage > budget.budget:
             raise BudgetExceededError("Budget exceeded")

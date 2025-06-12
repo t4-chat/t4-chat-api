@@ -38,7 +38,7 @@ class LimitsService:
         self.ai_model_service = ai_model_service
         self.user_service = user_service
         self.model_provider = model_provider
-        
+
     async def get_limits(self) -> List[LimitResponse]:
         results = await self.db.execute(select(Limits).join(Limits.user_groups).join(User, User.group_name == UserGroup.name).where(User.id == self.context.user_id))
         return [LimitResponse.model_validate(limit) for limit in results.scalars().all()]

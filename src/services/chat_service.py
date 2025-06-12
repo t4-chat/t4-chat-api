@@ -2,11 +2,10 @@ import asyncio
 import json
 import traceback
 import functools
-from typing import Any, AsyncGenerator, Dict, List, Optional, Callable
+from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
 from fastapi import BackgroundTasks
-import litellm
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -24,7 +23,6 @@ from src.services.inference.models.response_models import StreamGenerationRespon
 from src.services.prompts_service import PromptsService
 from src.storage.models import Chat, ChatMessage
 from src.storage.models.ai_provider import AiProvider
-from src.storage.models.usage import Usage
 from src.storage.models.ai_provider_model import AiProviderModel
 from src.logging.logging_config import get_logger
 
@@ -108,9 +106,11 @@ class ChatService:
 
     async def create_chat(self, title: Optional[str] = None) -> Chat:
         chat = Chat(user_id=self.context.user_id, title=title)
+
         self.db.add(chat)
-        await self.db.commit()
         await self.db.refresh(chat)
+        await self.db.commit()
+            
         return chat
 
     async def get_chat(self, chat_id: UUID) -> Optional[Chat]:
@@ -308,7 +308,7 @@ class ChatService:
             if message.attachments:
                 for attachment_id in message.attachments:
                     file_content = await self.files_service.get_file(attachment_id)
-                    content.append(utils.prepare_file(file_content["metadata"]["content_type"], file_content["data"]))
+                    content.append(utils.prepare_file(file_content.content_type, file_content.data))
 
             model_messages.append({"role": message.role, "content": content})
 

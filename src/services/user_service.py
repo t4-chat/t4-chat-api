@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.storage.models import User
-from src.storage.models.user_group import UserGroup
 from src.utils.enums import UserGroupName
 from src.services.context import Context
 

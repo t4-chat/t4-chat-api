@@ -1,0 +1,50 @@
+{
+  "providers": [
+    {
+      "name": "OpenAI",
+      "slug": "openai",
+      "base_url": "https://api.openai.com/v1",
+      "is_active": true,
+      "models": [
+        {
+          "id": 1,
+          "name": "gpt-4o",
+          "slug": "gpt-4o",
+          "is_active": true,
+          "price_input_token": 0.00003,
+          "price_output_token": 0.00006,
+          "context_length": 8192,
+          "prompt_path": "default"
+        },
+        {
+          "id": 2,
+          "name": "gpt-4o-mini",
+          "slug": "gpt-4o-mini",
+          "is_active": true,
+          "price_input_token": 0.0000015,
+          "price_output_token": 0.000006,
+          "context_length": 8192,
+          "prompt_path": "default"
+        }
+      ]
+    },
+    {
+      "name": "Anthropic",
+      "slug": "anthropic",
+      "base_url": "https://api.anthropic.com/v1",
+      "is_active": true,
+      "models": [
+        {
+          "id": 3,
+          "name": "claude-3-7-sonnet",
+          "slug": "claude-3-7-sonnet-20250219",
+          "is_active": true,
+          "price_input_token": 0.00003,
+          "price_output_token": 0.00015,
+          "context_length": 200000,
+          "prompt_path": "default"
+        }
+      ]
+    }
+  ]
+} 

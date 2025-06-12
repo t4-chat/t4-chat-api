@@ -22,4 +22,4 @@ async def check_budget(
             db=db
         )
         await budget_service.check_budget()
-    return True 
+    return True

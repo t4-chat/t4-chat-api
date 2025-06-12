@@ -18,5 +18,4 @@ class Context:
 
     @property
     def is_authenticated(self) -> bool:
-        """Check if the user is authenticated."""
         return self.user_id is not None
