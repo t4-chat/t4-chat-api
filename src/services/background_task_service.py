@@ -1,6 +1,7 @@
 from uuid import UUID
 from litellm import Usage
 
+from src.services.context import Context
 from src.services.usage_tracking_service import UsageTrackingService
 from src.services.session_factory import SessionFactory
 from src.logging.logging_config import get_logger
@@ -14,8 +15,8 @@ class BackgroundTaskService:
     This service uses SessionFactory to create services with fresh sessions.
     """
     
-    def __init__(self):
-        pass
+    def __init__(self, context: Context):
+        self.context = context
         
     async def track_model_usage(self, user_id: UUID, model_id: int, usage: Usage):
         try:

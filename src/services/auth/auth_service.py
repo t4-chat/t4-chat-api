@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.user_service import UserService
 from src.storage.models.user import User
@@ -10,7 +10,7 @@ from src.services.auth.token_service import TokenService
 from src.config import settings
 
 class AuthService:
-    def __init__(self, db: Session, token_service: TokenService, user_service: UserService):
+    def __init__(self, db: AsyncSession, token_service: TokenService, user_service: UserService):
         self.db = db
         self.token_service = token_service
         self.user_service = user_service

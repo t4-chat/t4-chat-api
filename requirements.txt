@@ -38,3 +38,5 @@ dependency-injector==4.46.0
 asyncpg==0.30.0
 SQLAlchemy[asyncio]==2.0.40
 python-multipart==0.0.20
+cryptography==44.0.2
+google-cloud-storage==3.1.0

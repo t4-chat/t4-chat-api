@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logging
 
 from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models, files
 from src.api.middleware.auth import create_auth_middleware
+from src.api.middleware.context import ContextMiddleware
+from src.api.middleware.errors import ErrorHandlingMiddleware
 from src.containers.containers import AppContainer
 from src.logging.logging_config import configure_logging, get_logger
 
@@ -29,6 +30,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Middleware is executed in reverse order of registration
+# (last registered = first executed)
+app.add_middleware(ErrorHandlingMiddleware)
+app.add_middleware(ContextMiddleware, container=container)  # This middleware sets the context in the container
 app.middleware("http")(create_auth_middleware(container.token_service()))
 
 app.include_router(health_checks.router)

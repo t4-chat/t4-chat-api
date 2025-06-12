@@ -9,6 +9,7 @@ from src.services.auth.token_service import TokenService
 from src.services.background_task_service import BackgroundTaskService
 from src.services.chat_service import ChatService
 from src.services.cloud_storage_service import CloudStorageService
+from src.services.context import Context
 from src.services.files_service import FilesService
 from src.services.inference.inference_service import InferenceService
 from src.services.inference.models_shared.model_provider import ModelProvider
@@ -37,30 +38,33 @@ class AppContainer(containers.DeclarativeContainer):
     # Resources
     db = db_provider
 
+    # Context - this is overridden by the ContextMiddleware for each request
+    context = providers.Dependency(Context)
+
     # Model provider
-    model_provider = providers.Factory(ModelProvider)
+    model_provider = providers.Factory(ModelProvider, context=context)
 
     # Services
-    cloud_storage_service = providers.Factory(CloudStorageService)
-    
+    cloud_storage_service = providers.Factory(CloudStorageService, context=context)
+
+    prompts_service = providers.Factory(PromptsService, context=context)
+
+    files_service = providers.Factory(FilesService, context=context, cloud_storage_service=cloud_storage_service, db=db)
+
     token_service = providers.Factory(TokenService)
 
-    prompts_service = providers.Factory(PromptsService)
+    user_service = providers.Factory(UserService, context=context, db=db)
 
-    user_service = providers.Factory(UserService, db=db)
-
-    files_service = providers.Factory(FilesService, cloud_storage_service=cloud_storage_service)
-
-    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)
+    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)  # doesn't need context
 
     usage_tracking_service = providers.Factory(UsageTrackingService, db=db)
 
-    background_task_service = providers.Singleton(BackgroundTaskService)
+    background_task_service = providers.Singleton(BackgroundTaskService, context=context)
 
-    inference_service = providers.Factory(InferenceService, db=db, models_provider=model_provider, background_task_service=background_task_service)
+    inference_service = providers.Factory(InferenceService, context=context, db=db, models_provider=model_provider, background_task_service=background_task_service)
 
-    chat_service = providers.Factory(ChatService, db=db, inference_service=inference_service, prompts_service=prompts_service, files_service=files_service)
+    chat_service = providers.Factory(ChatService, context=context, db=db, inference_service=inference_service, prompts_service=prompts_service, files_service=files_service)
 
-    ai_provider_service = providers.Factory(AiProviderService, db=db)
+    ai_provider_service = providers.Factory(AiProviderService, context=context, db=db)
 
-    ai_model_service = providers.Factory(AiModelService, db=db)
+    ai_model_service = providers.Factory(AiModelService, context=context, db=db)

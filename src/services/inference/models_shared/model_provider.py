@@ -2,6 +2,7 @@ from typing import Optional, Any, AsyncGenerator, List, Dict
 
 from litellm import acompletion
 
+from src.services.context import Context
 from src.services.inference.config.text_options import DefaultResponseGenerationOptions
 from src.services.inference.models.response_models import TextGenerationResponse, StreamGenerationResponse, Usage
 from src.storage.models.ai_provider import AiProvider
@@ -20,6 +21,8 @@ class ModelProvider:
     Here we can have different implementations for different model providers.
     For now we will just use litellm, but we can add more implementations in the future.
     """
+    def __init__(self, context: Context):
+        self.context = context
 
     async def generate_response(
         self,

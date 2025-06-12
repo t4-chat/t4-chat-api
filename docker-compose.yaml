@@ -17,6 +17,7 @@ services:
     depends_on:
       - db
       - jaeger
+      - gcp-storage-emulator
     restart: unless-stopped
     networks:
       - agg-ai-network
@@ -48,8 +49,21 @@ services:
     networks:
       - agg-ai-network
 
+  gcp-storage-emulator:
+    image: oittaa/gcp-storage-emulator:latest
+    container_name: gcp-storage-emulator
+    ports:
+      - "4443:8080"  # Storage API port
+    volumes:
+      - gcp_storage_data:/storage
+    restart: unless-stopped
+    networks:
+      - agg-ai-network
+    command: ["start", "--default-bucket=agg-ai-bucket"]
+
 volumes:
   postgres_data:
+  gcp_storage_data:
 
 networks:
   agg-ai-network:

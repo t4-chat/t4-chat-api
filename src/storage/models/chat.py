@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
@@ -32,6 +32,7 @@ class ChatMessage(BaseModel):
     
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
+    attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)
     
     chat = relationship("Chat", back_populates="messages")
     model = relationship("AiProviderModel") # we don't need have all messages that are associated with a model, so we don't have a back_populates
