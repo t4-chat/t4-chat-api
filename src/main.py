@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.middleware.db_session import db_session_middleware
+from src.api.middleware.db_session import db_session_middleware
 
-from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models, files
+from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models, files, utilization
 from src.api.middleware.auth import create_auth_middleware
 from src.api.middleware.context import create_context_middleware
 from src.api.middleware.errors import error_handling_middleware
@@ -29,9 +29,9 @@ def create_app():
         allow_headers=["*"],
     )
 
-    app.middleware("http")(db_session_middleware)
     app.middleware("http")(create_context_middleware(container))
     app.middleware("http")(create_auth_middleware(container.token_service()))
+    app.middleware("http")(db_session_middleware)
     app.middleware("http")(error_handling_middleware)
 
     app.include_router(health_checks.router)
@@ -41,6 +41,7 @@ def create_app():
     app.include_router(users.router)
     app.include_router(ai_models.router)
     app.include_router(files.router)
+    app.include_router(utilization.router)
 
     app.container = container
     

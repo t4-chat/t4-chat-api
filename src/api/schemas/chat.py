@@ -5,29 +5,27 @@ from pydantic import BaseModel
 
 from src.services.inference.config import DefaultResponseGenerationOptions
 
-
-class ChatMessage(BaseModel):
+class ChatMessageRequest(BaseModel):
     role: Literal["user", "assistant"]
     content: str
-    attachments: Optional[List[str]] = None
-
-
-class ChatCompletionRequest(BaseModel):
-    model_id: int
-    messages: List[ChatMessage]
-
-    chat_id: Optional[UUID] = None
-    options: Optional[DefaultResponseGenerationOptions] = None
-
+    attachments: Optional[List[UUID]] = None
 
 class ChatMessageResponse(BaseModel):
     id: UUID
-    role: str
+    role: Literal["user", "assistant"]
     content: str
+    attachments: Optional[List[UUID]] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+class ChatCompletionRequest(BaseModel):
+    model_id: int
+    messages: List[ChatMessageRequest]
+
+    chat_id: Optional[UUID] = None
+    options: Optional[DefaultResponseGenerationOptions] = None
 
 
 class ChatListItemResponse(BaseModel):

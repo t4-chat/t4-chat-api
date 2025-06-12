@@ -2,7 +2,7 @@ import traceback
 from typing import Callable
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
-from src.services.errors.errors import NotFoundError, ForbiddenError
+from src.services.errors.errors import NotFoundError, ForbiddenError, BudgetExceededError
 from src.logging.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -19,6 +19,11 @@ async def error_handling_middleware(request: Request, call_next: Callable):
     except ForbiddenError as e:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
+            content={"detail": str(e)}
+        )
+    except BudgetExceededError as e:
+        return JSONResponse(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
             content={"detail": str(e)}
         )
     except Exception as e:

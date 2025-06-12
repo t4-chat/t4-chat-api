@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,3 +15,7 @@ class AiProviderService:
     async def get_ai_providers(self) -> List[AiProvider]:
         result = await self.db.execute(select(AiProvider))
         return result.scalars().all()
+
+    async def get_provider(self, provider_id: int) -> Optional[AiProvider]:
+        results = await self.db.execute(select(AiProvider).filter(AiProvider.id == provider_id))
+        return results.scalar_one_or_none()

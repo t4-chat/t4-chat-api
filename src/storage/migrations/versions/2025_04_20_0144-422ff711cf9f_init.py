@@ -1,8 +1,8 @@
-"""initial_migration
+"""init
 
-Revision ID: d5e0526ee18b
+Revision ID: 422ff711cf9f
 Revises: 
-Create Date: 2025-04-10 22:45:02.221171-05:00
+Create Date: 2025-04-20 01:44:00.142467-05:00
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd5e0526ee18b'
+revision: str = '422ff711cf9f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -33,16 +33,22 @@ def upgrade() -> None:
     schema='agg_ai'
     )
     op.create_index(op.f('ix_agg_ai_ai_providers_id'), 'ai_providers', ['id'], unique=False, schema='agg_ai')
-    op.create_table('users',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('email', sa.String(), nullable=False),
-    sa.Column('first_name', sa.String(), nullable=True),
-    sa.Column('last_name', sa.String(), nullable=True),
-    sa.Column('profile_image_url', sa.String(), nullable=True),
+    op.create_table('budget',
+    sa.Column('budget', sa.Float(), nullable=False),
+    sa.Column('usage', sa.Float(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
+    schema='agg_ai'
+    )
+    op.create_index(op.f('ix_agg_ai_budget_id'), 'budget', ['id'], unique=False, schema='agg_ai')
+    op.create_table('user_group',
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('type', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.PrimaryKeyConstraint('name'),
     schema='agg_ai'
     )
     op.create_table('ai_provider_models',
@@ -62,6 +68,20 @@ def upgrade() -> None:
     schema='agg_ai'
     )
     op.create_index(op.f('ix_agg_ai_ai_provider_models_id'), 'ai_provider_models', ['id'], unique=False, schema='agg_ai')
+    op.create_table('users',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('group_name', sa.String(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('first_name', sa.String(), nullable=True),
+    sa.Column('last_name', sa.String(), nullable=True),
+    sa.Column('profile_image_url', sa.String(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['group_name'], ['agg_ai.user_group.name'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
+    schema='agg_ai'
+    )
     op.create_table('chats',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
@@ -70,6 +90,16 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['agg_ai.users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    schema='agg_ai'
+    )
+    op.create_table('limits',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('model_id', sa.Integer(), nullable=True),
+    sa.Column('max_tokens', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['model_id'], ['agg_ai.ai_provider_models.id'], ),
     sa.PrimaryKeyConstraint('id'),
     schema='agg_ai'
     )
@@ -87,6 +117,18 @@ def upgrade() -> None:
     schema='agg_ai'
     )
     op.create_index(op.f('ix_agg_ai_resources_id'), 'resources', ['id'], unique=False, schema='agg_ai')
+    op.create_table('usage',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.UUID(), nullable=True),
+    sa.Column('model_id', sa.Integer(), nullable=True),
+    sa.Column('prompt_tokens', sa.Integer(), nullable=True),
+    sa.Column('completion_tokens', sa.Integer(), nullable=True),
+    sa.Column('total_tokens', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['model_id'], ['agg_ai.ai_provider_models.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['agg_ai.users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    schema='agg_ai'
+    )
     op.create_table('chat_messages',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('chat_id', sa.UUID(), nullable=False),
@@ -101,16 +143,16 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     schema='agg_ai'
     )
-    op.create_table('usage',
+    op.create_table('user_group_limits',
     sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('user_id', sa.UUID(), nullable=True),
-    sa.Column('model_id', sa.Integer(), nullable=True),
-    sa.Column('prompt_tokens', sa.Integer(), nullable=True),
-    sa.Column('completion_tokens', sa.Integer(), nullable=True),
-    sa.Column('total_tokens', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['model_id'], ['agg_ai.ai_provider_models.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['agg_ai.users.id'], ),
+    sa.Column('user_group_name', sa.String(), nullable=True),
+    sa.Column('limits_id', sa.UUID(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['limits_id'], ['agg_ai.limits.id'], ),
+    sa.ForeignKeyConstraint(['user_group_name'], ['agg_ai.user_group.name'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_group_name', 'limits_id', name='uq_user_group_limits'),
     schema='agg_ai'
     )
     # ### end Alembic commands ###
@@ -118,14 +160,19 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('usage', schema='agg_ai')
+    op.drop_table('user_group_limits', schema='agg_ai')
     op.drop_table('chat_messages', schema='agg_ai')
+    op.drop_table('usage', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_resources_id'), table_name='resources', schema='agg_ai')
     op.drop_table('resources', schema='agg_ai')
+    op.drop_table('limits', schema='agg_ai')
     op.drop_table('chats', schema='agg_ai')
+    op.drop_table('users', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_ai_provider_models_id'), table_name='ai_provider_models', schema='agg_ai')
     op.drop_table('ai_provider_models', schema='agg_ai')
-    op.drop_table('users', schema='agg_ai')
+    op.drop_table('user_group', schema='agg_ai')
+    op.drop_index(op.f('ix_agg_ai_budget_id'), table_name='budget', schema='agg_ai')
+    op.drop_table('budget', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_ai_providers_id'), table_name='ai_providers', schema='agg_ai')
     op.drop_table('ai_providers', schema='agg_ai')
     op.execute("DROP SCHEMA IF EXISTS agg_ai CASCADE")

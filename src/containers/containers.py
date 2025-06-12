@@ -1,6 +1,8 @@
 from dependency_injector import containers, providers
 
 from src.config import get_settings
+from src.services.budget_service import BudgetService
+from src.services.limits_service import LimitsService
 from src.storage.db_context import get_session_from_context
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.ai_providers.ai_provider_service import AiProviderService
@@ -29,6 +31,7 @@ class AppContainer(containers.DeclarativeContainer):
             "src.api.routes.auth",
             "src.api.routes.users",
             "src.api.routes.files",
+            "src.api.routes.utilization",
         ]
     )
 
@@ -51,19 +54,47 @@ class AppContainer(containers.DeclarativeContainer):
     files_service = providers.Factory(FilesService, context=context, cloud_storage_service=cloud_storage_service, db=db)
 
     token_service = providers.Factory(TokenService)
+    
+    budget_service = providers.Factory(BudgetService, context=context, db=db)
 
     user_service = providers.Factory(UserService, context=context, db=db)
-
-    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)
-
-    usage_tracking_service = providers.Factory(UsageTrackingService, db=db)
-
-    background_task_service = providers.Factory(BackgroundTaskService, context=context)
-
-    inference_service = providers.Factory(InferenceService, context=context, db=db, models_provider=model_provider, background_task_service=background_task_service)
-
-    chat_service = providers.Factory(ChatService, context=context, db=db, inference_service=inference_service, prompts_service=prompts_service, files_service=files_service)
-
+    
     ai_provider_service = providers.Factory(AiProviderService, context=context, db=db)
 
     ai_model_service = providers.Factory(AiModelService, context=context, db=db)
+
+    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)
+
+    usage_tracking_service = providers.Factory(UsageTrackingService, context=context, db=db)
+
+    background_task_service = providers.Factory(BackgroundTaskService, context=context)
+    
+    inference_service = providers.Factory(
+        InferenceService,
+        context=context,
+        db=db,
+        models_provider=model_provider,
+        background_task_service=background_task_service,
+        budget_service=budget_service,
+    )
+    
+    limits_service = providers.Factory(
+        LimitsService,
+        context=context,
+        db=db,
+        usage_tracking_service=usage_tracking_service,
+        inference_service=inference_service,
+        ai_model_service=ai_model_service,
+        user_service=user_service,
+        model_provider=model_provider,
+    )
+    
+    chat_service = providers.Factory(
+        ChatService,
+        context=context,
+        db=db,
+        inference_service=inference_service,
+        prompts_service=prompts_service,
+        files_service=files_service,
+        ai_model_service=ai_model_service,
+    )

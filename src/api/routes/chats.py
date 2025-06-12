@@ -8,6 +8,7 @@ from dependency_injector.wiring import inject, Provide
 from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest, ChatListItemResponse
 from src.services.chat_service import ChatService
 from src.containers.containers import AppContainer
+from src.api.dependencies.budget import check_budget
 
 
 router = APIRouter(prefix="/api/chats", tags=["chats"])
@@ -50,6 +51,7 @@ async def send_message(
     message: ChatCompletionRequest = Body(...),
     chat_service: ChatService = Depends(Provide[AppContainer.chat_service]),
     background_tasks: BackgroundTasks = None,
+    _: bool = Depends(check_budget),
 ):
     return StreamingResponse(
         chat_service.chat_completion_stream(

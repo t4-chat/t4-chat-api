@@ -7,3 +7,13 @@ class ForbiddenError(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+        
+class BudgetExceededError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+class LimitsExceededError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)

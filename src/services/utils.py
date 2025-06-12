@@ -42,5 +42,5 @@ def prepare_file(content_type: str, file_data: bytes) -> dict:
     else:
         return {
             "type": "text",
-            "text": file_data.decode('utf-8')
+            "text": file_data.decode("utf-8")
         }

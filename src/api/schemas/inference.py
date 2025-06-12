@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -17,3 +17,6 @@ class ResponseGenerationRequest(BaseModel):
 class ResponseGenerationResponse(BaseModel):
     text: str = Field(..., description="The generated text response")
     usage: Usage = Field(..., description="The usage information for the generation")
+
+    class Config:
+        from_attributes = True
