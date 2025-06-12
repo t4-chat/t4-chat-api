@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
-from src.containers.providers.database import db_provider
-from src.containers.providers.settings import settings_provider
+from src.config import get_settings
+from src.storage.db_context import get_session_from_context
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.ai_providers.ai_provider_service import AiProviderService
 from src.services.auth.auth_service import AuthService
@@ -24,22 +24,21 @@ class AppContainer(containers.DeclarativeContainer):
         modules=[
             "src.api.routes.health_checks",
             "src.api.routes.ai_providers",
+            "src.api.routes.ai_models",
             "src.api.routes.chats",
             "src.api.routes.auth",
             "src.api.routes.users",
-            "src.api.routes.ai_models",
             "src.api.routes.files",
         ]
     )
 
     # Configuration
-    config = settings_provider
+    config = providers.Singleton(get_settings)
 
     # Resources
-    db = db_provider
+    db = providers.Factory(get_session_from_context)
 
-    # Context - this is overridden by the ContextMiddleware for each request
-    context = providers.Dependency(Context)
+    context = providers.ContextLocalSingleton(Context)
 
     # Model provider
     model_provider = providers.Factory(ModelProvider, context=context)
@@ -55,11 +54,11 @@ class AppContainer(containers.DeclarativeContainer):
 
     user_service = providers.Factory(UserService, context=context, db=db)
 
-    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)  # doesn't need context
+    auth_service = providers.Factory(AuthService, db=db, token_service=token_service, user_service=user_service)
 
     usage_tracking_service = providers.Factory(UsageTrackingService, db=db)
 
-    background_task_service = providers.Singleton(BackgroundTaskService, context=context)
+    background_task_service = providers.Factory(BackgroundTaskService, context=context)
 
     inference_service = providers.Factory(InferenceService, context=context, db=db, models_provider=model_provider, background_task_service=background_task_service)
 
