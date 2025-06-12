@@ -1,10 +1,10 @@
 from uuid import UUID
 from litellm import Usage
-
+import traceback
 from src.services.context import Context
 from src.services.usage_tracking_service import UsageTrackingService
-from src.services.session_factory import SessionFactory
 from src.logging.logging_config import get_logger
+from src.storage.db import get_db
 
 # Set up logging
 logger = get_logger(__name__)
@@ -20,9 +20,11 @@ class BackgroundTaskService:
         
     async def track_model_usage(self, user_id: UUID, model_id: int, usage: Usage):
         try:
-            async with SessionFactory.create_service_with_session(UsageTrackingService) as usage_service:
+            async with get_db() as session:
+                usage_service = UsageTrackingService(self.context, session)
                 await usage_service.track_usage(user_id, model_id, usage)
         except Exception as e:
             logger.error(f"Error tracking model usage for user {user_id}, model {model_id}: {str(e)}", exc_info=True)
+            self.context.logger.error(traceback.format_exc())
             # Re-raise the exception to ensure FastAPI knows the task failed
-            raise 
+            raise e

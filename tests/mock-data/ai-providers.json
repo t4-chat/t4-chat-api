@@ -7,6 +7,7 @@
       "is_active": true,
       "models": [
         {
+          "id": 1,
           "name": "gpt-4o",
           "slug": "gpt-4o",
           "is_active": true,
@@ -16,6 +17,7 @@
           "prompt_path": "default"
         },
         {
+          "id": 2,
           "name": "gpt-4o-mini",
           "slug": "gpt-4o-mini",
           "is_active": true,
@@ -33,6 +35,7 @@
       "is_active": true,
       "models": [
         {
+          "id": 3,
           "name": "claude-3-7-sonnet",
           "slug": "claude-3-7-sonnet-20250219",
           "is_active": true,

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from src.services.inference.config import DefaultResponseGenerationOptions
 
 
-class ChatMessage(BaseModel):
+class ChatMessageResponse(BaseModel):
     role: Literal["user", "assistant"]
     content: str
     attachments: Optional[List[str]] = None
@@ -14,7 +14,7 @@ class ChatMessage(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model_id: int
-    messages: List[ChatMessage]
+    messages: List[ChatMessageResponse]
 
     chat_id: Optional[UUID] = None
     options: Optional[DefaultResponseGenerationOptions] = None
