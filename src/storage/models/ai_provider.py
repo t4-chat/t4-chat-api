@@ -16,4 +16,4 @@ class AiProvider(BaseModel):
 
     is_active = Column(Boolean, nullable=False, default=True)
 
-    models = relationship("AiProviderModel", back_populates="provider", cascade="all, delete-orphan", lazy="selectin")
+    models = relationship("AiProviderModel", back_populates="provider", cascade="all, delete-orphan", lazy="noload")
