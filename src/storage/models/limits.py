@@ -16,6 +16,6 @@ class Limits(BaseModel):
     max_tokens = Column(Integer, nullable=False)
     
     # Relationships
-    user_group_associations = relationship("UserGroupLimits", back_populates="limits")
-    user_groups = relationship("UserGroup", secondary="agg_ai.user_group_limits", viewonly=True)
+    user_group_associations = relationship("UserGroupLimits", back_populates="limits", lazy="noload")
+    user_groups = relationship("UserGroup", secondary="agg_ai.user_group_limits", viewonly=True, lazy="noload")
     

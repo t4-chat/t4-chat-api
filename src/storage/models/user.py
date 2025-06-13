@@ -19,6 +19,6 @@ class User(BaseModel):
     last_name = Column(String, nullable=True)
     profile_image_url = Column(String, nullable=True)
 
-    chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan")
-    usage = relationship("Usage", back_populates="user", cascade="all, delete-orphan")
-    user_group = relationship("UserGroup", back_populates="users")
+    chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan", lazy="noload")
+    usage = relationship("Usage", back_populates="user", cascade="all, delete-orphan", lazy="noload")
+    user_group = relationship("UserGroup", back_populates="users", lazy="noload")

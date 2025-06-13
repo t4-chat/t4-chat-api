@@ -25,4 +25,4 @@ class Resource(BaseModel):
     storage_path = Column(String, nullable=False, unique=True)
 
     # User that owns this resource
-    user = relationship("User")
+    user = relationship("User", lazy="noload")

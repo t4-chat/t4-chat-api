@@ -17,5 +17,5 @@ class UserGroupLimits(BaseModel):
     user_group_name = Column(String, ForeignKey('agg_ai.user_group.name'))
     limits_id = Column(PGUUID(as_uuid=True), ForeignKey('agg_ai.limits.id'))
     
-    user_group = relationship("UserGroup", back_populates="limits_associations")
-    limits = relationship("Limits", back_populates="user_group_associations") 
+    user_group = relationship("UserGroup", back_populates="limits_associations", lazy="noload")
+    limits = relationship("Limits", back_populates="user_group_associations", lazy="noload") 

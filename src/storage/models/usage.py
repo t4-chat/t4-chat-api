@@ -18,5 +18,5 @@ class Usage(Base):
     completion_tokens = Column(Integer)
     total_tokens = Column(Integer)
 
-    user = relationship("User", back_populates="usage")
-    model = relationship("AiProviderModel")
+    user = relationship("User", back_populates="usage", lazy="noload")
+    model = relationship("AiProviderModel", lazy="noload")

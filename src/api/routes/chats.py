@@ -12,13 +12,13 @@ from src.api.dependencies.budget import check_budget
 router = APIRouter(prefix="/api/chats", tags=["chats"])
 
 
-@router.post("/", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def create_chat(service: chat_service):
     chat = await service.create_chat()
     return chat
 
 
-@router.get("/", response_model=List[ChatListItemResponse])
+@router.get("", response_model=List[ChatListItemResponse])
 async def get_chats(service: chat_service):
     return await service.get_user_chats()
 

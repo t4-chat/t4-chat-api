@@ -20,4 +20,4 @@ class AiProviderModel(BaseModel):
 
     is_active = Column(Boolean, nullable=False, default=True)
 
-    provider = relationship("AiProvider", back_populates="models")
+    provider = relationship("AiProvider", back_populates="models", lazy="noload")
