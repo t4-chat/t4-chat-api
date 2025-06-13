@@ -1,10 +1,7 @@
 import json
 import asyncio
-import os
 import sys
 from pathlib import Path
-from uuid import UUID
-from dotenv import load_dotenv
 
 # Add root directory to Python path
 root_dir = Path(__file__).parent.parent
@@ -15,7 +12,6 @@ from sqlalchemy import select
 
 from src.storage.db import get_db
 from src.storage.models import AiProvider, AiProviderModel, Limits, UserGroup
-from src.storage.models.user import User
 from src.config import settings
 
 
@@ -24,6 +20,23 @@ def load_json_data(filename):
     json_path = root_dir / "tests" / "mock-data" / filename
     with open(json_path, "r") as f:
         return json.load(f)
+    
+async def setup_providers_models(db: AsyncSession, provider: AiProvider, models: list[dict]):
+    for model_data in models:
+        result = await db.execute(
+            select(AiProviderModel).where(
+                AiProviderModel.provider_id == provider.id,
+                AiProviderModel.id == model_data["id"]
+            )
+        )
+        model = result.scalars().first()
+        
+        if model:
+            for key, value in model_data.items():
+                setattr(model, key, value)
+        else:
+            model = AiProviderModel(provider_id=provider.id, **model_data)
+            db.add(model)
 
 
 async def setup_providers(db: AsyncSession):
@@ -32,40 +45,22 @@ async def setup_providers(db: AsyncSession):
     data = load_json_data("ai-providers.json")
 
     for provider_data in data["providers"]:
-        # Create provider
-        provider = AiProvider(name=provider_data["name"], slug=provider_data["slug"], base_url=provider_data["base_url"], is_active=provider_data["is_active"])
-        db.add(provider)
-        await db.flush()  # Flush to get the provider ID
+        result = await db.execute(select(AiProvider).where(AiProvider.slug == provider_data["slug"]))
+        provider = result.scalars().first()
+        
+        if provider:
+            provider.name = provider_data["name"]
+            provider.base_url = provider_data["base_url"]
+            provider.is_active = provider_data["is_active"]
+        else:
+            provider = AiProvider(name=provider_data["name"], slug=provider_data["slug"], 
+                                  base_url=provider_data["base_url"], is_active=provider_data["is_active"])
+            db.add(provider)
+            await db.flush()
 
-        # Create models for the provider
-        for model_data in provider_data["models"]:
-            model = AiProviderModel(provider_id=provider.id, **model_data)
-            db.add(model)
+        await setup_providers_models(db, provider, provider_data["models"])
 
     print("AI providers setup complete.")
-
-
-async def setup_test_users(db: AsyncSession):
-    """Set up test users for development."""
-    print("Setting up test users...")
-
-    # Create main test user with fixed UUID
-    test_user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
-
-    # Check if user already exists
-    result = await db.execute(select(User).where(User.id == test_user_id))
-    existing_user = result.scalar_one_or_none()
-
-    if not existing_user:
-        test_user = User(id=test_user_id, email="test@test.com", first_name="Test", last_name="User", )
-        db.add(test_user)
-        print(f"Created test user: {test_user.email}")
-    else:
-        print(f"Test user already exists: {existing_user.email}")
-
-    # You can add more test users here as needed
-
-    print("Test users setup complete.")
 
 
 async def setup_limits(db: AsyncSession):
@@ -74,8 +69,19 @@ async def setup_limits(db: AsyncSession):
     data = load_json_data("limits.json")
 
     for limit_data in data["limits"]:
-        limit = Limits(**limit_data)
-        db.add(limit)
+        result = await db.execute(
+            select(Limits).where(
+                Limits.model_id == limit_data.get("model_id")
+            )
+        )
+        limit = result.scalars().first()
+        
+        if limit:
+            for key, value in limit_data.items():
+                setattr(limit, key, value)
+        else:
+            limit = Limits(**limit_data)
+            db.add(limit)
 
     print("Limits setup complete.")
 
@@ -86,15 +92,17 @@ async def setup_groups(db: AsyncSession):
     data = load_json_data("user-groups.json")
 
     for group_data in data["groups"]:
-        group = UserGroup(**group_data)
-        db.add(group)
+        result = await db.execute(select(UserGroup).where(UserGroup.name == group_data["name"]))
+        group = result.scalars().first()
+        
+        if group:
+            for key, value in group_data.items():
+                setattr(group, key, value)
+        else:
+            group = UserGroup(**group_data)
+            db.add(group)
 
     print("Groups setup complete.")
-
-# Add more setup functions as needed
-# async def setup_conversations(db: AsyncSession):
-#     """Set up test conversations."""
-#     pass
 
 
 async def main():
@@ -106,9 +114,7 @@ async def main():
         try:
             # Run all setup functions
             await setup_providers(db)
-            # await setup_test_users(db)
             await setup_limits(db)
-            # await setup_conversations(db)
             await setup_groups(db)
 
             # Commit all changes
