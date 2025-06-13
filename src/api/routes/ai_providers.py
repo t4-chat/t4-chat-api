@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/ai-providers", tags=["ai-providers"])
 
 
 @router.get("", response_model=List[AiProviderResponse])
-def get_ai_providers(
+async def get_ai_providers(
     provider_service: ai_provider_service
 ) -> List[AiProviderResponse]:
-    return provider_service.get_ai_providers()
+    return await provider_service.get_ai_providers()

@@ -53,7 +53,7 @@ class InferenceService:
             **kwargs,
         )
 
-        # background_tasks.add_task(self._background_task_service.track_model_usage, user_id=self._context.user_id, model_id=model.id, usage=resp.usage)
+        background_tasks.add_task(self._background_task_service.track_model_usage, user_id=self._context.user_id, model_id=model.id, usage=resp.usage)
         await self._ensure_budget(model, resp.usage)
 
         return resp
@@ -79,5 +79,5 @@ class InferenceService:
                 usage = chunk.usage
             yield chunk
 
-        # background_tasks.add_task(self._background_task_service.track_model_usage, user_id=self._context.user_id, model_id=model.id, usage=usage)
+        background_tasks.add_task(self._background_task_service.track_model_usage, user_id=self._context.user_id, model_id=model.id, usage=usage)
         await self._ensure_budget(model, usage)

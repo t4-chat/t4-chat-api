@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,17 +6,9 @@ from src.api.middleware.auth import create_auth_middleware
 from src.api.middleware.errors import error_handling_middleware
 from src.config import get_settings
 from src.logging.logging_config import configure_logging, get_logger
-from src.storage.database import db_session_manager
+from src.storage.database import lifespan
 from src.services.auth.token_service import TokenService
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger = get_logger(__name__)
-    logger.info("Starting up database connection...")
-    yield
-    logger.info("Shutting down database connection...")
-    if db_session_manager._engine is not None:
-        await db_session_manager.close()
 
 def create_app():
     logger = get_logger(__name__)

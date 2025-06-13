@@ -24,13 +24,11 @@ from src.storage.database import get_db_session
 
 db = Annotated[AsyncSession, Depends(get_db_session)]
 
-# Model provider
 def get_model_provider(context: Context = Depends(get_context)) -> ModelProvider:
     return ModelProvider(context=context)
 
 model_provider = Annotated[ModelProvider, Depends(get_model_provider)]
 
-# Simple services (context only)
 def get_cloud_storage_service(context: Context = Depends(get_context)) -> CloudStorageService:
     return CloudStorageService(context=context)
 
@@ -46,13 +44,11 @@ def get_background_task_service(context: Context = Depends(get_context)) -> Back
 
 background_task_service = Annotated[BackgroundTaskService, Depends(get_background_task_service)]
 
-# Token service (no dependencies)
 def get_token_service() -> TokenService:
     return TokenService()
 
 token_service = Annotated[TokenService, Depends(get_token_service)]
 
-# Services with context and db
 def get_chat_service(
     db: AsyncSession = Depends(get_db_session),
     context: Context = Depends(get_context)
@@ -101,7 +97,6 @@ def get_usage_tracking_service(
 
 usage_tracking_service = Annotated[UsageTrackingService, Depends(get_usage_tracking_service)]
 
-# Complex services with multiple dependencies
 def get_auth_service(
     db: AsyncSession = Depends(get_db_session),
     token_service: TokenService = Depends(get_token_service),

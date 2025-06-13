@@ -39,7 +39,7 @@ class ChatApiUser(BaseUser):
 
     @task(1)
     def get_all_chats(self):
-        self.client.get("/api/chats/", name="Get All Chats")
+        self.client.get("/api/chats", name="Get All Chats")
 
     @task(2)
     def send_message(self):
@@ -96,7 +96,7 @@ class UtilizationApiUser(BaseUser):
     
     @task(1)
     def get_all_utilization(self):
-        self.client.get("/api/utilization/", name="Get All Utilization")
+        self.client.get("/api/utilization", name="Get All Utilization")
         
     @task(2)
     def get_limits(self):

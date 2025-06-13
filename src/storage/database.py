@@ -21,7 +21,7 @@ class DatabaseSessionManager:
             echo=False, 
             future=True,
             pool_pre_ping=True,
-            pool_recycle=3600,  # Recycle connections after 1 hour
+            pool_recycle=3600,
         )
         self._sessionmaker = async_sessionmaker(
             self._engine,
@@ -69,3 +69,11 @@ db_session_manager = DatabaseSessionManager()
 async def get_db_session():
     async with db_session_manager.session() as session:
         yield session
+
+@asynccontextmanager
+async def lifespan(app):
+    print("Starting up database connection...")
+    yield
+    print("Shutting down database connection...")
+    if db_session_manager._engine is not None:
+        await db_session_manager.close()
