@@ -7,8 +7,7 @@ from src.api.middleware.errors import error_handling_middleware
 from src.config import get_settings
 from src.logging.logging_config import configure_logging, get_logger
 from src.storage.database import lifespan
-from src.services.auth.token_service import TokenService
-
+from src.containers.container import get_token_service
 
 def create_app():
     logger = get_logger(__name__)
@@ -31,9 +30,7 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # Create an instance of TokenService for the auth middleware
-    token_service_instance = TokenService()
-    app.middleware("http")(create_auth_middleware(token_service_instance))
+    app.middleware("http")(create_auth_middleware(get_token_service()))
     app.middleware("http")(error_handling_middleware)
 
     app.include_router(health_checks.router)
