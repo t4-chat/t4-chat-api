@@ -4,7 +4,7 @@ import traceback
 from src.services.context import Context
 from src.services.usage_tracking_service import UsageTrackingService
 from src.logging.logging_config import get_logger
-from src.storage.db import get_db
+from src.storage.database import db_session_manager
 
 # Set up logging
 logger = get_logger(__name__)
@@ -19,13 +19,12 @@ class BackgroundTaskService:
         self.context = context
         
     async def track_model_usage(self, user_id: UUID, model_id: int, usage: Usage):
-        print("track_model_usage")
-        # try:
-        #     async with get_db() as session:
-        #         usage_service = UsageTrackingService(self.context, session)
-        #         await usage_service.track_usage(user_id, model_id, usage)
-        # except Exception as e:
-        #     logger.error(f"Error tracking model usage for user {user_id}, model {model_id}: {str(e)}", exc_info=True)
-        #     self.context.logger.error(traceback.format_exc())
-        #     # Re-raise the exception to ensure FastAPI knows the task failed
-        #     raise e
+        try:
+            async with db_session_manager.session() as session:
+                usage_service = UsageTrackingService(self.context, session)
+                await usage_service.track_usage(user_id, model_id, usage)
+        except Exception as e:
+            logger.error(f"Error tracking model usage for user {user_id}, model {model_id}: {str(e)}", exc_info=True)
+            self.context.logger.error(traceback.format_exc())
+            # Re-raise the exception to ensure FastAPI knows the task failed
+            raise e

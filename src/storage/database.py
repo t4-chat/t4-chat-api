@@ -63,12 +63,4 @@ class DatabaseSessionManager:
                 print(e)
                 pass
 
-
-sessionmanager = DatabaseSessionManager()
-
-
-async def get_db_session():
-    async with sessionmanager.session() as session:
-        yield session
-
-db_session = Annotated[AsyncSession, Depends(get_db_session)]
+db_session_manager = DatabaseSessionManager()

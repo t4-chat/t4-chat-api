@@ -9,7 +9,7 @@ from src.api.middleware.context import create_context_middleware
 from src.api.middleware.errors import error_handling_middleware
 from src.containers.containers import AppContainer
 from src.logging.logging_config import configure_logging, get_logger
-from src.storage.database import sessionmanager
+from src.storage.database import db_session_manager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,8 +17,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up database connection...")
     yield
     logger.info("Shutting down database connection...")
-    if sessionmanager._engine is not None:
-        await sessionmanager.close()
+    if db_session_manager._engine is not None:
+        await db_session_manager.close()
 
 def create_app():
     logger = get_logger(__name__)
