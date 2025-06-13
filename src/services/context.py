@@ -1,6 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
+from fastapi import Depends, Request
+
 
 class Context:
     """
@@ -19,3 +21,12 @@ class Context:
     @property
     def is_authenticated(self) -> bool:
         return self.user_id is not None
+
+
+def get_user_id(request: Request) -> Optional[UUID]:
+    """Extract user_id from request state."""
+    return getattr(request.state, "user_id", None)
+ 
+def get_context(user_id: Optional[UUID] = Depends(get_user_id)) -> Context:
+    """Create and provide a Context instance with user_id from request state."""
+    return Context(user_id=user_id)

@@ -7,7 +7,7 @@ from src.config import settings
 from src.services.auth.token_service import TokenService
 
 
-def create_auth_middleware(token_service: TokenService) -> Callable:
+def create_auth_middleware(token_service_instance: TokenService) -> Callable:
     async def auth_middleware(request: Request, call_next):
         if request.method == "OPTIONS":
             return await call_next(request)
@@ -35,7 +35,7 @@ def create_auth_middleware(token_service: TokenService) -> Callable:
 
         # Validate token
         token = auth_header.replace("Bearer ", "")
-        payload = token_service.validate_token(token)
+        payload = token_service_instance.validate_token(token)
         
         if not payload:
             return JSONResponse(

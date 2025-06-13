@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends
-from dependency_injector.wiring import inject, Provide
+from fastapi import APIRouter
 
 from src.api.schemas.limits import UtilizationsResponse, LimitsResponse
-from src.services.limits_service import LimitsService
-from src.containers.containers import AppContainer
+from src.containers.di import limits_service
 
 
 router = APIRouter(
@@ -13,16 +11,14 @@ router = APIRouter(
 
 
 @router.get("")
-@inject
 async def get_utilizations(
-    limits_service: LimitsService = Depends(Provide[AppContainer.limits_service]),
+    service: limits_service,
 ):
-    return UtilizationsResponse(utilizations=await limits_service.get_utilizations())
+    return UtilizationsResponse(utilizations=await service.get_utilizations())
 
 
 @router.get("/limits")
-@inject
 async def get_limits(
-    limits_service: LimitsService = Depends(Provide[AppContainer.limits_service]),
+    service: limits_service,
 ):
-    return LimitsResponse(limits=await limits_service.get_limits())
+    return LimitsResponse(limits=await service.get_limits())

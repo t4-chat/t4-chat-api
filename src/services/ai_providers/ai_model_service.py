@@ -32,4 +32,3 @@ class AiModelService:
             .filter(AiProvider.slug == provider_slug, AiProviderModel.name == model_name)
         )
         return results.scalar_one_or_none()
-

@@ -16,7 +16,13 @@ class DatabaseSessionManager:
         if not database_url.startswith("postgresql+asyncpg://"):
             database_url = database_url.replace("postgresql://", "postgresql+asyncpg://")
 
-        self._engine = create_async_engine(database_url, echo=False, future=True)
+        self._engine = create_async_engine(
+            database_url, 
+            echo=False, 
+            future=True,
+            pool_pre_ping=True,
+            pool_recycle=3600,  # Recycle connections after 1 hour
+        )
         self._sessionmaker = async_sessionmaker(
             self._engine,
             class_=AsyncSession,
@@ -56,11 +62,10 @@ class DatabaseSessionManager:
             await session.rollback()
             raise
         finally:
-            try:
-                await session.close()
-            except Exception as e:
-                print("Error closing session!!!!!!!!!!!!!!!!!!")
-                print(e)
-                pass
+            await session.close()
 
 db_session_manager = DatabaseSessionManager()
+
+async def get_db_session():
+    async with db_session_manager.session() as session:
+        yield session
