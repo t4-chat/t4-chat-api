@@ -38,7 +38,7 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agg-ai
 ### Using Docker (Recommended)
 1. Start the PostgreSQL database using Docker Compose:
 ```bash
-docker-compose up db -d
+sh docker-compose.sh
 ```
 
 ### Manual Setup
@@ -96,7 +96,7 @@ Once the application is running, you can access:
 
 ### Test SSE Endpoint
 ```bash
-curl -X POST "http://localhost:9001/api/chats/messages" \
+curl -X POST "http://localhost:9001/api/chats/conversation" \
   -H "Content-Type: application/json" \
   -d '{"message": "Hello, how are you?"}'
 ```

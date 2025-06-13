@@ -172,6 +172,9 @@ class ConversationService:
             *messages_dict,
         ]
 
+        if settings.MOCK_AI_RESPONSE:
+            return "New Mock Chat Title"
+
         title_response = await self._generate_completion(provider=model.provider, model=model, messages=messages_for_title, background_tasks=background_tasks)
 
         return title_response.text.strip()
@@ -200,7 +203,7 @@ class ConversationService:
 
         return model_messages
 
-    async def fake_stream_response(self, message: str):
+    async def _fake_stream_response(self, message: str):
         """
         Generate a fake streaming response for testing purposes.
         """
@@ -255,7 +258,10 @@ class ConversationService:
         inference_messages = await self.prepare_messages(messages=messages, model=model)
 
         assistant_content = ""
-        async for chunk in self._generate_completion_stream(provider=provider, model=model, messages=inference_messages, options=options, background_tasks=background_tasks):
+
+        generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
+
+        async for chunk in generate_stream_func(provider=provider, model=model, messages=inference_messages, options=options, background_tasks=background_tasks):
             assistant_content += chunk.text
             content_metadata = {"type": "text", "text": chunk.text}
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"

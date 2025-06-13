@@ -6,8 +6,9 @@ echo "Running database migrations..."
 alembic upgrade head
 
 # Run setup script to initialize test data
-echo "Running setup script..."
-python scripts/setup_test_environment.py
+echo "Seeding database..."
+python scripts/seed_data.py
+echo "Database seeded successfully"
 
 # Start the application
 echo "Starting application..."

@@ -5,7 +5,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 
 # Add root directory to Python path
 root_dir = Path(__file__).parent.parent
@@ -16,6 +16,7 @@ from sqlalchemy import select
 
 from src.storage.db import get_db
 from src.storage.models import AiProvider, AiProviderModel, Limits, UserGroup, User, UserGroupLimits
+from src.storage.models.budget import Budget
 from src.config import settings
 
 
@@ -239,6 +240,25 @@ async def seed_test_users(db: AsyncSession, env: str, update: bool = False) -> N
     print("Test users seeding complete.")
 
 
+async def seed_budget(db: AsyncSession, env: str, update: bool = False) -> None:
+    """Set up budget idempotently."""
+    print("Seeding budget...")
+    data = load_seed_data(env, "budget.json")
+    if not data:
+        return
+
+    result = await db.execute(select(Budget))
+    existing_budget = result.scalar_one_or_none()
+    
+    if existing_budget:
+        print("Budget already exists, skipping")
+    else:
+        budget = Budget(**data)
+        db.add(budget)
+    
+    print("Budget seeding complete.")
+
+
 async def main():
     parser = argparse.ArgumentParser(description="Seed database with initial data")
     parser.add_argument("--env", default="poc", help="Environment to seed from (e.g., dev, poc)")
@@ -261,7 +281,7 @@ async def main():
             await seed_user_groups(db, env, update)
             await seed_user_group_limits(db, env, update)
             await seed_test_users(db, env, update)
-
+            await seed_budget(db, env, update)
             # Commit all changes
             await db.commit()
             print("Database seeding complete!")

@@ -22,6 +22,7 @@ services:
       - STORAGE_EMULATOR_HOST=http://gcp-storage-emulator:4443
       - GCP_PROJECT_ID=dev-agg-ai
       - GCP_BUCKET_NAME=dev-agg-ai-resources
+      - MOCK_AI_RESPONSE=True
     depends_on:
       - db
       - jaeger
