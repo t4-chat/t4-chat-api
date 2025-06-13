@@ -203,14 +203,14 @@ class ConversationService:
 
         return model_messages
 
-    async def _fake_stream_response(self, message: str):
+    async def _fake_stream_response(self, *args, **kwargs):
         """
         Generate a fake streaming response for testing purposes.
         """
         response_parts = [
             "I'm thinking about",
             " your message regarding",
-            f" '{message}'...",
+            f" '{kwargs['messages'][-1]}'...",
             "\nHere's my response:",
             "\nThis is a mock streaming",
             " response that simulates",
@@ -219,7 +219,7 @@ class ConversationService:
         ]
 
         for part in response_parts:
-            yield part
+            yield StreamGenerationResponse(text=part)
             await asyncio.sleep(0.5)  # Add delay between chunks
 
     @stream_error_handler

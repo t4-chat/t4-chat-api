@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: agg-ai-api
     ports:
-      - "8000:8000"
+      - "9001:8000"
     volumes:
       - .:/app
     environment:
