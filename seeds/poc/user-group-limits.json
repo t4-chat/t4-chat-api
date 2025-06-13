@@ -1,0 +1,8 @@
+{
+    "user_group_limits": [
+        {
+            "user_group_name": "basic",
+            "limit_model_ids": [1, 2, 3]
+        }
+    ]
+} 
