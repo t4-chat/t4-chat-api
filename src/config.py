@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     MODEL_PROVIDERS: Dict[str, ModelProviderSettings] = Field(default_factory=dict)
 
+    MOCK_AI_RESPONSE: bool = Field(False, env="MOCK_AI_RESPONSE")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._load_model_providers()

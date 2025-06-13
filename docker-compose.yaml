@@ -7,13 +7,22 @@ services:
       dockerfile: Dockerfile
     container_name: agg-ai-api
     ports:
-      - "8000:8000"
+      - "9001:8000"
     volumes:
       - .:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5433/agg-ai
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agg-ai
       - OTEL_SERVICE_NAME=agg-ai-api
+      - GOOGLE_CLIENT_ID=485345819112-cc79gm8kscqirc6e71bavk1vvat8ov53.apps.googleusercontent.com
+      - JWT_SECRET_KEY=your_jwt_secret_key
+      - JWT_EXPIRATION_MINUTES=86400
+      - ANTHROPIC_API_KEY=test-key
+      - OPENAI_API_KEY=test-key
+      - STORAGE_EMULATOR_HOST=http://gcp-storage-emulator:4443
+      - GCP_PROJECT_ID=dev-agg-ai
+      - GCP_BUCKET_NAME=dev-agg-ai-resources
+      - MOCK_AI_RESPONSE=True
     depends_on:
       - db
       - jaeger
