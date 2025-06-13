@@ -27,27 +27,27 @@ db = Annotated[AsyncSession, Depends(get_db_session)]
 def get_model_provider(context: Context = Depends(get_context)) -> ModelProvider:
     return ModelProvider(context=context)
 
-model_provider = Annotated[ModelProvider, Depends(get_model_provider)]
+model_provider_dep = Annotated[ModelProvider, Depends(get_model_provider)]
 
 def get_cloud_storage_service(context: Context = Depends(get_context)) -> CloudStorageService:
     return CloudStorageService(context=context)
 
-cloud_storage_service = Annotated[CloudStorageService, Depends(get_cloud_storage_service)]
+cloud_storage_service_dep = Annotated[CloudStorageService, Depends(get_cloud_storage_service)]
 
 def get_prompts_service(context: Context = Depends(get_context)) -> PromptsService:
     return PromptsService(context=context)
 
-prompts_service = Annotated[PromptsService, Depends(get_prompts_service)]
+prompts_service_dep = Annotated[PromptsService, Depends(get_prompts_service)]
 
 def get_background_task_service(context: Context = Depends(get_context)) -> BackgroundTaskService:
     return BackgroundTaskService(context=context)
 
-background_task_service = Annotated[BackgroundTaskService, Depends(get_background_task_service)]
+background_task_service_dep = Annotated[BackgroundTaskService, Depends(get_background_task_service)]
 
 def get_token_service() -> TokenService:
     return TokenService()
 
-token_service = Annotated[TokenService, Depends(get_token_service)]
+token_service_dep = Annotated[TokenService, Depends(get_token_service)]
 
 def get_chat_service(
     db: AsyncSession = Depends(get_db_session),
@@ -55,7 +55,7 @@ def get_chat_service(
 ) -> ChatService:
     return ChatService(context=context, db=db)
 
-chat_service = Annotated[ChatService, Depends(get_chat_service)]
+chat_service_dep = Annotated[ChatService, Depends(get_chat_service)]
 
 def get_ai_model_service(
     db: AsyncSession = Depends(get_db_session),
@@ -63,7 +63,7 @@ def get_ai_model_service(
 ) -> AiModelService:
     return AiModelService(context=context, db=db)
 
-ai_model_service = Annotated[AiModelService, Depends(get_ai_model_service)]
+ai_model_service_dep = Annotated[AiModelService, Depends(get_ai_model_service)]
 
 def get_budget_service(
     db: AsyncSession = Depends(get_db_session),
@@ -71,7 +71,7 @@ def get_budget_service(
 ) -> BudgetService:
     return BudgetService(context=context, db=db)
 
-budget_service = Annotated[BudgetService, Depends(get_budget_service)]
+budget_service_dep = Annotated[BudgetService, Depends(get_budget_service)]
 
 def get_user_service(
     db: AsyncSession = Depends(get_db_session),
@@ -79,7 +79,7 @@ def get_user_service(
 ) -> UserService:
     return UserService(context=context, db=db)
 
-user_service = Annotated[UserService, Depends(get_user_service)]
+user_service_dep = Annotated[UserService, Depends(get_user_service)]
 
 def get_ai_provider_service(
     db: AsyncSession = Depends(get_db_session),
@@ -87,7 +87,7 @@ def get_ai_provider_service(
 ) -> AiProviderService:
     return AiProviderService(context=context, db=db)
 
-ai_provider_service = Annotated[AiProviderService, Depends(get_ai_provider_service)]
+ai_provider_service_dep = Annotated[AiProviderService, Depends(get_ai_provider_service)]
 
 def get_usage_tracking_service(
     db: AsyncSession = Depends(get_db_session),
@@ -95,7 +95,7 @@ def get_usage_tracking_service(
 ) -> UsageTrackingService:
     return UsageTrackingService(context=context, db=db)
 
-usage_tracking_service = Annotated[UsageTrackingService, Depends(get_usage_tracking_service)]
+usage_tracking_service_dep = Annotated[UsageTrackingService, Depends(get_usage_tracking_service)]
 
 def get_auth_service(
     db: AsyncSession = Depends(get_db_session),
@@ -104,7 +104,7 @@ def get_auth_service(
 ) -> AuthService:
     return AuthService(db=db, token_service=token_service, user_service=user_service)
 
-auth_service = Annotated[AuthService, Depends(get_auth_service)]
+auth_service_dep = Annotated[AuthService, Depends(get_auth_service)]
 
 def get_files_service(
     db: AsyncSession = Depends(get_db_session),
@@ -113,7 +113,7 @@ def get_files_service(
 ) -> FilesService:
     return FilesService(context=context, db=db, cloud_storage_service=cloud_storage_service)
 
-files_service = Annotated[FilesService, Depends(get_files_service)]
+files_service_dep = Annotated[FilesService, Depends(get_files_service)]
 
 def get_inference_service(
     db: AsyncSession = Depends(get_db_session),
@@ -130,7 +130,7 @@ def get_inference_service(
         budget_service=budget_service
     )
 
-inference_service = Annotated[InferenceService, Depends(get_inference_service)]
+inference_service_dep = Annotated[InferenceService, Depends(get_inference_service)]
 
 def get_limits_service(
     db: AsyncSession = Depends(get_db_session),
@@ -151,7 +151,7 @@ def get_limits_service(
         model_provider=model_provider
     )
 
-limits_service = Annotated[LimitsService, Depends(get_limits_service)]
+limits_service_dep = Annotated[LimitsService, Depends(get_limits_service)]
 
 def get_conversation_service(
     db: AsyncSession = Depends(get_db_session),
@@ -172,4 +172,4 @@ def get_conversation_service(
         ai_model_service=ai_model_service
     )
 
-conversation_service = Annotated[ConversationService, Depends(get_conversation_service)]
+conversation_service_dep = Annotated[ConversationService, Depends(get_conversation_service)]

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.api.schemas.limits import UtilizationsResponse, LimitsResponse
-from src.containers.container import limits_service
+from src.containers.container import limits_service_dep
 
 
 router = APIRouter(
@@ -12,13 +12,13 @@ router = APIRouter(
 
 @router.get("")
 async def get_utilizations(
-    service: limits_service,
+    limits_service: limits_service_dep,
 ):
-    return UtilizationsResponse(utilizations=await service.get_utilizations())
+    return UtilizationsResponse(utilizations=await limits_service.get_utilizations())
 
 
 @router.get("/limits")
 async def get_limits(
-    service: limits_service,
+    limits_service: limits_service_dep,
 ):
-    return LimitsResponse(limits=await service.get_limits())
+    return LimitsResponse(limits=await limits_service.get_limits())
