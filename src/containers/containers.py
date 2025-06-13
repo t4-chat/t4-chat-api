@@ -10,6 +10,7 @@ from src.services.auth.auth_service import AuthService
 from src.services.auth.token_service import TokenService
 from src.services.background_task_service import BackgroundTaskService
 from src.services.chat_service import ChatService
+from src.services.conversation_service import ConversationService
 from src.services.cloud_storage_service import CloudStorageService
 from src.services.context import Context
 from src.services.files_service import FilesService
@@ -54,11 +55,11 @@ class AppContainer(containers.DeclarativeContainer):
     files_service = providers.Factory(FilesService, context=context, cloud_storage_service=cloud_storage_service, db=db)
 
     token_service = providers.Factory(TokenService)
-    
+
     budget_service = providers.Factory(BudgetService, context=context, db=db)
 
     user_service = providers.Factory(UserService, context=context, db=db)
-    
+
     ai_provider_service = providers.Factory(AiProviderService, context=context, db=db)
 
     ai_model_service = providers.Factory(AiModelService, context=context, db=db)
@@ -68,7 +69,7 @@ class AppContainer(containers.DeclarativeContainer):
     usage_tracking_service = providers.Factory(UsageTrackingService, context=context, db=db)
 
     background_task_service = providers.Factory(BackgroundTaskService, context=context)
-    
+
     inference_service = providers.Factory(
         InferenceService,
         context=context,
@@ -77,7 +78,7 @@ class AppContainer(containers.DeclarativeContainer):
         background_task_service=background_task_service,
         budget_service=budget_service,
     )
-    
+
     limits_service = providers.Factory(
         LimitsService,
         context=context,
@@ -88,11 +89,18 @@ class AppContainer(containers.DeclarativeContainer):
         user_service=user_service,
         model_provider=model_provider,
     )
-    
+
     chat_service = providers.Factory(
         ChatService,
         context=context,
         db=db,
+    )
+
+    conversation_service = providers.Factory(
+        ConversationService,
+        context=context,
+        db=db,
+        chat_service=chat_service,
         inference_service=inference_service,
         prompts_service=prompts_service,
         files_service=files_service,

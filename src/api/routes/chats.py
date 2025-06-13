@@ -7,6 +7,7 @@ from dependency_injector.wiring import inject, Provide
 
 from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest, ChatListItemResponse
 from src.services.chat_service import ChatService
+from src.services.conversation_service import ConversationService
 from src.containers.containers import AppContainer
 from src.api.dependencies.budget import check_budget
 
@@ -49,12 +50,12 @@ async def delete_chat(chat_id: UUID, service: ChatService = Depends(Provide[AppC
 @inject
 async def send_message(
     message: ChatCompletionRequest = Body(...),
-    chat_service: ChatService = Depends(Provide[AppContainer.chat_service]),
+    conversation_service: ConversationService = Depends(Provide[AppContainer.conversation_service]),
     background_tasks: BackgroundTasks = None,
     _: bool = Depends(check_budget),
 ):
     return StreamingResponse(
-        chat_service.chat_completion_stream(
+        conversation_service.chat_completion_stream(
             chat_id=message.chat_id,
             model_id=message.model_id,
             messages=message.messages,

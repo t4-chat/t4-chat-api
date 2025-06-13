@@ -15,8 +15,8 @@ class UsageTrackingService:
         self.db = db
 
     async def track_usage(self, user_id: UUID, model_id: int, usage: Usage):
-        async with self.db.begin(isolation_level="SERIALIZABLE"):
-            results = await self.db.execute(select(UsageModel).where(UsageModel.user_id == user_id, UsageModel.model_id == model_id))
+        async with self.db.begin():
+            results = await self.db.execute(select(UsageModel).where(UsageModel.user_id == user_id, UsageModel.model_id == model_id).with_for_update())
             existing_usage = results.scalar_one_or_none()
 
             if existing_usage:

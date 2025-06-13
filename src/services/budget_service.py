@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.storage.models.budget import Budget
 from src.services.errors.errors import BudgetExceededError, NotFoundError
-from src.config import settings
 
 
 class BudgetService:
