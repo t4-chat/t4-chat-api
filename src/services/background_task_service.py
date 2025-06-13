@@ -19,12 +19,13 @@ class BackgroundTaskService:
         self.context = context
         
     async def track_model_usage(self, user_id: UUID, model_id: int, usage: Usage):
-        try:
-            async with get_db() as session:
-                usage_service = UsageTrackingService(self.context, session)
-                await usage_service.track_usage(user_id, model_id, usage)
-        except Exception as e:
-            logger.error(f"Error tracking model usage for user {user_id}, model {model_id}: {str(e)}", exc_info=True)
-            self.context.logger.error(traceback.format_exc())
-            # Re-raise the exception to ensure FastAPI knows the task failed
-            raise e
+        print("track_model_usage")
+        # try:
+        #     async with get_db() as session:
+        #         usage_service = UsageTrackingService(self.context, session)
+        #         await usage_service.track_usage(user_id, model_id, usage)
+        # except Exception as e:
+        #     logger.error(f"Error tracking model usage for user {user_id}, model {model_id}: {str(e)}", exc_info=True)
+        #     self.context.logger.error(traceback.format_exc())
+        #     # Re-raise the exception to ensure FastAPI knows the task failed
+        #     raise e

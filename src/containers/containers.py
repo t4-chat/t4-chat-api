@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from src.config import get_settings
 from src.services.budget_service import BudgetService
 from src.services.limits_service import LimitsService
-from src.storage.db_context import get_session_from_context
+from src.storage.database import DatabaseSessionManager
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.ai_providers.ai_provider_service import AiProviderService
 from src.services.auth.auth_service import AuthService
@@ -39,8 +39,10 @@ class AppContainer(containers.DeclarativeContainer):
     # Configuration
     config = providers.Singleton(get_settings)
 
+    db_session_manager = providers.Singleton(DatabaseSessionManager)
+
     # Resources
-    db = providers.Factory(get_session_from_context)
+    db = providers.Dependency()
 
     context = providers.ContextLocalSingleton(Context)
 
