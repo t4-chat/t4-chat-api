@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from src.api.schemas.auth import GoogleAuthRequest, TokenResponse
-from src.containers.di import auth_service
+from src.containers.container import auth_service
 
 router = APIRouter(
     prefix="/api/auth",

@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Body, BackgroundTasks, Depends
 from fastapi.responses import StreamingResponse
 
 from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest, ChatListItemResponse
-from src.containers.di import chat_service, conversation_service
+from src.containers.container import chat_service, conversation_service
 from src.api.dependencies.budget import check_budget
 
 

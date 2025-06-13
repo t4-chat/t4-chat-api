@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.api.schemas.limits import UtilizationsResponse, LimitsResponse
-from src.containers.di import limits_service
+from src.containers.container import limits_service
 
 
 router = APIRouter(

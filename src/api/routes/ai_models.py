@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter
 
 from src.api.schemas.ai_models import AiModelResponse
-from src.containers.di import ai_model_service
+from src.containers.container import ai_model_service
 
 router = APIRouter(prefix="/api/ai-models", tags=["ai-models"])
 

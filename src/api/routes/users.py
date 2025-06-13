@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 
 from src.api.schemas.users import UserResponse
-from src.containers.di import user_service
+from src.containers.container import user_service
 
 router = APIRouter(
     prefix="/api/users",

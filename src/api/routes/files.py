@@ -1,7 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, Response
 
 from src.logging.logging_config import get_logger
-from src.containers.di import files_service
+from src.containers.container import files_service
 from src.api.schemas.files import FileResponse
 
 logger = get_logger(__name__)
