@@ -74,7 +74,7 @@ class ConversationService:
         ):
             yield chunk
 
-    async def stream_response_format(self, text_stream: AsyncGenerator[str, None]) -> AsyncGenerator[str, None]:
+    async def _stream_response_format(self, text_stream: AsyncGenerator[str, None]) -> AsyncGenerator[str, None]:
         async for chunk in text_stream:
             # Create SSE-formatted data
             data = json.dumps({"content": chunk, "type": "content"})
@@ -126,7 +126,7 @@ class ConversationService:
 
         return title_response.text.strip()
 
-    async def prepare_messages(self, messages: List[ChatMessageDTO], model: AiProviderModelDTO) -> List[dict]:
+    async def _prepare_messages(self, messages: List[ChatMessageDTO], model: AiProviderModelDTO) -> List[dict]:
         """
         Prepare messages for inference, including processing attachments.
         """
@@ -222,7 +222,7 @@ class ConversationService:
                 message=f"Provider with id {model.provider_id} not found",
             )
 
-        inference_messages = await self.prepare_messages(messages=prev_messages, model=model)
+        inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
 
         assistant_content = ""
 

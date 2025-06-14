@@ -14,13 +14,7 @@ class BaseRepository(Generic[T]):
         self.model = model
         self.session = session
 
-    async def transaction(self, func: Callable[..., Awaitable[Any]], *args: Any, **kwargs: Any) -> Any:
-        async with self.session.begin_nested():  # Creates a savepoint
-            return await func(*args, **kwargs)
-
-    def _apply_joins(
-        self, stmt: Select, joins: Optional[Sequence[JoinTarget]]
-    ) -> Select:
+    def _apply_joins(self, stmt: Select, joins: Optional[Sequence[JoinTarget]]) -> Select:
         if not joins:
             return stmt
 
