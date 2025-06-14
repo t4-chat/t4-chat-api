@@ -1,18 +1,17 @@
 """initial
 
-Revision ID: 1739894a298f
+Revision ID: 5d6dd60571fd
 Revises: 
-Create Date: 2025-05-14 22:58:31.938145-05:00
+Create Date: 2025-05-16 16:14:52.441777-05:00
 
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '1739894a298f'
+revision: str = '5d6dd60571fd'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -133,6 +132,8 @@ def upgrade() -> None:
     sa.Column('prompt_tokens', sa.Integer(), nullable=True),
     sa.Column('completion_tokens', sa.Integer(), nullable=True),
     sa.Column('total_tokens', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['model_id'], ['agg_ai.ai_provider_models.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['agg_ai.users.id'], ),
     sa.PrimaryKeyConstraint('id'),

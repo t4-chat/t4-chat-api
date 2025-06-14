@@ -47,6 +47,13 @@ def create_auth_middleware(token_service_instance: TokenService) -> Callable:
                 content={"detail": "Unauthorized: Invalid or expired token"},
             )
 
+        if request.url.path.startswith("/api/admin"):
+            if payload.get("email") not in settings.ADMIN_EMAILS:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Unauthorized: User is not an admin"},
+                )
+
         # Set user ID in request state and continue
         request.state.user_id = UUID(payload.get("sub"))
         request.state.user_email = payload.get("email")

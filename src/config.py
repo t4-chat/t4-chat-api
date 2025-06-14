@@ -1,6 +1,6 @@
 import os
 from functools import lru_cache
-from typing import Dict
+from typing import Dict, List
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     MODEL_PROVIDERS: Dict[str, ModelProviderSettings] = Field(default_factory=dict)
 
     MOCK_AI_RESPONSE: bool = Field(False, env="MOCK_AI_RESPONSE")
+
+    ADMIN_EMAILS: List[str] = Field(..., env="ADMIN_EMAILS")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

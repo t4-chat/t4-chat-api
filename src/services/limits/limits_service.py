@@ -43,7 +43,7 @@ class LimitsService:
 
     @convert_to_dto
     async def get_limits(self) -> List[LimitDTO]:
-        return await self.limits_repo.get_all(
+        return await self.limits_repo.select(
             joins=[Limits.user_groups, (User, User.group_name == UserGroup.name)],
             filter=User.id == self.context.user_id,
         )
@@ -54,7 +54,7 @@ class LimitsService:
             joins=[Limits.user_groups, (User, User.group_name == UserGroup.name)],
             filter=and_(User.id == self.context.user_id, Limits.model_id == model_id),
         )
-        return results.scalar_one_or_none()
+        return results
 
     @convert_to_dto
     async def _get_individual_utilization(
@@ -67,9 +67,7 @@ class LimitsService:
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(
-                messages, model.provider, model
-            )
+            input_tokens = await self.model_provider.count_tokens(messages, model.provider, model)
 
         return UtilizationDTO(
             model_id=model.id,
@@ -88,9 +86,7 @@ class LimitsService:
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(
-                messages, model.provider, model
-            )
+            input_tokens = await self.model_provider.count_tokens(messages, model.provider, model)
 
         return UtilizationDTO(
             model_id=model.id,
@@ -98,16 +94,12 @@ class LimitsService:
             percentage=(total_tokens + input_tokens) / limits.max_tokens,
         )
 
-    async def get_utilization(
-        self, model_id: int, messages: Optional[List[ChatMessageDTO]] = None
-    ) -> UtilizationDTO:
+    async def get_utilization(self, model_id: int, messages: Optional[List[ChatMessageDTO]] = None) -> UtilizationDTO:
         model = await self.ai_model_service.get_model(model_id)
 
         limits = await self.get_limits_by_model(model_id)
 
-        user = await self.user_service.get_user_by_id(
-            self.context.user_id, user_group=True
-        )
+        user = await self.user_service.get_user_by_id(self.context.user_id, user_group=True)
 
         if user.user_group.type == UserGroupType.INDIVIDUAL:
             return await self._get_individual_utilization(model, limits, messages)
