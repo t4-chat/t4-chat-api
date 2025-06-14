@@ -72,9 +72,7 @@ def get_cloud_storage_service(
     return CloudStorageService(context=context)
 
 
-CloudStorageServiceDep = Annotated[
-    CloudStorageService, Depends(get_cloud_storage_service)
-]
+CloudStorageServiceDep = Annotated[CloudStorageService, Depends(get_cloud_storage_service)]
 
 
 def get_prompts_service(context: Context = Depends(get_context)) -> PromptsService:
@@ -90,9 +88,7 @@ def get_background_task_service(
     return BackgroundTaskService(context=context)
 
 
-BackgroundTaskServiceDep = Annotated[
-    BackgroundTaskService, Depends(get_background_task_service)
-]
+BackgroundTaskServiceDep = Annotated[BackgroundTaskService, Depends(get_background_task_service)]
 
 
 def get_token_service() -> TokenService:
@@ -107,9 +103,7 @@ def get_chat_service(
     chat_message_repo: BaseRepository[ChatMessage] = Depends(get_chat_message_repo),
     context: Context = Depends(get_context),
 ) -> ChatService:
-    return ChatService(
-        context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo
-    )
+    return ChatService(context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo)
 
 
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
@@ -162,9 +156,7 @@ def get_usage_tracking_service(
     return UsageTrackingService(context=context, usage_model_repo=usage_model_repo)
 
 
-UsageTrackingServiceDep = Annotated[
-    UsageTrackingService, Depends(get_usage_tracking_service)
-]
+UsageTrackingServiceDep = Annotated[UsageTrackingService, Depends(get_usage_tracking_service)]
 
 
 def get_auth_service(
@@ -195,9 +187,7 @@ FilesServiceDep = Annotated[FilesService, Depends(get_files_service)]
 def get_inference_service(
     context: Context = Depends(get_context),
     model_provider: ModelProvider = Depends(get_model_provider),
-    background_task_service: BackgroundTaskService = Depends(
-        get_background_task_service
-    ),
+    background_task_service: BackgroundTaskService = Depends(get_background_task_service),
     budget_service: BudgetService = Depends(get_budget_service),
 ) -> InferenceService:
     return InferenceService(
@@ -252,6 +242,4 @@ def get_conversation_service(
     )
 
 
-ConversationServiceDep = Annotated[
-    ConversationService, Depends(get_conversation_service)
-]
+ConversationServiceDep = Annotated[ConversationService, Depends(get_conversation_service)]

@@ -16,7 +16,7 @@ class AiProviderService:
 
     @convert_to_dto
     async def get_ai_providers(self) -> List[AiProviderDTO]:
-        return await self.ai_provider_repo.get_all(includes=[AiProvider.models])
+        return await self.ai_provider_repo.select(includes=[AiProvider.models])
 
     @convert_to_dto
     async def get_provider(self, provider_id: int) -> Optional[AiProviderDTO]:

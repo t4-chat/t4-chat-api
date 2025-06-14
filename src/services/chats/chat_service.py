@@ -45,13 +45,13 @@ class ChatService:
 
     @convert_to_dto
     async def get_messages(self, chat_id: UUID) -> List[ChatMessageDTO]:
-        return await self.chat_message_repo.get_all(
+        return await self.chat_message_repo.select(
             joins=[(Chat, Chat.id == ChatMessage.chat_id)], filter=and_(ChatMessage.chat_id == chat_id, Chat.user_id == self.context.user_id)
         )
 
     @convert_to_dto
     async def get_user_chats(self) -> List[ChatDTO]:
-        return await self.chat_repo.get_all(filter=Chat.user_id == self.context.user_id)
+        return await self.chat_repo.select(filter=Chat.user_id == self.context.user_id)
 
     @convert_to_dto
     async def add_message(

@@ -4,10 +4,10 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
-from src.storage.models.base import Base
+from src.storage.models.base import BaseModel
 
 
-class Usage(Base):
+class Usage(BaseModel):
     __tablename__ = "usage"
     __table_args__ = {"schema": "agg_ai"}
 
