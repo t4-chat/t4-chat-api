@@ -6,7 +6,7 @@ from src.api.middleware.auth import create_auth_middleware
 from src.api.middleware.errors import error_handling_middleware
 from src.config import get_settings
 from src.logging.logging_config import configure_logging, get_logger
-from src.storage.database import lifespan
+from src.storage.db import lifespan
 from src.containers.container import get_token_service
 
 def create_app():

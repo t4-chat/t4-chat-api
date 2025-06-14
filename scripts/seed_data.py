@@ -17,7 +17,7 @@ from sqlalchemy import select
 from src.storage.models import AiProvider, AiProviderModel, Limits, UserGroup, User, UserGroupLimits
 from src.storage.models.budget import Budget
 from src.config import settings
-from src.storage.database import db_session_manager
+from src.storage.db import db_session_manager
 
 
 def load_seed_data(env: str, filename: str) -> Dict[str, Any]:

@@ -4,7 +4,7 @@ import traceback
 from src.services.context import Context
 from src.services.usage_tracking_service import UsageTrackingService
 from src.logging.logging_config import get_logger
-from src.storage.database import db_session_manager
+from src.storage.db import db_session_manager
 
 # Set up logging
 logger = get_logger(__name__)

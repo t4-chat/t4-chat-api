@@ -20,7 +20,7 @@ from src.services.limits_service import LimitsService
 from src.services.prompts_service import PromptsService
 from src.services.usage_tracking_service import UsageTrackingService
 from src.services.user_service import UserService
-from src.storage.database import get_db_session
+from src.storage.db import get_db_session
 
 db = Annotated[AsyncSession, Depends(get_db_session)]
 
