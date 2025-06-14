@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.services.context import Context
 from src.storage.models import AiProvider
@@ -13,7 +14,7 @@ class AiProviderService:
         self.db = db
 
     async def get_ai_providers(self) -> List[AiProvider]:
-        result = await self.db.execute(select(AiProvider))
+        result = await self.db.execute(select(AiProvider).options(selectinload(AiProvider.models)))
         return result.scalars().all()
 
     async def get_provider(self, provider_id: int) -> Optional[AiProvider]:

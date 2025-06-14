@@ -4,7 +4,7 @@ import traceback
 from src.services.context import Context
 from src.services.usage_tracking_service import UsageTrackingService
 from src.logging.logging_config import get_logger
-from src.storage.db import get_db
+from src.storage.db import db_session_manager
 
 # Set up logging
 logger = get_logger(__name__)
@@ -20,7 +20,7 @@ class BackgroundTaskService:
         
     async def track_model_usage(self, user_id: UUID, model_id: int, usage: Usage):
         try:
-            async with get_db() as session:
+            async with db_session_manager.session() as session:
                 usage_service = UsageTrackingService(self.context, session)
                 await usage_service.track_usage(user_id, model_id, usage)
         except Exception as e:

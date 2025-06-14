@@ -17,8 +17,8 @@ class Chat(BaseModel):
     title = Column(String, nullable=True)
     pinned = Column(Boolean, nullable=False, default=False)
     
-    messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan")
-    user = relationship("User", back_populates="chats")
+    messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan", lazy="noload")
+    user = relationship("User", back_populates="chats", lazy="noload")
 
 
 class ChatMessage(BaseModel):
@@ -34,5 +34,5 @@ class ChatMessage(BaseModel):
     content = Column(Text, nullable=False)
     attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)
     
-    chat = relationship("Chat", back_populates="messages")
-    model = relationship("AiProviderModel") # we don't need have all messages that are associated with a model, so we don't have a back_populates
+    chat = relationship("Chat", back_populates="messages", lazy="noload")
+    model = relationship("AiProviderModel", lazy="noload") # we don't need have all messages that are associated with a model, so we don't have a back_populates

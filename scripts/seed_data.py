@@ -14,10 +14,10 @@ sys.path.append(str(root_dir))
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from src.storage.db import get_db
 from src.storage.models import AiProvider, AiProviderModel, Limits, UserGroup, User, UserGroupLimits
 from src.storage.models.budget import Budget
 from src.config import settings
+from src.storage.db import db_session_manager
 
 
 def load_seed_data(env: str, filename: str) -> Dict[str, Any]:
@@ -273,7 +273,7 @@ async def main():
     print(f"Update mode: {'enabled' if update else 'disabled'}")
 
     # Get database session
-    async with get_db() as db:
+    async with db_session_manager.session() as db:
         try:
             # Run all seeding functions - order matters for dependencies
             await seed_providers(db, env, update)
@@ -290,7 +290,7 @@ async def main():
             await db.rollback()
             raise
         finally:
-            # Session is automatically closed by the async context manager in get_db
+            # Session is automatically closed by the async context manager in session
             pass
 
 

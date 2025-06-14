@@ -1,24 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.middleware.db_session import db_session_middleware
 
 from src.api.routes import health_checks, ai_providers, chats, auth, users, ai_models, files, utilization
 from src.api.middleware.auth import create_auth_middleware
-from src.api.middleware.context import create_context_middleware
 from src.api.middleware.errors import error_handling_middleware
-from src.containers.containers import AppContainer
+from src.config import get_settings
 from src.logging.logging_config import configure_logging, get_logger
+from src.storage.db import lifespan
+from src.containers.container import get_token_service
 
 def create_app():
     logger = get_logger(__name__)
     logger.info('Starting application...')
     
-    container = AppContainer()
-
+    settings = get_settings()
+    
     app = FastAPI(
-        title=container.config().PROJECT_NAME,
-        description=container.config().PROJECT_DESCRIPTION,
-        version=container.config().VERSION,
+        title=settings.PROJECT_NAME,
+        description=settings.PROJECT_DESCRIPTION,
+        version=settings.VERSION,
+        lifespan=lifespan,
     )
 
     app.add_middleware(
@@ -29,9 +30,7 @@ def create_app():
         allow_headers=["*"],
     )
 
-    app.middleware("http")(create_context_middleware(container))
-    app.middleware("http")(create_auth_middleware(container.token_service()))
-    app.middleware("http")(db_session_middleware)
+    app.middleware("http")(create_auth_middleware(get_token_service()))
     app.middleware("http")(error_handling_middleware)
 
     app.include_router(health_checks.router)
@@ -42,8 +41,6 @@ def create_app():
     app.include_router(ai_models.router)
     app.include_router(files.router)
     app.include_router(utilization.router)
-
-    app.container = container
     
     return app
 

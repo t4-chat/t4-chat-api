@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     TITLE_GENERATION_MODEL: str = Field("openai/gpt-4o-mini", env="TITLE_GENERATION_MODEL")
 
     DATABASE_URL: str = Field("postgresql://postgres:postgres@localhost:5433/agg-ai", env="DATABASE_URL")
+    DB_POOL_SIZE: int = Field(30, env="DB_POOL_SIZE")
+    DB_MAX_OVERFLOW: int = Field(100, env="DB_MAX_OVERFLOW")
+    DB_POOL_RECYCLE: int = Field(3600, env="DB_POOL_RECYCLE")
 
     # OpenTelemetry settings
     OTEL_SERVICE_NAME: str = Field("agg-ai-api", env="OTEL_SERVICE_NAME")

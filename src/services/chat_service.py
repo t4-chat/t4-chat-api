@@ -25,6 +25,9 @@ class ChatService:
         self.db = db
 
     async def create_chat(self, title: Optional[str] = None) -> Chat:
+        if not title:
+            title = "New Chat"
+
         chat = Chat(user_id=self.context.user_id, title=title)
 
         self.db.add(chat)

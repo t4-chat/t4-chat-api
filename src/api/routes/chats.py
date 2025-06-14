@@ -1,57 +1,49 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Body, Request, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Body, BackgroundTasks, Depends
 from fastapi.responses import StreamingResponse
-from dependency_injector.wiring import inject, Provide
 
 from src.api.schemas.chat import ChatResponse, ChatCompletionRequest, UpdateChatTitleRequest, ChatListItemResponse
-from src.services.chat_service import ChatService
-from src.services.conversation_service import ConversationService
-from src.containers.containers import AppContainer
+from src.containers.container import chat_service_dep, conversation_service_dep
 from src.api.dependencies.budget import check_budget
 
 
 router = APIRouter(prefix="/api/chats", tags=["chats"])
 
 
-@router.post("/", response_model=ChatResponse)
-@inject
-async def create_chat(service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    chat = await service.create_chat()
+@router.post("", response_model=ChatResponse)
+async def create_chat(chat_service: chat_service_dep):
+    chat = await chat_service.create_chat()
     return chat
 
 
-@router.get("/", response_model=List[ChatListItemResponse])
-@inject
-async def get_chats(service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    return await service.get_user_chats()
+@router.get("", response_model=List[ChatListItemResponse])
+async def get_chats(chat_service: chat_service_dep):
+    return await chat_service.get_user_chats()
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
-@inject
-async def get_chat(chat_id: UUID, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    chat = await service.get_chat(chat_id=chat_id)
+async def get_chat(chat_id: UUID, chat_service: chat_service_dep):
+    chat = await chat_service.get_chat(chat_id=chat_id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     return chat
 
 
 @router.delete("/{chat_id}")
-@inject
-async def delete_chat(chat_id: UUID, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    success = await service.delete_chat(chat_id=chat_id)
+async def delete_chat(chat_id: UUID, chat_service: chat_service_dep):
+    success = await chat_service.delete_chat(chat_id=chat_id)
     if not success:
         raise HTTPException(status_code=404, detail="Chat not found")
     return {"status": "success", "message": "Chat deleted"}
 
 
 @router.post("/conversation", response_class=StreamingResponse)
-@inject
 async def send_message(
-    message: ChatCompletionRequest = Body(...),
-    conversation_service: ConversationService = Depends(Provide[AppContainer.conversation_service]),
-    background_tasks: BackgroundTasks = None,
+    message: ChatCompletionRequest,
+    conversation_service: conversation_service_dep,
+    background_tasks: BackgroundTasks,
     _: bool = Depends(check_budget),
 ):
     return StreamingResponse(
@@ -67,18 +59,16 @@ async def send_message(
 
 
 @router.patch("/{chat_id}/title")
-@inject
-async def update_chat_title(chat_id: UUID, request: UpdateChatTitleRequest, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    chat = await service.update_chat_title(chat_id=chat_id, title=request.title)
+async def update_chat_title(chat_id: UUID, request: UpdateChatTitleRequest, chat_service: chat_service_dep):
+    chat = await chat_service.update_chat_title(chat_id=chat_id, title=request.title)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     return chat
 
 
 @router.patch("/{chat_id}/pin")
-@inject
-async def pin_chat(chat_id: UUID, service: ChatService = Depends(Provide[AppContainer.chat_service])):
-    chat = await service.pin_chat(chat_id=chat_id)
+async def pin_chat(chat_id: UUID, chat_service: chat_service_dep):
+    chat = await chat_service.pin_chat(chat_id=chat_id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     return chat

@@ -1,10 +1,7 @@
-from fastapi import APIRouter, Request, Depends
-from dependency_injector.wiring import inject, Provide
+from fastapi import APIRouter, Request
 
 from src.api.schemas.users import UserResponse
-from src.services.user_service import UserService
-from src.containers.containers import AppContainer
-
+from src.containers.container import user_service_dep
 
 router = APIRouter(
     prefix="/api/users",
@@ -13,10 +10,9 @@ router = APIRouter(
 
 
 @router.get("/current", response_model=UserResponse)
-@inject
 async def get_current_user(
     request: Request, 
-    user_service: UserService = Depends(Provide[AppContainer.user_service])
+    user_service: user_service_dep
 ):
     user_id = request.state.user_id
     user = await user_service.get_user_by_id(user_id)

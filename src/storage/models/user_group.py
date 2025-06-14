@@ -19,6 +19,6 @@ class UserGroup(BaseModel):
     type = Column(String, nullable=False)
 
     # Relationships
-    users = relationship("User", back_populates="user_group", cascade="all, delete-orphan")
-    limits_associations = relationship("UserGroupLimits", back_populates="user_group")
-    limits = relationship("Limits", secondary="agg_ai.user_group_limits", viewonly=True)
+    users = relationship("User", back_populates="user_group", cascade="all, delete-orphan", lazy="noload")
+    limits_associations = relationship("UserGroupLimits", back_populates="user_group", lazy="noload")
+    limits = relationship("Limits", secondary="agg_ai.user_group_limits", viewonly=True, lazy="noload")
