@@ -193,6 +193,15 @@ class ConversationService:
             if not chat:
                 raise errors.NotFoundError(resource_name="Chat", message=f"Chat with id {message.chat_id} not found")
 
+        chat_metadata = {
+            "type": "chat_metadata",
+            "chat": {
+                "id": str(chat_id),
+                "title": chat.title,
+            },
+        }
+        yield f"data: {json.dumps(chat_metadata)}\n\n"
+
         await self._rewrite_chat_history(message=message)
 
         prev_messages = await self.chat_service.get_messages(chat_id)
@@ -242,12 +251,3 @@ class ConversationService:
         yield f"data: {json.dumps({'type': 'message_content_stop' })}\n\n"
 
         await self.chat_service.update_message(message_id=assistant_message.id, content=assistant_content)
-
-        chat_metadata = {
-            "type": "chat_metadata",
-            "chat": {
-                "id": str(chat_id),
-                "title": chat.title,
-            },
-        }
-        yield f"data: {json.dumps(chat_metadata)}\n\n"
