@@ -1,17 +1,18 @@
 """initial
 
-Revision ID: 9802b849ad95
+Revision ID: 1739894a298f
 Revises: 
-Create Date: 2025-05-11 21:35:20.114074-05:00
+Create Date: 2025-05-14 22:58:31.938145-05:00
 
 """
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
-revision: str = '9802b849ad95'
+revision: str = '1739894a298f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -50,6 +51,15 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('name'),
     schema='agg_ai'
     )
+    op.create_table('white_list',
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    schema='agg_ai'
+    )
+    op.create_index(op.f('ix_agg_ai_white_list_id'), 'white_list', ['id'], unique=False, schema='agg_ai')
     op.create_table('ai_provider_models',
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('slug', sa.String(), nullable=False),
@@ -169,6 +179,8 @@ def downgrade() -> None:
     op.drop_table('users', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_ai_provider_models_id'), table_name='ai_provider_models', schema='agg_ai')
     op.drop_table('ai_provider_models', schema='agg_ai')
+    op.drop_index(op.f('ix_agg_ai_white_list_id'), table_name='white_list', schema='agg_ai')
+    op.drop_table('white_list', schema='agg_ai')
     op.drop_table('user_group', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_budget_id'), table_name='budget', schema='agg_ai')
     op.drop_table('budget', schema='agg_ai')

@@ -23,7 +23,8 @@ from src.services.user.user_service import UserService
 
 from src.storage.base_repo import BaseRepository
 from src.storage.db import get_db_session
-from src.storage.models import AiProvider, AiProviderModel, Budget, Chat, ChatMessage, Limits, Resource, Usage, User
+from src.storage.models import AiProvider, AiProviderModel, Budget, Chat, ChatMessage, Limits, Resource, Usage, User, WhiteList
+
 
 db = Annotated[AsyncSession, Depends(get_db_session)]
 
@@ -57,6 +58,8 @@ get_usage_model_repo = create_repo_factory(Usage)
 get_chat_repo = create_repo_factory(Chat)
 
 get_chat_message_repo = create_repo_factory(ChatMessage)
+
+get_white_list_repo = create_repo_factory(WhiteList)
 
 
 def get_model_provider(context: Context = Depends(get_context)) -> ModelProvider:
@@ -170,8 +173,9 @@ UsageTrackingServiceDep = Annotated[
 def get_auth_service(
     token_service: TokenService = Depends(get_token_service),
     user_service: UserService = Depends(get_user_service),
+    white_list_repo: BaseRepository[WhiteList] = Depends(get_white_list_repo),
 ) -> AuthService:
-    return AuthService(token_service=token_service, user_service=user_service)
+    return AuthService(token_service=token_service, user_service=user_service, white_list_repo=white_list_repo)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

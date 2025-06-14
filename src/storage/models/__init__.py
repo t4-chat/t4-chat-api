@@ -9,6 +9,7 @@ from .usage import Usage
 from .user import User
 from .user_group import UserGroup
 from .user_group_limits import UserGroupLimits
+from .white_list import WhiteList
 
 __all__ = [
     "Base",
@@ -23,4 +24,5 @@ __all__ = [
     "UserGroup",
     "UserGroupLimits",
     "Budget",
+    "WhiteList",
 ]

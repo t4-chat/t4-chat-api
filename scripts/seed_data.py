@@ -3,7 +3,6 @@
 import argparse
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any, Dict
@@ -17,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Storage
 from src.storage.db import db_session_manager
-from src.storage.models import AiProvider, AiProviderModel, Limits, User, UserGroup, UserGroupLimits
+from src.storage.models import AiProvider, AiProviderModel, Limits, User, UserGroup, UserGroupLimits, WhiteList
 from src.storage.models.budget import Budget
 
 from src.config import settings
@@ -265,6 +264,22 @@ async def seed_budget(db: AsyncSession, env: str, update: bool = False) -> None:
     print("Budget seeding complete.")
 
 
+async def seed_white_list(db: AsyncSession, env: str) -> None:
+    print("Seeding white list...")
+    data = load_seed_data(env, "white-list.json")
+    if not data:
+        return
+    
+    for email in data.get("emails", []):
+        result = await db.execute(select(WhiteList).where(WhiteList.email == email))
+        existing_item = result.scalar_one_or_none()
+
+        if not existing_item:
+            item = WhiteList(email=email)
+            db.add(item)
+
+    print("White list seeding complete.")
+
 async def main():
     parser = argparse.ArgumentParser(description="Seed database with initial data")
     parser.add_argument(
@@ -290,6 +305,7 @@ async def main():
             await seed_user_group_limits(db, env, update)
             await seed_test_users(db, env, update)
             await seed_budget(db, env, update)
+            await seed_white_list(db, env)
             # Commit all changes
             await db.commit()
             print("Database seeding complete!")
