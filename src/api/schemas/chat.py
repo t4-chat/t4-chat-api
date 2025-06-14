@@ -8,40 +8,37 @@ from src.services.inference.dto import DefaultResponseGenerationOptionsDTO
 
 
 class ChatMessageRequestSchema(BaseModel):
-    role: Literal["user", "assistant"] = Field(
-        ..., description="The role of the message"
-    )
+    id: Optional[UUID] = Field(None, description="The id of the message")
+
+    chat_id: Optional[UUID] = Field(None, description="The id of the chat")
+
     content: str = Field(..., description="The content of the message")
-    attachments: Optional[List[UUID]] = Field(
-        None, description="The attachments of the message"
-    )
+    attachments: Optional[List[UUID]] = Field(None, description="The attachments of the message")
 
 
 class ChatMessageResponseSchema(BaseModel):
     id: UUID
-    role: Literal["user", "assistant"] = Field(
-        ..., description="The role of the message"
-    )
+
+    role: Literal["user", "assistant"] = Field(..., description="The role of the message")
     content: str = Field(..., description="The content of the message")
-    attachments: Optional[List[UUID]] = Field(
-        None, description="The attachments of the message"
-    )
+    attachments: Optional[List[UUID]] = Field(None, description="The attachments of the message")
     created_at: datetime = Field(..., description="The creation date of the message")
 
     class Config:
         from_attributes = True
 
 
-class ChatCompletionRequestSchema(BaseModel):
-    model_id: int = Field(..., description="The id of the model")
-    messages: List[ChatMessageRequestSchema] = Field(
-        ..., description="The messages of the chat"
-    )
+class ChatMessagesResponseSchema(BaseModel):
+    messages: List[ChatMessageResponseSchema] = Field(..., description="The messages of the chat")
 
-    chat_id: Optional[UUID] = Field(None, description="The id of the chat")
-    options: Optional[DefaultResponseGenerationOptionsDTO] = Field(
-        None, description="The options of the chat"
-    )
+    class Config:
+        from_attributes = True
+
+
+class ChatCompletionRequestSchema(BaseModel):
+    model_id: int = Field(..., description="The id of the model to generate the response")
+    message: ChatMessageRequestSchema = Field(..., description="The message of the chat")
+    options: Optional[DefaultResponseGenerationOptionsDTO] = Field(None, description="The options of the chat")
 
 
 class ChatListItemResponseSchema(BaseModel):
@@ -63,9 +60,7 @@ class ChatResponseSchema(BaseModel):
     created_at: datetime = Field(..., description="The creation date of the chat")
     updated_at: datetime = Field(..., description="The update date of the chat")
     pinned: bool = Field(..., description="Whether the chat is pinned")
-    messages: List[ChatMessageResponseSchema] = Field(
-        ..., description="The messages of the chat"
-    )
+    messages: List[ChatMessageResponseSchema] = Field(..., description="The messages of the chat")
 
     class Config:
         from_attributes = True

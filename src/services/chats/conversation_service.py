@@ -1,15 +1,13 @@
 import asyncio
-import functools
 import json
-import traceback
 from typing import AsyncGenerator, List, Optional
-from uuid import UUID
 
 from fastapi import BackgroundTasks
 
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.chats.chat_service import ChatService
 from src.services.chats.dto import ChatMessageDTO
+from src.services.chats.utils import stream_error_handler
 from src.services.common import errors
 from src.services.common.context import Context
 from src.services.files import utils
@@ -24,89 +22,6 @@ from src.config import settings
 from src.logging.logging_config import get_logger
 
 logger = get_logger(__name__)
-
-
-def stream_error_handler(func):
-    """
-    Decorator for streaming functions that handles errors and formats them as SSE events.
-    Works with async generator functions that yield SSE data.
-    """
-
-    @functools.wraps(func)
-    async def wrapper(self, *args, **kwargs):
-        assistant_message = None
-
-        try:
-            # Get the generator from the wrapped function
-            generator = func(self, *args, **kwargs)
-
-            # Process generator items
-            async for item in generator:
-                # This will be SSE formatted data
-                yield item
-
-                # Try to extract message ID if this is the first message
-                if not assistant_message and "message_start" in item:
-                    try:
-                        # Parse the SSE data to get message ID
-                        data_str = item.split("data: ")[1].strip()
-                        data = json.loads(data_str)
-                        if data.get("type") == "message_start" and "message" in data:
-                            message_id = data["message"].get("id")
-                            if message_id:
-                                assistant_message = {"id": UUID(message_id)}
-                    except (IndexError, json.JSONDecodeError, KeyError):
-                        logger.error("Failed to parse message ID from SSE data")
-                        pass
-
-        except errors.NotFoundError as e:
-            error_message = {"type": "error", "error": str(e), "code": 404}
-            yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(
-                        message_id=assistant_message["id"], content=f"Error: {str(e)}"
-                    )
-                except Exception as update_error:
-                    logger.error(f"Failed to update error message: {str(update_error)}")
-
-        except errors.BudgetExceededError as e:
-            error_message = {"type": "error", "error": str(e), "code": 402}
-            yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(
-                        message_id=assistant_message["id"],
-                        content=f"Budget exceeded: {str(e)}",
-                    )
-                except Exception as update_error:
-                    logger.error(
-                        f"Failed to update budget error message: {str(update_error)}"
-                    )
-
-        except Exception as e:
-            logger.error(f"Stream error: {str(e)}")
-            logger.error(traceback.format_exc())
-            error_message = {
-                "type": "error",
-                "error": "Internal server error",
-                "code": 500,
-            }
-            yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(
-                        message_id=assistant_message["id"],
-                        content=f"Internal error during response generation",
-                    )
-                except Exception as update_error:
-                    logger.error(f"Failed to update error message: {str(update_error)}")
-
-        finally:
-            # Always send done event
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-
-    return wrapper
 
 
 class ConversationService:
@@ -159,7 +74,7 @@ class ConversationService:
         ):
             yield chunk
 
-    async def stream_response_format(self, text_stream) -> AsyncGenerator[str, None]:
+    async def _stream_response_format(self, text_stream: AsyncGenerator[str, None]) -> AsyncGenerator[str, None]:
         async for chunk in text_stream:
             # Create SSE-formatted data
             data = json.dumps({"content": chunk, "type": "content"})
@@ -168,31 +83,20 @@ class ConversationService:
         # Send done event
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-    async def _rewrite_chat_history(
-        self, chat_id: UUID, messages: List[ChatMessageDTO], model_id: int
-    ) -> None:
+    async def _rewrite_chat_history(self, message: ChatMessageDTO) -> None:
         """
         Rewrite the entire message history for a chat.
         This deletes all existing messages and adds the new ones.
         """
-        await self.chat_service.delete_all_messages(chat_id)
 
-        # Add all new messages sequentially
-        for message in messages:
-            await self.chat_service.add_message(
-                chat_id=chat_id,
-                role=message.role,
-                model_id=model_id,
-                content=message.content,
-                attachments=message.attachments,
-            )
+        if message.id:
+            await self.chat_service.delete_all_later_messages(message)
 
-    async def _generate_chat_title(
-        self, messages: List[ChatMessageDTO], background_tasks: BackgroundTasks = None
-    ) -> str:
-        model = await self.ai_model_service.get_model_by_path(
-            settings.TITLE_GENERATION_MODEL
-        )
+        message.role = "user"
+        await self.chat_service.add_message(message)
+
+    async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:
+        model = await self.ai_model_service.get_model_by_path(settings.TITLE_GENERATION_MODEL)
         if not model:
             raise errors.NotFoundError(
                 resource_name="Model",
@@ -200,7 +104,7 @@ class ConversationService:
             )
 
         # Convert ChatMessage objects to dictionaries for the model
-        messages_dict = [{"role": msg.role, "content": msg.content} for msg in messages]
+        messages_dict = [{"role": message.role, "content": message.content}]
 
         messages_for_title = [
             {
@@ -222,9 +126,7 @@ class ConversationService:
 
         return title_response.text.strip()
 
-    async def prepare_messages(
-        self, messages: List[ChatMessageDTO], model: AiProviderModelDTO
-    ) -> List[dict]:
+    async def _prepare_messages(self, messages: List[ChatMessageDTO], model: AiProviderModelDTO) -> List[dict]:
         """
         Prepare messages for inference, including processing attachments.
         """
@@ -242,19 +144,13 @@ class ConversationService:
 
         # Process each message
         for message in messages:
-            content = (
-                [{"type": "text", "text": message.content}]
-                if message.attachments
-                else message.content
-            )
+            content = [{"type": "text", "text": message.content}] if message.attachments else message.content
 
             # Process attachments
             if message.attachments:
                 for attachment_id in message.attachments:
                     file_content = await self.files_service.get_file(attachment_id)
-                    content.append(
-                        utils.prepare_file(file_content.content_type, file_content.data)
-                    )
+                    content.append(utils.prepare_file(file_content.content_type, file_content.data))
 
             model_messages.append({"role": message.role, "content": content})
 
@@ -282,29 +178,31 @@ class ConversationService:
     @stream_error_handler
     async def chat_completion_stream(
         self,
-        messages: List[ChatMessageDTO],
         model_id: int,
+        message: ChatMessageDTO,
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
-        chat_id: Optional[UUID] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
-        if not chat_id:
-            title = await self._generate_chat_title(
-                messages=messages, background_tasks=background_tasks
-            )
+        if not message.chat_id:
+            title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
             chat = await self.chat_service.create_chat(title=title)
             chat_id = chat.id
+            message.chat_id = chat_id
         else:
-            chat = await self.chat_service.get_chat(chat_id)
+            chat = await self.chat_service.get_chat(chat_id=message.chat_id)
             if not chat:
-                raise errors.NotFoundError(
-                    resource_name="Chat", message=f"Chat with id {chat_id} not found"
-                )
+                raise errors.NotFoundError(resource_name="Chat", message=f"Chat with id {message.chat_id} not found")
 
-        await self._rewrite_chat_history(chat_id, messages, model_id)
+        await self._rewrite_chat_history(message=message)
+
+        prev_messages = await self.chat_service.get_messages(chat_id)
 
         assistant_message = await self.chat_service.add_message(
-            chat_id=chat_id, role="assistant", model_id=model_id, content=""
+            ChatMessageDTO(
+                chat_id=chat_id,
+                role="assistant",
+                model_id=model_id,
+            )
         )
 
         message_metadata = {
@@ -315,9 +213,7 @@ class ConversationService:
 
         model = await self.ai_model_service.get_model(model_id)
         if not model:
-            raise errors.NotFoundError(
-                resource_name="Model", message=f"Model with id {model_id} not found"
-            )
+            raise errors.NotFoundError(resource_name="Model", message=f"Model with id {model_id} not found")
 
         provider = model.provider
         if not provider:
@@ -326,15 +222,11 @@ class ConversationService:
                 message=f"Provider with id {model.provider_id} not found",
             )
 
-        inference_messages = await self.prepare_messages(messages=messages, model=model)
+        inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
 
         assistant_content = ""
 
-        generate_stream_func = (
-            self._generate_completion_stream
-            if not settings.MOCK_AI_RESPONSE
-            else self._fake_stream_response
-        )
+        generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
 
         async for chunk in generate_stream_func(
             provider=provider,
@@ -349,9 +241,7 @@ class ConversationService:
 
         yield f"data: {json.dumps({'type': 'message_content_stop' })}\n\n"
 
-        await self.chat_service.update_message(
-            message_id=assistant_message.id, content=assistant_content
-        )
+        await self.chat_service.update_message(message_id=assistant_message.id, content=assistant_content)
 
         chat_metadata = {
             "type": "chat_metadata",

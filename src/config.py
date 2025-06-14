@@ -15,9 +15,7 @@ class ModelProviderSettings(BaseModel):
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = Field("AGG-AI", env="PROJECT_NAME")
-    PROJECT_DESCRIPTION: str = Field(
-        "API for aggregating multiple AI providers", env="PROJECT_DESCRIPTION"
-    )
+    PROJECT_DESCRIPTION: str = Field("API for aggregating multiple AI providers", env="PROJECT_DESCRIPTION")
     VERSION: str = Field("1.0.0", env="VERSION")
 
     ENVIRONMENT: str = Field("development", env="ENVIRONMENT")
@@ -25,22 +23,16 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
     JWT_EXPIRATION_MINUTES: int = Field(60 * 24 * 60, env="JWT_EXPIRATION_MINUTES")
 
-    TITLE_GENERATION_MODEL: str = Field(
-        "openai/gpt-4o-mini", env="TITLE_GENERATION_MODEL"
-    )
+    TITLE_GENERATION_MODEL: str = Field("openai/gpt-4o-mini", env="TITLE_GENERATION_MODEL")
 
-    DATABASE_URL: str = Field(
-        "postgresql://postgres:postgres@localhost:5433/agg-ai", env="DATABASE_URL"
-    )
+    DATABASE_URL: str = Field("postgresql://postgres:postgres@localhost:5433/agg-ai", env="DATABASE_URL")
     DB_POOL_SIZE: int = Field(30, env="DB_POOL_SIZE")
     DB_MAX_OVERFLOW: int = Field(100, env="DB_MAX_OVERFLOW")
     DB_POOL_RECYCLE: int = Field(3600, env="DB_POOL_RECYCLE")
 
     # OpenTelemetry settings
     OTEL_SERVICE_NAME: str = Field("agg-ai-api", env="OTEL_SERVICE_NAME")
-    OTEL_EXPORTER_OTLP_ENDPOINT: str = Field(
-        "jaeger:4317", env="OTEL_EXPORTER_OTLP_ENDPOINT"
-    )
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = Field("jaeger:4317", env="OTEL_EXPORTER_OTLP_ENDPOINT")
 
     GCP_BUCKET_NAME: str = Field("agg-ai-bucket", env="GCP_BUCKET_NAME")
     GCP_PROJECT_ID: str = Field("dev-agg-ai", env="GCP_PROJECT_ID")

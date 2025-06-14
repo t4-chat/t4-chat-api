@@ -1,4 +1,4 @@
-from typing import Any, Generic, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Generic, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,9 +14,7 @@ class BaseRepository(Generic[T]):
         self.model = model
         self.session = session
 
-    def _apply_joins(
-        self, stmt: Select, joins: Optional[Sequence[JoinTarget]]
-    ) -> Select:
+    def _apply_joins(self, stmt: Select, joins: Optional[Sequence[JoinTarget]]) -> Select:
         if not joins:
             return stmt
 

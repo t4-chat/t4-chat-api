@@ -31,7 +31,7 @@ class ChatMessage(BaseModel):
     model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
     
     role = Column(String, nullable=False)  # 'user' or 'assistant'
-    content = Column(Text, nullable=False)
+    content = Column(Text, nullable=True)
     attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)
     
     chat = relationship("Chat", back_populates="messages", lazy="noload")
