@@ -6,11 +6,15 @@ from pydantic import BaseModel
 
 
 class ChatMessageDTO(BaseModel):
-    id: UUID
-    role: Literal["user", "assistant"]
-    content: str
+    id: Optional[UUID] = None
+    
+    chat_id: Optional[UUID] = None
+    model_id: Optional[int] = None # None for user messages
+    
+    role: Optional[Literal["user", "assistant"]] = None
+    content: Optional[str] = None
     attachments: Optional[List[UUID]] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

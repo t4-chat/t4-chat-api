@@ -1,4 +1,4 @@
-from typing import Any, Generic, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Generic, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,6 +13,10 @@ class BaseRepository(Generic[T]):
     def __init__(self, model: Type[T], session: AsyncSession):
         self.model = model
         self.session = session
+
+    async def transaction(self, func: Callable[..., Awaitable[Any]], *args: Any, **kwargs: Any) -> Any:
+        async with self.session.begin_nested():  # Creates a savepoint
+            return await func(*args, **kwargs)
 
     def _apply_joins(
         self, stmt: Select, joins: Optional[Sequence[JoinTarget]]

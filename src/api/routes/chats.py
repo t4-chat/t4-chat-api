@@ -9,11 +9,11 @@ from src.api.dependencies.conversation import stream_conversation
 from src.api.schemas.chat import (
     ChatCompletionRequestSchema,
     ChatListItemResponseSchema,
+    ChatMessagesResponseSchema,
     ChatResponseSchema,
     UpdateChatTitleRequestSchema,
 )
 from src.containers.container import ChatServiceDep
-
 
 router = APIRouter(prefix="/api/chats", tags=["chats"])
 
@@ -42,6 +42,12 @@ async def delete_chat(chat_id: UUID, chat_service: ChatServiceDep):
     if not success:
         raise HTTPException(status_code=404, detail="Chat not found")
     return {"status": "success", "message": "Chat deleted"}
+
+
+@router.get("/{chat_id}/messages", response_model=ChatMessagesResponseSchema)
+async def get_messages(chat_id: UUID, chat_service: ChatServiceDep):
+    messages = await chat_service.get_messages(chat_id=chat_id)
+    return ChatMessagesResponseSchema(messages=messages)
 
 
 @router.post("/conversation", response_class=StreamingResponse)

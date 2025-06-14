@@ -7,7 +7,7 @@ from src.containers.container import AiProviderServiceDep
 
 router = APIRouter(prefix="/api/ai-providers", tags=["ai-providers"])
 
-
+# DEPRECATED not working
 @router.get("", response_model=List[AiProviderResponseSchema])
 async def get_ai_providers(
     ai_provider_service: AiProviderServiceDep,
