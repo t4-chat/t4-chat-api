@@ -1,23 +1,26 @@
 #!/usr/bin/env python
-import json
+# Standard library imports
+import argparse
 import asyncio
+import json
 import os
 import sys
-import argparse
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Add root directory to Python path
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.storage.models import AiProvider, AiProviderModel, Limits, UserGroup, User, UserGroupLimits
-from src.storage.models.budget import Budget
-from src.config import settings
+# Storage
 from src.storage.db import db_session_manager
+from src.storage.models import AiProvider, AiProviderModel, Limits, User, UserGroup, UserGroupLimits
+from src.storage.models.budget import Budget
+
+from src.config import settings
 
 
 def load_seed_data(env: str, filename: str) -> Dict[str, Any]:
@@ -26,7 +29,7 @@ def load_seed_data(env: str, filename: str) -> Dict[str, Any]:
     if not json_path.exists():
         print(f"Warning: Seed file {json_path} does not exist.")
         return {}
-    
+
     with open(json_path, "r") as f:
         return json.load(f)
 
@@ -71,7 +74,7 @@ async def seed_providers(db: AsyncSession, env: str, update: bool = False) -> No
             result = await db.execute(
                 select(AiProviderModel).where(
                     AiProviderModel.slug == model_slug,
-                    AiProviderModel.provider_id == provider.id
+                    AiProviderModel.provider_id == provider.id,
                 )
             )
             existing_model = result.scalar_one_or_none()
@@ -155,7 +158,9 @@ async def seed_user_groups(db: AsyncSession, env: str, update: bool = False) -> 
     print("User groups seeding complete.")
 
 
-async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = False) -> None:
+async def seed_user_group_limits(
+    db: AsyncSession, env: str, update: bool = False
+) -> None:
     """Set up user group limits idempotently."""
     print("Seeding user group limits...")
     data = load_seed_data(env, "user-group-limits.json")
@@ -172,15 +177,15 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
         )
         user_group = result.scalar_one_or_none()
         if not user_group:
-            print(f"Warning: User group '{user_group_name}' not found, skipping its limits")
+            print(
+                f"Warning: User group '{user_group_name}' not found, skipping its limits"
+            )
             continue
 
         # Process each limit model ID
         for model_id in limit_model_ids:
             # Get limit for this model
-            result = await db.execute(
-                select(Limits).where(Limits.model_id == model_id)
-            )
+            result = await db.execute(select(Limits).where(Limits.model_id == model_id))
             limit = result.scalar_one_or_none()
             if not limit:
                 print(f"Warning: Limit for model ID {model_id} not found, skipping")
@@ -190,21 +195,24 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
             result = await db.execute(
                 select(UserGroupLimits).where(
                     UserGroupLimits.user_group_name == user_group_name,
-                    UserGroupLimits.limits_id == limit.id
+                    UserGroupLimits.limits_id == limit.id,
                 )
             )
             existing_association = result.scalar_one_or_none()
 
             if existing_association:
-                print(f"Association between '{user_group_name}' and limit for model {model_id} already exists")
+                print(
+                    f"Association between '{user_group_name}' and limit for model {model_id} already exists"
+                )
             else:
                 # Create new association
                 association = UserGroupLimits(
-                    user_group_name=user_group_name,
-                    limits_id=limit.id
+                    user_group_name=user_group_name, limits_id=limit.id
                 )
                 db.add(association)
-                print(f"Created association between '{user_group_name}' and limit for model {model_id}")
+                print(
+                    f"Created association between '{user_group_name}' and limit for model {model_id}"
+                )
 
     print("User group limits seeding complete.")
 
@@ -218,9 +226,7 @@ async def seed_test_users(db: AsyncSession, env: str, update: bool = False) -> N
 
     for user_data in data.get("users", []):
         # Check if user already exists
-        result = await db.execute(
-            select(User).where(User.email == user_data["email"])
-        )
+        result = await db.execute(select(User).where(User.email == user_data["email"]))
         existing_user = result.scalar_one_or_none()
 
         if existing_user:
@@ -249,19 +255,21 @@ async def seed_budget(db: AsyncSession, env: str, update: bool = False) -> None:
 
     result = await db.execute(select(Budget))
     existing_budget = result.scalar_one_or_none()
-    
+
     if existing_budget:
         print("Budget already exists, skipping")
     else:
         budget = Budget(**data)
         db.add(budget)
-    
+
     print("Budget seeding complete.")
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Seed database with initial data")
-    parser.add_argument("--env", default="poc", help="Environment to seed from (e.g., dev, poc)")
+    parser.add_argument(
+        "--env", default="poc", help="Environment to seed from (e.g., dev, poc)"
+    )
     parser.add_argument("--update", action="store_true", help="Update existing records")
     args = parser.parse_args()
 
@@ -295,4 +303,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class GoogleAuthRequest(BaseModel):
-    token: str
+class GoogleAuthRequestSchema(BaseModel):
+    token: str = Field(..., description="The token from Google")
 
 
-class TokenResponse(BaseModel):
-    access_token: str
+class TokenResponseSchema(BaseModel):
+    access_token: str = Field(..., description="The access token")

@@ -113,3 +113,8 @@ To seed database with data
 ```
 python scripts/setup_test_environment.py
 ```
+
+# Code best practices
+- any inputs and outputs of the service *MUST* be DTO
+- any inputs and outputs of the storage *MUST* be models
+- any outputs of the routes *MUST* be schemas

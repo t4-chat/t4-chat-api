@@ -1,0 +1,7 @@
+[tool.isort]
+profile = "black"
+line_length = 120
+known_services = ["src.services"]
+known_models = ["src.services.ai_providers.dto"]
+known_storage = ["src.storage"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "SERVICES", "MODELS", "STORAGE", "FIRSTPARTY", "LOCALFOLDER"]

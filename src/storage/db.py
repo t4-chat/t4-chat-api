@@ -1,24 +1,25 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker, create_async_engine
+
 from src.config import settings
-from sqlalchemy.ext.asyncio import (
-    AsyncConnection,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from src.logging.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class DatabaseSessionManager:
     def __init__(self):
         database_url = settings.DATABASE_URL
         if not database_url.startswith("postgresql+asyncpg://"):
-            database_url = database_url.replace("postgresql://", "postgresql+asyncpg://")
+            database_url = database_url.replace(
+                "postgresql://", "postgresql+asyncpg://"
+            )
 
         self._engine = create_async_engine(
-            database_url, 
-            echo=False, 
+            database_url,
+            echo=False,
             future=True,
             pool_pre_ping=True,
             pool_recycle=settings.DB_POOL_RECYCLE,
@@ -26,10 +27,7 @@ class DatabaseSessionManager:
             max_overflow=settings.DB_MAX_OVERFLOW,
         )
         self._sessionmaker = async_sessionmaker(
-            self._engine,
-            class_=AsyncSession,
-            expire_on_commit=False,
-            autoflush=True
+            self._engine, class_=AsyncSession, expire_on_commit=False, autoflush=True
         )
 
     async def close(self):
@@ -60,17 +58,21 @@ class DatabaseSessionManager:
         session = self._sessionmaker()
         try:
             yield session
+            await session.commit()
         except Exception:
             await session.rollback()
             raise
         finally:
             await session.close()
 
+
 db_session_manager = DatabaseSessionManager()
+
 
 async def get_db_session():
     async with db_session_manager.session() as session:
         yield session
+
 
 @asynccontextmanager
 async def lifespan(app):

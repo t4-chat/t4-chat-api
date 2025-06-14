@@ -1,10 +1,13 @@
-from datetime import datetime, timedelta, UTC
-import jwt
-from typing import Dict, Any, Optional
 import uuid
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, Optional
+
+import jwt
 
 from src.storage.models.user import User
+
 from src.config import settings
+
 
 class TokenService:
     def __init__(self):
@@ -24,12 +27,16 @@ class TokenService:
         expiration = datetime.now(UTC) + timedelta(minutes=self.jwt_expiration)
         to_encode["exp"] = expiration
         to_encode["iat"] = datetime.now(UTC)
-        encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
+        encoded_jwt = jwt.encode(
+            to_encode, self.jwt_secret, algorithm=self.jwt_algorithm
+        )
         return encoded_jwt
 
     def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         try:
-            payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
+            payload = jwt.decode(
+                token, self.jwt_secret, algorithms=[self.jwt_algorithm]
+            )
             return payload
         except jwt.PyJWTError:
             return None
@@ -38,7 +45,7 @@ class TokenService:
         payload = self.validate_token(token)
         if not payload or "sub" not in payload:
             return None
-            
+
         try:
             return uuid.UUID(payload["sub"])
         except ValueError:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 
-from src.api.schemas.users import UserResponse
-from src.containers.container import user_service_dep
+from src.api.schemas.users import UserResponseSchema
+from src.containers.container import UserServiceDep
 
 router = APIRouter(
     prefix="/api/users",
@@ -9,10 +9,10 @@ router = APIRouter(
 )
 
 
-@router.get("/current", response_model=UserResponse)
+@router.get("/current", response_model=UserResponseSchema)
 async def get_current_user(
-    request: Request, 
-    user_service: user_service_dep
+    request: Request,
+    user_service: UserServiceDep,
 ):
     user_id = request.state.user_id
     user = await user_service.get_user_by_id(user_id)

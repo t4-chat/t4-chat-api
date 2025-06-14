@@ -2,14 +2,14 @@ from typing import List
 
 from fastapi import APIRouter
 
-from src.api.schemas.ai_provider import AiProviderResponse
-from src.containers.container import ai_provider_service_dep
+from src.api.schemas.ai_providers import AiProviderResponseSchema
+from src.containers.container import AiProviderServiceDep
 
 router = APIRouter(prefix="/api/ai-providers", tags=["ai-providers"])
 
 
-@router.get("", response_model=List[AiProviderResponse])
+@router.get("", response_model=List[AiProviderResponseSchema])
 async def get_ai_providers(
-    ai_provider_service: ai_provider_service_dep
-) -> List[AiProviderResponse]:
+    ai_provider_service: AiProviderServiceDep,
+) -> List[AiProviderResponseSchema]:
     return await ai_provider_service.get_ai_providers()

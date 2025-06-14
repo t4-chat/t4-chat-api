@@ -1,17 +1,18 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
-from google.oauth2 import id_token
 from google.auth.transport import requests
-from sqlalchemy.ext.asyncio import AsyncSession
+from google.oauth2 import id_token
 
-from src.services.user_service import UserService
-from src.storage.models.user import User
 from src.services.auth.token_service import TokenService
+from src.services.user.user_service import UserService
+
+from src.storage.models.user import User
+
 from src.config import settings
 
+
 class AuthService:
-    def __init__(self, db: AsyncSession, token_service: TokenService, user_service: UserService):
-        self.db = db
+    def __init__(self, token_service: TokenService, user_service: UserService):
         self.token_service = token_service
         self.user_service = user_service
         self.google_client_id = settings.GOOGLE_CLIENT_ID
@@ -22,7 +23,10 @@ class AuthService:
                 token, requests.Request(), self.google_client_id
             )
 
-            if idinfo["iss"] not in ["accounts.google.com", "https://accounts.google.com"]:
+            if idinfo["iss"] not in [
+                "accounts.google.com",
+                "https://accounts.google.com",
+            ]:
                 raise ValueError("Invalid issuer")
 
             return idinfo

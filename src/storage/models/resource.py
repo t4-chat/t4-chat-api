@@ -1,7 +1,9 @@
 import uuid
-from sqlalchemy import Column, String, ForeignKey
+
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
+
 from src.storage.models.base import BaseModel
 
 
@@ -13,7 +15,9 @@ class Resource(BaseModel):
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
 
     # User who owns this resource
-    user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id"), nullable=False)
+    user_id = Column(
+        PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id"), nullable=False
+    )
 
     # Original filename
     filename = Column(String, nullable=False)
