@@ -30,4 +30,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     try:
         yield session
     finally:
-        await session.close()
+        try:
+            await session.close()
+        except Exception as e:
+            print(e)
