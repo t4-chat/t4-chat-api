@@ -35,6 +35,7 @@ class AiProviderModelDTO(BaseModel):
     prompt_path: str
     provider: AiProviderDTO
     hosts: List[ModelHostDTO]
+    tags: List[str]
 
     class Config:
         from_attributes = True
@@ -67,6 +68,7 @@ class AiProviderModelDTO(BaseModel):
             })
         
         # Return a dictionary that Pydantic can use to construct the model
+        # TODO: fix this
         return {
             'id': data.id,
             'name': data.name,
@@ -75,5 +77,6 @@ class AiProviderModelDTO(BaseModel):
             'price_output_token': data.price_output_token,
             'prompt_path': data.prompt_path,
             'provider': provider_data,
-            'hosts': hosts_data
+            'hosts': hosts_data,
+            'tags': data.tags
         }

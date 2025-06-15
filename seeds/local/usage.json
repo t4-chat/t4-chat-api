@@ -2,35 +2,35 @@
   "usage": [
     {
       "email": "test@example.com",
-      "model_name": "gpt-4o",
+      "model_name": "gpt-4.1",
       "input_tokens": 12500,
       "output_tokens": 3500,
       "date": "2023-11-01"
     },
     {
       "email": "test@example.com",
-      "model_name": "gpt-4o-mini",
+      "model_name": "gpt-4.1-mini",
       "input_tokens": 45000,
       "output_tokens": 8200,
       "date": "2023-11-01"
     },
     {
       "email": "admin@example.com",
-      "model_name": "claude-3-7-sonnet",
+      "model_name": "claude-sonnet-4",
       "input_tokens": 75000,
       "output_tokens": 12800,
       "date": "2023-11-01"
     },
     {
       "email": "test@example.com",
-      "model_name": "gpt-4o",
+      "model_name": "gpt-4.1-nano",
       "input_tokens": 18700,
       "output_tokens": 4200,
       "date": "2023-11-02"
     },
     {
       "email": "admin@example.com",
-      "model_name": "gpt-4o-mini",
+      "model_name": "gpt-4.1-mini",
       "input_tokens": 23400,
       "output_tokens": 5100,
       "date": "2023-11-02"

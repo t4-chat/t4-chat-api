@@ -11,6 +11,10 @@ from src.services.usage_tracking.dto import TokenUsageDTO
 
 from src.services.ai_providers.dto import AiProviderModelDTO
 
+from src.logging.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class InferenceService:
     def __init__(
@@ -37,6 +41,8 @@ class InferenceService:
         background_tasks: BackgroundTasks = None,
         **kwargs,
     ) -> TextGenerationDTO:
+        logger.info(f"Generating response for model: {model.name}, {model.id}, {model.slug}")
+        
         resp = await self._models_provider.generate_response(
             model=model,
             messages=messages,
@@ -51,6 +57,8 @@ class InferenceService:
             usage=resp.usage,
         )
         await self._ensure_budget(model, resp.usage)
+        
+        logger.info(f"Generated response for model: {model.name}, {model.id}, {model.slug}")
 
         return resp
 
@@ -62,6 +70,8 @@ class InferenceService:
         background_tasks: BackgroundTasks = None,
         **kwargs,
     ) -> AsyncGenerator[StreamGenerationDTO, None]:
+        logger.info(f"Generating response stream for model: {model.name}, {model.id}, {model.slug}")
+        
         usage = None
         async for chunk in self._models_provider.generate_response_stream(
             model=model,
@@ -80,3 +90,5 @@ class InferenceService:
             usage=usage,
         )
         await self._ensure_budget(model, usage)
+        
+        logger.info(f"Generated response stream for model: {model.name}, {model.id}, {model.slug}")

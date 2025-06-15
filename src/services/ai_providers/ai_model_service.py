@@ -21,7 +21,7 @@ class AiModelService:
 
     @convert_to_dto
     async def get_ai_models(self) -> List[AiProviderModelDTO]:
-        return await self.ai_model_repo.select(includes=[AiProviderModel.provider, AiProviderModel.host_associations, AiProviderModel.hosts])
+        return await self.ai_model_repo.select(filter=AiProviderModel.is_active == True, includes=[AiProviderModel.provider, AiProviderModel.host_associations, AiProviderModel.hosts])
 
     @convert_to_dto
     async def get_model(self, model_id: int) -> Optional[AiProviderModelDTO]:

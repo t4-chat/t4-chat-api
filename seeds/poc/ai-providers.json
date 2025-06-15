@@ -12,6 +12,7 @@
           "price_output_token": 0.000008,
           "context_length": 1047576,
           "prompt_path": "default",
+          "tags": ["general"],
           "hosts": [
             {
               "name": "openai",
@@ -26,6 +27,7 @@
           "price_output_token": 0.0000016,
           "context_length": 1047576,
           "prompt_path": "default",
+          "tags": ["general"],
           "hosts": [
             {
               "name": "openai",
@@ -40,6 +42,7 @@
           "price_output_token": 0.0000004,
           "context_length": 1047576,
           "prompt_path": "default",
+          "tags": ["general"],
           "hosts": [
             {
               "name": "openai",
@@ -61,6 +64,7 @@
           "price_output_token": 0.00015,
           "context_length": 200000,
           "prompt_path": "default",
+          "tags": ["coding"],
           "hosts": [
             {
               "name": "anthropic",
@@ -75,6 +79,7 @@
           "price_output_token": 0.000025,
           "context_length": 200000,
           "prompt_path": "default",
+          "tags": ["coding"],
           "hosts": [
             {
               "name": "anthropic",
@@ -96,6 +101,7 @@
           "price_output_token": 0.000004,
           "context_length": 64000,
           "prompt_path": "default",
+          "tags": ["coding"],
           "hosts": [
             {
               "name": "deepseek",
@@ -110,6 +116,7 @@
           "price_output_token": 0.0000011,
           "context_length": 64000,
           "prompt_path": "default",
+          "tags": ["reasoning"],
           "hosts": [
             {
               "name": "deepseek",
@@ -131,6 +138,7 @@
           "price_output_token": 0.0000035,
           "context_length": 1048576,
           "prompt_path": "default",
+          "tags": ["general"],
           "hosts": [
             {
               "name": "gemini",
@@ -145,6 +153,7 @@
           "price_output_token": 0.00001,
           "context_length": 1048576,
           "prompt_path": "default",
+          "tags": ["reasoning"],
           "hosts": [
             {
               "name": "gemini",
@@ -166,6 +175,7 @@
           "price_output_token": 0.000015,
           "context_length": 131072,
           "prompt_path": "default",
+          "tags": ["multimodal"],
           "hosts": [
             {
               "name": "xai",
@@ -180,6 +190,7 @@
           "price_output_token": 0.0000005,
           "context_length": 131072,
           "prompt_path": "default",
+          "tags": ["general"],
           "hosts": [
             {
               "name": "xai",
@@ -201,6 +212,7 @@
           "price_output_token": 0.00000034,
           "context_length": 128000,
           "prompt_path": "default",
+          "tags": ["multimodal"],
           "hosts": [
             {
               "name": "Groq",
@@ -215,6 +227,7 @@
           "price_output_token": 0.0000006,
           "context_length": 128000,
           "prompt_path": "default",
+          "tags": ["multimodal"],
           "hosts": [
             {
               "name": "Groq",

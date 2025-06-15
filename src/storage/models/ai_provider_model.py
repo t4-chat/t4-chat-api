@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from src.storage.models.base import BaseModel
@@ -24,6 +24,7 @@ class AiProviderModel(BaseModel):
     context_length = Column(Integer, nullable=False)
 
     is_active = Column(Boolean, nullable=False, default=True)
+    tags = Column(ARRAY(String), nullable=False, default=[])
 
     provider = relationship("AiProvider", back_populates="models", lazy="noload")
     host_associations = relationship("ModelHostAssociation", back_populates="model", cascade="all, delete-orphan", lazy="noload")

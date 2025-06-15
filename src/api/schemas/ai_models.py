@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -13,6 +15,7 @@ class AiProviderResponseSchema(BaseModel):
 class AiModelResponseSchema(BaseModel):
     id: int = Field(..., description="The id of the model")
     name: str = Field(..., description="The name of the model")
+    tags: List[str] = Field(..., description="The tags of the model")
     provider: AiProviderResponseSchema = Field(
         ..., description="The provider of the model"
     )
