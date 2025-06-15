@@ -94,8 +94,8 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 # Disable litellm logs
-litellm._logging._disable_debugging()
-litellm.suppress_debug_info = True
+# litellm._logging._disable_debugging()
+# litellm.suppress_debug_info = True
 
 # Disable httpx logs
-logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.DEBUG)
