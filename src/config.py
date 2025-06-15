@@ -41,7 +41,10 @@ class Settings(BaseSettings):
 
     MOCK_AI_RESPONSE: bool = Field(False, env="MOCK_AI_RESPONSE")
 
-    ADMIN_EMAILS: List[str] = Field([], env="ADMIN_EMAILS")
+    ADMIN_EMAILS: List[str] = Field(
+        ["avdieiev.oleksii@gmail.com", "stepun.tita@gmail.com", "pxlxpenko@gmail.com", "ostashko4@gmail.com"],
+        env="ADMIN_EMAILS"
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -50,37 +53,37 @@ class Settings(BaseSettings):
     def _load_model_providers(self):
         # OpenAI
         self.MODEL_PROVIDERS["openai"] = ModelProviderSettings(
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=os.getenv("OPENAI_API_KEY", ""),
         )
 
         # Anthropic
         self.MODEL_PROVIDERS["anthropic"] = ModelProviderSettings(
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
         )
 
         # DeepSeek
         self.MODEL_PROVIDERS["deepseek"] = ModelProviderSettings(
-            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            api_key=os.getenv("DEEPSEEK_API_KEY", ""),
         )
 
         # Gemini
         self.MODEL_PROVIDERS["gemini"] = ModelProviderSettings(
-            api_key=os.getenv("GEMINI_API_KEY"),
+            api_key=os.getenv("GEMINI_API_KEY", ""),
         )
 
         # XAI
         self.MODEL_PROVIDERS["xai"] = ModelProviderSettings(
-            api_key=os.getenv("XAI_API_KEY"),
+            api_key=os.getenv("XAI_API_KEY", ""),
         )
 
         # Groq
         self.MODEL_PROVIDERS["groq"] = ModelProviderSettings(
-            api_key=os.getenv("GROQ_API_KEY"),
+            api_key=os.getenv("GROQ_API_KEY", ""),
         )
         
         # Together AI
         self.MODEL_PROVIDERS["together_ai"] = ModelProviderSettings(
-            api_key=os.getenv("TOGETHERAI_API_KEY"),
+            api_key=os.getenv("TOGETHERAI_API_KEY", ""),
         )
 
     class Config:
