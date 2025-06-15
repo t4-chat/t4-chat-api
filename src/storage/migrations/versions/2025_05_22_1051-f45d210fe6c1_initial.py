@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: 5d6dd60571fd
+Revision ID: f45d210fe6c1
 Revises: 
-Create Date: 2025-05-16 16:14:52.441777-05:00
+Create Date: 2025-05-22 10:51:19.462785-05:00
 
 """
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '5d6dd60571fd'
+revision: str = 'f45d210fe6c1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -42,6 +42,17 @@ def upgrade() -> None:
     schema='agg_ai'
     )
     op.create_index(op.f('ix_agg_ai_budget_id'), 'budget', ['id'], unique=False, schema='agg_ai')
+    op.create_table('model_hosts',
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('slug', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    schema='agg_ai'
+    )
+    op.create_index(op.f('ix_agg_ai_model_hosts_id'), 'model_hosts', ['id'], unique=False, schema='agg_ai')
     op.create_table('user_group',
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('type', sa.String(), nullable=False),
@@ -63,6 +74,7 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('slug', sa.String(), nullable=False),
     sa.Column('provider_id', sa.Integer(), nullable=True),
+    sa.Column('host_id', sa.Integer(), nullable=True),
     sa.Column('prompt_path', sa.String(), nullable=False),
     sa.Column('price_input_token', sa.Float(), nullable=False),
     sa.Column('price_output_token', sa.Float(), nullable=False),
@@ -71,6 +83,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['host_id'], ['agg_ai.model_hosts.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['provider_id'], ['agg_ai.ai_providers.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     schema='agg_ai'
@@ -183,9 +196,11 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_agg_ai_white_list_id'), table_name='white_list', schema='agg_ai')
     op.drop_table('white_list', schema='agg_ai')
     op.drop_table('user_group', schema='agg_ai')
+    op.drop_index(op.f('ix_agg_ai_model_hosts_id'), table_name='model_hosts', schema='agg_ai')
+    op.drop_table('model_hosts', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_budget_id'), table_name='budget', schema='agg_ai')
     op.drop_table('budget', schema='agg_ai')
     op.drop_index(op.f('ix_agg_ai_ai_providers_id'), table_name='ai_providers', schema='agg_ai')
     op.drop_table('ai_providers', schema='agg_ai')
-    op.execute("DROP SCHEMA IF EXISTS agg_ai;")
+    op.execute("DROP SCHEMA IF EXISTS agg_ai CASCADE;")
     # ### end Alembic commands ###

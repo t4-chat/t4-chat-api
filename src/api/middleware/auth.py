@@ -21,6 +21,7 @@ def create_auth_middleware(token_service_instance: TokenService) -> Callable:
             "/redoc",
             "/openapi.json",
             "/health/live",
+            "/health/logs",
             "/api/auth/google",
             "/api/ai-providers",
             "/api/ai-models",

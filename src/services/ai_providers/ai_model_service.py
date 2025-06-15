@@ -21,12 +21,12 @@ class AiModelService:
 
     @convert_to_dto
     async def get_ai_models(self) -> List[AiProviderModelDTO]:
-        return await self.ai_model_repo.select(includes=[AiProviderModel.provider])
+        return await self.ai_model_repo.select(includes=[AiProviderModel.provider, AiProviderModel.host])
 
     @convert_to_dto
     async def get_model(self, model_id: int) -> Optional[AiProviderModelDTO]:
         return await self.ai_model_repo.get(
-            filter=AiProviderModel.id == model_id, includes=[AiProviderModel.provider]
+            filter=AiProviderModel.id == model_id, includes=[AiProviderModel.provider, AiProviderModel.host]
         )
 
     @convert_to_dto
@@ -37,6 +37,6 @@ class AiModelService:
             filter=and_(
                 AiProvider.slug == provider_slug, AiProviderModel.name == model_name
             ),
-            includes=[AiProviderModel.provider],
+            includes=[AiProviderModel.provider, AiProviderModel.host],
         )
         return model

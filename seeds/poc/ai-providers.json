@@ -3,188 +3,224 @@
     {
       "name": "OpenAI",
       "slug": "openai",
-      "base_url": "https://api.openai.com/v1",
-      "is_active": true,
+      "base_url": "https://openai.com/",
       "models": [
         {
-          "id": 1,
-          "name": "gpt-4o",
-          "slug": "gpt-4o",
-          "is_active": true,
-          "price_input_token": 0.00003,
-          "price_output_token": 0.00006,
-          "context_length": 8192,
-          "prompt_path": "default"
-        },
-        {
-          "id": 2,
-          "name": "gpt-4o-mini",
-          "slug": "gpt-4o-mini",
-          "is_active": true,
-          "price_input_token": 0.0000015,
-          "price_output_token": 0.000006,
-          "context_length": 8192,
-          "prompt_path": "default"
-        },
-        {
-          "id": 4,
           "name": "gpt-4.1",
           "slug": "gpt-4.1",
-          "is_active": true,
           "price_input_token": 0.000002,
           "price_output_token": 0.000008,
           "context_length": 1047576,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai"
+            }
+          ]
         },
         {
-          "id": 5,
           "name": "gpt-4.1-mini",
           "slug": "gpt-4.1-mini",
-          "is_active": true,
           "price_input_token": 0.0000004,
           "price_output_token": 0.0000016,
           "context_length": 1047576,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai"
+            }
+          ]
         },
         {
-          "id": 6,
           "name": "gpt-4.1-nano",
           "slug": "gpt-4.1-nano",
-          "is_active": true,
           "price_input_token": 0.0000001,
           "price_output_token": 0.0000004,
           "context_length": 1047576,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Anthropic",
       "slug": "anthropic",
-      "base_url": "https://api.anthropic.com/v1",
-      "is_active": true,
+      "base_url": "https://www.anthropic.com/",
       "models": [
         {
-          "id": 3,
           "name": "claude-3-7-sonnet",
           "slug": "claude-3-7-sonnet-20250219",
-          "is_active": true,
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,
           "context_length": 200000,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "anthropic",
+              "slug": "anthropic"
+            }
+          ]
+        },
+        {
+          "name": "claude-3-5-haiku",
+          "slug": "claude-3-5-haiku-20241022",
+          "price_input_token": 0.000005,
+          "price_output_token": 0.000025,
+          "context_length": 200000,
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "anthropic",
+              "slug": "anthropic"
+            }
+          ]
         }
       ]
     },
     {
       "name": "DeepSeek",
       "slug": "deepseek",
-      "base_url": "https://api.deepseek.com",
-      "is_active": true,
+      "base_url": "https://www.deepseek.com/",
       "models": [
         {
-          "id": 7,
           "name": "deepseek-r1",
           "slug": "deepseek-reasoner",
-          "is_active": true,
           "price_input_token": 0.00000055,
           "price_output_token": 0.000004,
           "context_length": 64000,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "deepseek",
+              "slug": "deepseek"
+            }
+          ]
         },
         {
-          "id": 8,
           "name": "deepseek-v3",
           "slug": "deepseek-chat",
-          "is_active": true,
           "price_input_token": 0.00000027,
           "price_output_token": 0.0000011,
           "context_length": 64000,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "deepseek",
+              "slug": "deepseek"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Gemini",
       "slug": "gemini",
-      "base_url": "https://api.google.com",
-      "is_active": true,
+      "base_url": "https://gemini.google.com/app",
       "models": [
         {
-          "id": 9,
           "name": "gemini-2.5-flash",
           "slug": "gemini-2.5-flash-preview-05-20",
-          "is_active": true,
           "price_input_token": 0.00000015,
           "price_output_token": 0.0000035,
           "context_length": 1048576,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "gemini",
+              "slug": "gemini"
+            }
+          ]
         },
         {
-          "id": 10,
           "name": "gemini-2.5-pro",
           "slug": "gemini-2.5-pro-preview-05-06",
-          "is_active": true,
           "price_input_token": 0.00000125,
           "price_output_token": 0.00001,
           "context_length": 1048576,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "gemini",
+              "slug": "gemini"
+            }
+          ]
         }
       ]
     },
     {
       "name": "XAI",
       "slug": "xai",
-      "base_url": "https://api.xai.com",
-      "is_active": true,
+      "base_url": "https://x.ai/",
       "models": [
         {
-          "id": 11,
           "name": "grok-3",
           "slug": "grok-3",
-          "is_active": true,
           "price_input_token": 0.000003,
           "price_output_token": 0.000015,
           "context_length": 131072,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "xai",
+              "slug": "xai"
+            }
+          ]
         },
         {
-          "id": 12,
           "name": "grok-3-mini",
           "slug": "grok-3-mini",
-          "is_active": true,
           "price_input_token": 0.0000003,
           "price_output_token": 0.0000005,
           "context_length": 131072,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "xai",
+              "slug": "xai"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Groq",
-      "slug": "groq",
-      "base_url": "https://api.groq.com",
-      "is_active": true,
+      "name": "Meta",
+      "slug": "meta",
+      "base_url": "https://ai.meta.com/",
       "models": [
         {
-          "id": 13,
           "name": "llama-4-scout-17B",
           "slug": "meta-llama/llama-4-scout-17b-16e-instruct",
-          "is_active": true,
           "price_input_token": 0.00000011,
           "price_output_token": 0.00000034,
           "context_length": 128000,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "Groq",
+              "slug": "groq"
+            }
+          ]
         },
         {
-          "id": 14,
           "name": "llama-4-maverick-17B",
           "slug": "meta-llama/llama-4-maverick-17b-128e-instruct",
-          "is_active": true,
           "price_input_token": 0.0000002,
           "price_output_token": 0.0000006,
           "context_length": 128000,
-          "prompt_path": "default"
+          "prompt_path": "default",
+          "hosts": [
+            {
+              "name": "Groq",
+              "slug": "groq"
+            }
+          ]
         }
       ]
     }

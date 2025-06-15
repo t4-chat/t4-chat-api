@@ -9,7 +9,7 @@ from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, Stre
 from src.services.inference.model_provider import ModelProvider
 from src.services.usage_tracking.dto import TokenUsageDTO
 
-from src.services.ai_providers.dto import AiProviderDTO, AiProviderModelDTO
+from src.services.ai_providers.dto import AiProviderModelDTO
 
 
 class InferenceService:
@@ -31,7 +31,6 @@ class InferenceService:
 
     async def generate_response(
         self,
-        provider: AiProviderDTO,
         model: AiProviderModelDTO,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
@@ -39,7 +38,6 @@ class InferenceService:
         **kwargs,
     ) -> TextGenerationDTO:
         resp = await self._models_provider.generate_response(
-            provider=provider,
             model=model,
             messages=messages,
             options=options,
@@ -58,7 +56,6 @@ class InferenceService:
 
     async def generate_response_stream(
         self,
-        provider: AiProviderDTO,
         model: AiProviderModelDTO,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
@@ -67,7 +64,6 @@ class InferenceService:
     ) -> AsyncGenerator[StreamGenerationDTO, None]:
         usage = None
         async for chunk in self._models_provider.generate_response_stream(
-            provider=provider,
             model=model,
             messages=messages,
             options=options,

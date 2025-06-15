@@ -1,16 +1,52 @@
 {
     "limits": [
         {
-            "model_id": 1,
-            "max_tokens": 1000
+            "model_name": "gpt-4.1",
+            "max_tokens": 1000000
         },
         {
-            "model_id": 2,
-            "max_tokens": 2000
+            "model_name": "gpt-4.1-mini",
+            "max_tokens": 1000000
         },
         {
-            "model_id": 3,
-            "max_tokens": 3000
+            "model_name": "gpt-4.1-nano",
+            "max_tokens": 5000000
+        },
+        {
+            "model_name": "claude-3-7-sonnet",
+            "max_tokens": 1000000
+        },
+        {
+            "model_name": "deepseek-v3",
+            "max_tokens": 5000000
+        },
+        {
+            "model_name": "deepseek-r1",
+            "max_tokens": 1000000
+        },
+        {
+            "model_name": "gemini-2.5-flash",
+            "max_tokens": 5000000
+        },
+        {
+            "model_name": "gemini-2.5-pro",
+            "max_tokens": 1000000
+        },
+        {
+            "model_name": "grok-3",
+            "max_tokens": 1000000
+        },
+        {
+            "model_name": "grok-3-mini",
+            "max_tokens": 5000000
+        },
+        {
+            "model_name": "llama-4-scout-17B",
+            "max_tokens": 5000000
+        },
+        {
+            "model_name": "llama-4-maverick-17B",
+            "max_tokens": 5000000
         }
     ]
 }

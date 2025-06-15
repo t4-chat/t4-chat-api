@@ -67,7 +67,7 @@ class LimitsService:
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(messages, model.provider, model)
+            input_tokens = await self.model_provider.count_tokens(messages, model)
 
         return UtilizationDTO(
             model_id=model.id,
@@ -86,7 +86,7 @@ class LimitsService:
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(messages, model.provider, model)
+            input_tokens = await self.model_provider.count_tokens(messages, model)
 
         return UtilizationDTO(
             model_id=model.id,

@@ -4,7 +4,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
@@ -13,7 +13,17 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.storage.db import db_session_manager
-from src.storage.models import AiProvider, AiProviderModel, Limits, Usage, User, UserGroup, UserGroupLimits, WhiteList
+from src.storage.models import (
+    AiProvider,
+    AiProviderModel,
+    Limits,
+    ModelHost,
+    Usage,
+    User,
+    UserGroup,
+    UserGroupLimits,
+    WhiteList,
+)
 from src.storage.models.budget import Budget
 
 from src.config import settings
@@ -30,6 +40,112 @@ def load_seed_data(env: str, filename: str) -> Dict[str, Any]:
         return json.load(f)
 
 
+async def handle_host(db: AsyncSession, host_data: Dict[str, Any], update: bool = False) -> Optional[int]:
+    """Process a host record and return its ID."""
+    # Check if host already exists
+    result = await db.execute(select(ModelHost).where(ModelHost.slug == host_data["slug"]))
+    existing_host = result.scalar_one_or_none()
+
+    if existing_host:
+        if update:
+            # Update existing host
+            for key, value in host_data.items():
+                setattr(existing_host, key, value)
+            host = existing_host
+            print(f"Updated host: {host.name}")
+        else:
+            host = existing_host
+            print(f"Host already exists: {host.name}")
+    else:
+        # Create new host
+        host = ModelHost(**host_data)
+        db.add(host)
+        await db.flush()  # Flush to get the host ID
+        print(f"Created host: {host.name}")
+
+    return host.id
+
+
+async def handle_model(
+    db: AsyncSession,
+    model_data: Dict[str, Any],
+    provider_id: int,
+    update: bool = False
+) -> None:
+    """Process a model record."""
+    model_slug = model_data["slug"]
+
+    # Check if model already exists
+    result = await db.execute(
+        select(AiProviderModel).where(
+            AiProviderModel.slug == model_slug,
+            AiProviderModel.provider_id == provider_id,
+        )
+    )
+    existing_model = result.scalar_one_or_none()
+
+    # Process host data and get host_id
+    host_id = None
+    if "hosts" in model_data and model_data["hosts"] and len(model_data["hosts"]) > 0:
+        # Use the first host if multiple hosts are provided
+        host_data = model_data["hosts"][0]
+        host_id = await handle_host(db, host_data, update)
+
+    # Remove hosts from model_data before creating/updating the model
+    model_data_copy = {k: v for k, v in model_data.items() if k != "hosts"}
+
+    if existing_model:
+        if update:
+            # Update existing model
+            for key, value in model_data_copy.items():
+                setattr(existing_model, key, value)
+
+            # Update host_id separately if we have one
+            if host_id is not None:
+                existing_model.host_id = host_id
+
+            print(f"Updated model: {existing_model.name}")
+        else:
+            print(f"Model already exists: {existing_model.name}")
+    else:
+        # Create new model and set host_id if available
+        model = AiProviderModel(provider_id=provider_id, **model_data_copy)
+        if host_id is not None:
+            model.host_id = host_id
+        db.add(model)
+        print(f"Created model: {model.name}")
+
+
+async def handle_provider(db: AsyncSession, provider_data: Dict[str, Any], update: bool = False) -> None:
+    """Process a provider record and its associated models."""
+    # Check if provider already exists
+    result = await db.execute(select(AiProvider).where(AiProvider.slug == provider_data["slug"]))
+    existing_provider = result.scalar_one_or_none()
+
+    if existing_provider:
+        if update:
+            # Update existing provider
+            for key, value in provider_data.items():
+                if key != "models":
+                    setattr(existing_provider, key, value)
+            provider = existing_provider
+            print(f"Updated provider: {provider.name}")
+        else:
+            provider = existing_provider
+            print(f"Provider already exists: {provider.name}")
+    else:
+        # Create new provider without models first
+        provider_dict = {k: v for k, v in provider_data.items() if k != "models"}
+        provider = AiProvider(**provider_dict)
+        db.add(provider)
+        await db.flush()  # Flush to get the provider ID
+        print(f"Created provider: {provider.name}")
+
+    # Handle models for the provider
+    for model_data in provider_data.get("models", []):
+        await handle_model(db, model_data, provider.id, update)
+
+
 async def seed_providers(db: AsyncSession, env: str, update: bool = False) -> None:
     """Set up AI providers and their models idempotently."""
     print("Seeding AI providers...")
@@ -38,54 +154,7 @@ async def seed_providers(db: AsyncSession, env: str, update: bool = False) -> No
         return
 
     for provider_data in data.get("providers", []):
-        # Check if provider already exists
-        result = await db.execute(select(AiProvider).where(AiProvider.slug == provider_data["slug"]))
-        existing_provider = result.scalar_one_or_none()
-
-        if existing_provider:
-            if update:
-                # Update existing provider
-                for key, value in provider_data.items():
-                    if key != "models":
-                        setattr(existing_provider, key, value)
-                provider = existing_provider
-                print(f"Updated provider: {provider.name}")
-            else:
-                provider = existing_provider
-                print(f"Provider already exists: {provider.name}")
-        else:
-            # Create new provider without models first
-            provider_dict = {k: v for k, v in provider_data.items() if k != "models"}
-            provider = AiProvider(**provider_dict)
-            db.add(provider)
-            await db.flush()  # Flush to get the provider ID
-            print(f"Created provider: {provider.name}")
-
-        # Handle models for the provider
-        for model_data in provider_data.get("models", []):
-            model_slug = model_data["slug"]
-            # Check if model already exists
-            result = await db.execute(
-                select(AiProviderModel).where(
-                    AiProviderModel.slug == model_slug,
-                    AiProviderModel.provider_id == provider.id,
-                )
-            )
-            existing_model = result.scalar_one_or_none()
-
-            if existing_model:
-                if update:
-                    # Update existing model
-                    for key, value in model_data.items():
-                        setattr(existing_model, key, value)
-                    print(f"Updated model: {existing_model.name}")
-                else:
-                    print(f"Model already exists: {existing_model.name}")
-            else:
-                # Create new model
-                model = AiProviderModel(provider_id=provider.id, **model_data)
-                db.add(model)
-                print(f"Created model: {model.name}")
+        await handle_provider(db, provider_data, update)
 
     print("AI providers seeding complete.")
 
@@ -98,8 +167,23 @@ async def seed_limits(db: AsyncSession, env: str, update: bool = False) -> None:
         return
 
     for limit_data in data.get("limits", []):
+        model_name = limit_data.pop("model_name", None)
+        if not model_name:
+            print(f"Warning: Model name not provided for limit, skipping")
+            continue
+
+        # Find the model by name
+        result = await db.execute(select(AiProviderModel).where(AiProviderModel.name == model_name))
+        model = result.scalar_one_or_none()
+        if not model:
+            print(f"Warning: Model with name '{model_name}' not found, skipping limit")
+            continue
+
+        # Add model_id to limit_data
+        limit_data["model_id"] = model.id
+
         # Check if limit already exists for this model
-        result = await db.execute(select(Limits).where(Limits.model_id == limit_data["model_id"]))
+        result = await db.execute(select(Limits).where(Limits.model_id == model.id))
         existing_limit = result.scalar_one_or_none()
 
         if existing_limit:
@@ -107,14 +191,14 @@ async def seed_limits(db: AsyncSession, env: str, update: bool = False) -> None:
                 # Update existing limit
                 for key, value in limit_data.items():
                     setattr(existing_limit, key, value)
-                print(f"Updated limit for model_id: {existing_limit.model_id}")
+                print(f"Updated limit for model: {model_name}")
             else:
-                print(f"Limit already exists for model_id: {existing_limit.model_id}")
+                print(f"Limit already exists for model: {model_name}")
         else:
             # Create new limit
             limit = Limits(**limit_data)
             db.add(limit)
-            print(f"Created limit for model_id: {limit_data['model_id']}")
+            print(f"Created limit for model: {model_name}")
 
     print("Limits seeding complete.")
 
@@ -157,7 +241,7 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
 
     for mapping in data.get("user_group_limits", []):
         user_group_name = mapping["user_group_name"]
-        limit_model_ids = mapping["limit_model_ids"]
+        limit_model_names = mapping["limit_model_names"]
 
         # Get user group
         result = await db.execute(select(UserGroup).where(UserGroup.name == user_group_name))
@@ -166,13 +250,20 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
             print(f"Warning: User group '{user_group_name}' not found, skipping its limits")
             continue
 
-        # Process each limit model ID
-        for model_id in limit_model_ids:
+        # Process each model name
+        for model_name in limit_model_names:
+            # Find the model by name
+            result = await db.execute(select(AiProviderModel).where(AiProviderModel.name == model_name))
+            model = result.scalar_one_or_none()
+            if not model:
+                print(f"Warning: Model with name '{model_name}' not found, skipping")
+                continue
+
             # Get limit for this model
-            result = await db.execute(select(Limits).where(Limits.model_id == model_id))
+            result = await db.execute(select(Limits).where(Limits.model_id == model.id))
             limit = result.scalar_one_or_none()
             if not limit:
-                print(f"Warning: Limit for model ID {model_id} not found, skipping")
+                print(f"Warning: Limit for model '{model_name}' not found, skipping")
                 continue
 
             # Check if association already exists
@@ -185,12 +276,12 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
             existing_association = result.scalar_one_or_none()
 
             if existing_association:
-                print(f"Association between '{user_group_name}' and limit for model {model_id} already exists")
+                print(f"Association between '{user_group_name}' and limit for model '{model_name}' already exists")
             else:
                 # Create new association
                 association = UserGroupLimits(user_group_name=user_group_name, limits_id=limit.id)
                 db.add(association)
-                print(f"Created association between '{user_group_name}' and limit for model {model_id}")
+                print(f"Created association between '{user_group_name}' and limit for model '{model_name}'")
 
     print("User group limits seeding complete.")
 
@@ -269,7 +360,7 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
 
     for usage_data in data.get("usage", []):
         email = usage_data.pop("email")
-        model_id = usage_data.pop("model_id")
+        model_name = usage_data.pop("model_name")
         date_str = usage_data.pop("date", None)
 
         # Find the user by email
@@ -279,11 +370,11 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
             print(f"Warning: User with email {email} not found, skipping usage record")
             continue
 
-        # Check if model exists
-        result = await db.execute(select(AiProviderModel).where(AiProviderModel.id == model_id))
+        # Find the model by name
+        result = await db.execute(select(AiProviderModel).where(AiProviderModel.name == model_name))
         model = result.scalar_one_or_none()
         if not model:
-            print(f"Warning: Model with ID {model_id} not found, skipping usage record")
+            print(f"Warning: Model with name '{model_name}' not found, skipping usage record")
             continue
 
         # Calculate tokens
@@ -302,12 +393,12 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
         # Check if usage record already exists for this user, model, and date
         query = select(Usage).where(
             Usage.user_id == user.id,
-            Usage.model_id == model_id
+            Usage.model_id == model.id
         )
-        
+
         if usage_date:
             query = query.where(Usage.created_at == usage_date)
-            
+
         result = await db.execute(query)
         existing_usage = result.scalar_one_or_none()
 
@@ -317,14 +408,14 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
                 existing_usage.prompt_tokens = prompt_tokens
                 existing_usage.completion_tokens = completion_tokens
                 existing_usage.total_tokens = total_tokens
-                print(f"Updated usage record for user {email} and model {model_id}")
+                print(f"Updated usage record for user {email} and model '{model_name}'")
             else:
-                print(f"Usage record already exists for user {email} and model {model_id}")
+                print(f"Usage record already exists for user {email} and model '{model_name}'")
         else:
             # Create new usage record
             usage = Usage(
                 user_id=user.id,
-                model_id=model_id,
+                model_id=model.id,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=total_tokens,
@@ -336,7 +427,7 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
                 usage.updated_at = usage_date
 
             db.add(usage)
-            print(f"Created usage record for user {email} and model {model_id}")
+            print(f"Created usage record for user {email} and model '{model_name}'")
 
     print("Usage data seeding complete.")
 

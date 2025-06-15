@@ -1,6 +1,15 @@
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+
+class ModelHostDTO(BaseModel):
+    id: int
+    name: str
+    slug: str
+    
+    class Config:
+        from_attributes = True
 
 
 class AiProviderDTO(BaseModel):
@@ -24,6 +33,7 @@ class AiProviderModelDTO(BaseModel):
 
     prompt_path: str
     provider: AiProviderDTO
+    host: ModelHostDTO
 
     class Config:
         from_attributes = True

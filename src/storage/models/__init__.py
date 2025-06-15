@@ -4,6 +4,7 @@ from .base import Base
 from .budget import Budget
 from .chat import Chat, ChatMessage
 from .limits import Limits
+from .model_host import ModelHost
 from .resource import Resource
 from .usage import Usage
 from .user import User
@@ -25,4 +26,5 @@ __all__ = [
     "UserGroupLimits",
     "Budget",
     "WhiteList",
+    "ModelHost",
 ]

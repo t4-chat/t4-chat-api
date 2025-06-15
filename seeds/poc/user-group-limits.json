@@ -2,7 +2,20 @@
     "user_group_limits": [
         {
             "user_group_name": "basic",
-            "limit_model_ids": [1, 2, 3]
+            "limit_model_names": [
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "claude-3-7-sonnet",
+                "deepseek-v3",
+                "deepseek-r1",
+                "gemini-2.5-flash",
+                "gemini-2.5-pro",
+                "grok-3",
+                "grok-3-mini",
+                "llama-4-scout-17B",
+                "llama-4-maverick-17B"
+            ]
         }
     ]
 } 

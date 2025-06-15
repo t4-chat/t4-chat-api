@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings
 load_dotenv()  # need this to load model keys
 
 
-class ModelProviderSettings(BaseModel):
+class ModelHostSettings(BaseModel):
     api_key: str
 
 
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
     JWT_EXPIRATION_MINUTES: int = Field(60 * 24 * 60, env="JWT_EXPIRATION_MINUTES")
 
-    TITLE_GENERATION_MODEL: str = Field("openai/gpt-4o-mini", env="TITLE_GENERATION_MODEL")
+    TITLE_GENERATION_MODEL: str = Field("openai/gpt-4.1-nano", env="TITLE_GENERATION_MODEL")
 
     DATABASE_URL: str = Field("postgresql://postgres:postgres@localhost:5433/agg-ai", env="DATABASE_URL")
     DB_POOL_SIZE: int = Field(30, env="DB_POOL_SIZE")
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     GCP_BUCKET_NAME: str = Field("agg-ai-bucket", env="GCP_BUCKET_NAME")
     GCP_PROJECT_ID: str = Field("dev-agg-ai", env="GCP_PROJECT_ID")
 
-    MODEL_PROVIDERS: Dict[str, ModelProviderSettings] = Field(default_factory=dict)
+    MODEL_HOSTS: Dict[str, ModelHostSettings] = Field(default_factory=dict)
 
     MOCK_AI_RESPONSE: bool = Field(False, env="MOCK_AI_RESPONSE")
 
@@ -52,38 +52,38 @@ class Settings(BaseSettings):
 
     def _load_model_providers(self):
         # OpenAI
-        self.MODEL_PROVIDERS["openai"] = ModelProviderSettings(
-            api_key=os.getenv("OPENAI_API_KEY", ""),
+        self.MODEL_HOSTS["openai"] = ModelHostSettings(
+            api_key=os.getenv("OPENAI_API_KEY"),
         )
 
         # Anthropic
-        self.MODEL_PROVIDERS["anthropic"] = ModelProviderSettings(
-            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+        self.MODEL_HOSTS["anthropic"] = ModelHostSettings(
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
         )
 
         # DeepSeek
-        self.MODEL_PROVIDERS["deepseek"] = ModelProviderSettings(
-            api_key=os.getenv("DEEPSEEK_API_KEY", ""),
+        self.MODEL_HOSTS["deepseek"] = ModelHostSettings(
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
         )
 
         # Gemini
-        self.MODEL_PROVIDERS["gemini"] = ModelProviderSettings(
-            api_key=os.getenv("GEMINI_API_KEY", ""),
+        self.MODEL_HOSTS["gemini"] = ModelHostSettings(
+            api_key=os.getenv("GEMINI_API_KEY"),
         )
 
         # XAI
-        self.MODEL_PROVIDERS["xai"] = ModelProviderSettings(
-            api_key=os.getenv("XAI_API_KEY", ""),
+        self.MODEL_HOSTS["xai"] = ModelHostSettings(
+            api_key=os.getenv("XAI_API_KEY"),
         )
 
         # Groq
-        self.MODEL_PROVIDERS["groq"] = ModelProviderSettings(
-            api_key=os.getenv("GROQ_API_KEY", ""),
+        self.MODEL_HOSTS["groq"] = ModelHostSettings(
+            api_key=os.getenv("GROQ_API_KEY"),
         )
-        
+
         # Together AI
-        self.MODEL_PROVIDERS["together_ai"] = ModelProviderSettings(
-            api_key=os.getenv("TOGETHERAI_API_KEY", ""),
+        self.MODEL_HOSTS["together_ai"] = ModelHostSettings(
+            api_key=os.getenv("TOGETHERAI_API_KEY"),
         )
 
     class Config:

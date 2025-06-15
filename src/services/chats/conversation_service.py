@@ -43,14 +43,12 @@ class ConversationService:
 
     async def _generate_completion(
         self,
-        provider: AiProviderDTO,
         model: AiProviderModelDTO,
         messages: List[dict],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
         background_tasks: BackgroundTasks = None,
     ) -> TextGenerationDTO:
         return await self.inference_service.generate_response(
-            provider=provider,
             model=model,
             messages=messages,
             options=options,
@@ -59,14 +57,12 @@ class ConversationService:
 
     async def _generate_completion_stream(
         self,
-        provider: AiProviderDTO,
         model: AiProviderModelDTO,
         messages: List[ChatMessageDTO],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[StreamGenerationDTO, None]:
         async for chunk in self.inference_service.generate_response_stream(
-            provider=provider,
             model=model,
             messages=messages,
             options=options,
@@ -121,7 +117,6 @@ class ConversationService:
             return "New Mock Chat Title"
 
         title_response = await self._generate_completion(
-            provider=model.provider,
             model=model,
             messages=messages_for_title,
             background_tasks=background_tasks,
@@ -228,13 +223,6 @@ class ConversationService:
         if not model:
             raise errors.NotFoundError(resource_name="Model", message=f"Model with id {model_id} not found")
 
-        provider = model.provider
-        if not provider:
-            raise errors.NotFoundError(
-                resource_name="Provider",
-                message=f"Provider with id {model.provider_id} not found",
-            )
-
         inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
 
         assistant_content = ""
@@ -242,7 +230,6 @@ class ConversationService:
         generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
 
         async for chunk in generate_stream_func(
-            provider=provider,
             model=model,
             messages=inference_messages,
             options=options,
