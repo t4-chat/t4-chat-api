@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
     JWT_EXPIRATION_MINUTES: int = Field(60 * 24 * 60, env="JWT_EXPIRATION_MINUTES")
 
-    TITLE_GENERATION_MODEL: str = Field("meta_llama/Llama-4-Maverick-17B-128E-Instruct-FP8", env="TITLE_GENERATION_MODEL")
+    TITLE_GENERATION_MODEL: str = Field("openai/gpt-4.1-nano", env="TITLE_GENERATION_MODEL")
 
     DATABASE_URL: str = Field("postgresql://postgres:postgres@localhost:5433/agg-ai", env="DATABASE_URL")
     DB_POOL_SIZE: int = Field(30, env="DB_POOL_SIZE")
