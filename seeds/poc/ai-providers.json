@@ -55,8 +55,8 @@
       "base_url": "https://www.anthropic.com/",
       "models": [
         {
-          "name": "claude-3-7-sonnet",
-          "slug": "claude-3-7-sonnet-20250219",
+          "name": "claude-sonnet-4",
+          "slug": "claude-sonnet-4-20250514",
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,
           "context_length": 200000,
