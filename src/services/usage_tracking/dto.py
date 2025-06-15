@@ -9,13 +9,13 @@ from src.services.user.dto import UserDTO
 from src.services.ai_providers.dto import AiProviderModelDTO
 
 
-class BasicUsageDTO(BaseModel):
+class TokenUsageDTO(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
 
 
-class UsageDTO(BasicUsageDTO):
+class UsageDTO(TokenUsageDTO):
     user_id: UUID
     model_id: int
 
@@ -25,7 +25,7 @@ class UsageDTO(BasicUsageDTO):
         from_attributes = True
 
 
-class AggregatedUsageItemDTO(BasicUsageDTO):
+class AggregatedUsageItemDTO(TokenUsageDTO):
     date: Optional[datetime] = None
     
     model_id: Optional[int] = None
@@ -37,4 +37,4 @@ class AggregatedUsageItemDTO(BasicUsageDTO):
 
 class UsageAggregationDTO(BaseModel):
     data: List[AggregatedUsageItemDTO]
-    total: BasicUsageDTO
+    total: TokenUsageDTO

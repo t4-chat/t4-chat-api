@@ -13,6 +13,8 @@ class Usage(BaseModel):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
+    # requests = Column(Integer, default=0, nullable=False)
+    
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id"))
     model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id"))
 

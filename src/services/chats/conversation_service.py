@@ -192,6 +192,7 @@ class ConversationService:
             chat = await self.chat_service.get_chat(chat_id=message.chat_id)
             if not chat:
                 raise errors.NotFoundError(resource_name="Chat", message=f"Chat with id {message.chat_id} not found")
+            chat_id = chat.id
 
         chat_metadata = {
             "type": "chat_metadata",

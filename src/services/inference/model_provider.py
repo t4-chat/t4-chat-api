@@ -7,7 +7,7 @@ from litellm import acompletion, token_counter
 from src.services.common.context import Context
 from src.services.common.errors import BudgetExceededError
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
-from src.services.usage_tracking.dto import UsageDTO
+from src.services.usage_tracking.dto import TokenUsageDTO, UsageDTO
 
 from src.services.ai_providers.dto import AiProviderDTO, AiProviderModelDTO
 
@@ -47,7 +47,7 @@ class ModelProvider:
             )
             return TextGenerationDTO(
                 text=response.choices[0].message.content,
-                usage=UsageDTO(
+                usage=TokenUsageDTO(
                     prompt_tokens=response.usage.prompt_tokens,
                     completion_tokens=response.usage.completion_tokens,
                     total_tokens=response.usage.total_tokens,
@@ -94,7 +94,7 @@ class ModelProvider:
                         text=chunk.choices[0].delta.content, usage=None
                     )
                 elif hasattr(chunk, "usage") and chunk.usage:
-                    usage = UsageDTO(
+                    usage = TokenUsageDTO(
                         prompt_tokens=chunk.usage.prompt_tokens,
                         completion_tokens=chunk.usage.completion_tokens,
                         total_tokens=chunk.usage.total_tokens,
@@ -115,7 +115,7 @@ class ModelProvider:
     ) -> int:
         return token_counter(model=f"{provider.slug}/{model.slug}", messages=messages)
 
-    async def cost_per_token(self, model: AiProviderModelDTO, usage: UsageDTO) -> float:
+    async def cost_per_token(self, model: AiProviderModelDTO, usage: TokenUsageDTO) -> float:
         prompt_tokens_cost_usd = model.price_input_token * usage.prompt_tokens
         completion_tokens_cost_usd = model.price_output_token * usage.completion_tokens
         return prompt_tokens_cost_usd + completion_tokens_cost_usd

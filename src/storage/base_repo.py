@@ -36,25 +36,6 @@ class BaseRepository(Generic[T]):
         joins: Optional[Sequence[JoinTarget]] = None,
         filter: Optional[ClauseElement] = None,
         includes: Optional[Sequence[Any]] = None,
-    ) -> Optional[T]:
-        stmt = select(self.model)
-        stmt = self._apply_joins(stmt, joins)
-
-        if includes:
-            for rel in includes:
-                stmt = stmt.options(selectinload(rel))
-
-        if filter is not None:
-            stmt = stmt.where(filter)
-
-        result = await self.session.execute(stmt)
-        return result.scalars().first()
-
-    async def get_first(
-        self,
-        joins: Optional[Sequence[Any]] = None,
-        filter: Optional[ClauseElement] = None,
-        includes: Optional[Sequence[Any]] = None,
         order_by: Optional[Any] = None,
     ) -> Optional[T]:
         stmt = select(self.model)
@@ -88,7 +69,7 @@ class BaseRepository(Generic[T]):
     ) -> Union[List[T], List[Dict[str, Any]]]:
         """
         Unified select method that handles both regular and aggregated queries.
-        
+
         Args:
             columns: Optional list of columns to select. If None, selects the model.
             joins: Optional sequence of join targets
@@ -99,7 +80,7 @@ class BaseRepository(Generic[T]):
             limit: Optional limit for number of results
             offset: Optional offset for results
             as_dict: Whether to return results as dictionaries (True) or model instances (False)
-            
+
         Returns:
             List of model instances or dictionaries depending on parameters
         """
@@ -111,7 +92,7 @@ class BaseRepository(Generic[T]):
             # Regular model select
             stmt = sqlalchemy_select(self.model)
             is_aggregation = False
-            
+
         # Apply joins
         if joins:
             for join_item in joins:
@@ -120,40 +101,40 @@ class BaseRepository(Generic[T]):
                     stmt = stmt.join(entity, condition)
                 else:
                     stmt = stmt.join(join_item)
-        
+
         # Apply includes (only for model selects)
         if includes and not is_aggregation:
             for rel in includes:
                 stmt = stmt.options(selectinload(rel))
-                
+
         # Apply filter condition
         if filter is not None:
             stmt = stmt.where(filter)
-            
+
         # Apply group by (only for aggregation)
         if group_by:
             stmt = stmt.group_by(*group_by)
-            
+
         # Apply ordering
         if order_by is not None:
             stmt = stmt.order_by(order_by)
-            
+
         # Apply limit and offset
         if limit is not None:
             stmt = stmt.limit(limit)
-            
+
         if offset is not None:
             stmt = stmt.offset(offset)
-            
+
         # Execute the query
         result = await self.session.execute(stmt)
-        
+
         # Process results based on type
         if is_aggregation or as_dict:
             return [dict(row._mapping) for row in result.fetchall()]
         else:
             return result.scalars().all()
-        
+
     async def get_total(
         self,
         columns_to_sum: List[Any],
@@ -161,32 +142,32 @@ class BaseRepository(Generic[T]):
     ) -> Dict[str, Any]:
         """
         Calculate totals for specified columns.
-        
+
         Args:
             columns_to_sum: List of columns to sum
             filter: Optional filter condition
-            
+
         Returns:
             Dictionary with sum values for each column
         """
         select_items = []
         for column in columns_to_sum:
-            if hasattr(column, 'key'):
+            if hasattr(column, "key"):
                 select_items.append(func.sum(column).label(column.key))
             else:
                 # Handle expressions that don't have a .key attribute
                 select_items.append(func.sum(column))
-                
+
         stmt = sqlalchemy_select(*select_items)
-        
+
         if filter is not None:
             stmt = stmt.where(filter)
-            
+
         result = await self.session.execute(stmt)
         row = result.fetchone()
         if row:
             return dict(row._mapping)
-        return {col.key if hasattr(col, 'key') else f'sum_{i}': 0 for i, col in enumerate(columns_to_sum)}
+        return {col.key if hasattr(col, "key") else f"sum_{i}": 0 for i, col in enumerate(columns_to_sum)}
 
     async def add(self, entity: T) -> T:
         self.session.add(entity)
@@ -212,4 +193,3 @@ class BaseRepository(Generic[T]):
         stmt = select(self.model).where(filter).exists()
         result = await self.session.execute(select(stmt))
         return result.scalar()
-

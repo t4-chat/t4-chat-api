@@ -172,3 +172,5 @@ cython_debug/
 .vscode/
 .idea/
 .files/
+
+.DS_Store
