@@ -1,18 +1,18 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from src.services.usage_tracking.dto import UsageDTO
+from src.services.usage_tracking.dto import TokenUsageDTO
 
 
 class StreamGenerationDTO(BaseModel):
     text: str
-    usage: Optional[UsageDTO] = None
+    usage: Optional[TokenUsageDTO] = None
 
 
 class TextGenerationDTO(BaseModel):
     text: str
-    usage: UsageDTO
+    usage: TokenUsageDTO
 
 
 class DefaultResponseGenerationOptionsDTO(BaseModel):

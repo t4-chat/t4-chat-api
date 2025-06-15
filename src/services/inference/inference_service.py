@@ -7,7 +7,7 @@ from src.services.budget.budget_service import BudgetService
 from src.services.common.context import Context
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
 from src.services.inference.model_provider import ModelProvider
-from src.services.usage_tracking.dto import UsageDTO
+from src.services.usage_tracking.dto import TokenUsageDTO
 
 from src.services.ai_providers.dto import AiProviderDTO, AiProviderModelDTO
 
@@ -25,7 +25,7 @@ class InferenceService:
         self._background_task_service = background_task_service
         self._budget_service = budget_service
 
-    async def _ensure_budget(self, model: AiProviderModelDTO, usage: UsageDTO) -> None:
+    async def _ensure_budget(self, model: AiProviderModelDTO, usage: TokenUsageDTO) -> None:
         total_cost_usd = await self._models_provider.cost_per_token(model, usage)
         await self._budget_service.add_usage(total_cost_usd)
 

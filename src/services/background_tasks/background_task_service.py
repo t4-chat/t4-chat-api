@@ -2,7 +2,7 @@ import traceback
 from uuid import UUID
 
 from src.services.common.context import Context
-from src.services.usage_tracking.dto import UsageDTO
+from src.services.usage_tracking.dto import TokenUsageDTO
 from src.services.usage_tracking.usage_tracking_service import UsageTrackingService
 
 from src.storage.base_repo import BaseRepository
@@ -24,7 +24,7 @@ class BackgroundTaskService:
     def __init__(self, context: Context):
         self.context = context
 
-    async def track_model_usage(self, user_id: UUID, model_id: int, usage: UsageDTO):
+    async def track_model_usage(self, user_id: UUID, model_id: int, usage: TokenUsageDTO):
         try:
             async with db_session_manager.session() as session:
                 usage_model_repo = BaseRepository(Usage, session)

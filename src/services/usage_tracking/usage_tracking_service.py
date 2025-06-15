@@ -7,7 +7,7 @@ from sqlalchemy import and_, func, select
 from src.services.common import errors
 from src.services.common.context import Context
 from src.services.common.decorators import convert_to_dto
-from src.services.usage_tracking.dto import AggregatedUsageItemDTO, BasicUsageDTO, UsageAggregationDTO, UsageDTO
+from src.services.usage_tracking.dto import AggregatedUsageItemDTO, TokenUsageDTO, UsageAggregationDTO, UsageDTO
 
 from src.storage.base_repo import BaseRepository
 from src.storage.models.ai_provider_model import AiProviderModel
@@ -20,7 +20,7 @@ class UsageTrackingService:
         self.context = context
         self.usage_model_repo = usage_model_repo
 
-    async def track_usage(self, user_id: UUID, model_id: int, usage: UsageDTO):
+    async def track_usage(self, user_id: UUID, model_id: int, usage: TokenUsageDTO):
         existing_usage = await self.usage_model_repo.get(filter=and_(Usage.user_id == user_id, Usage.model_id == model_id))
 
         if existing_usage:
@@ -84,7 +84,7 @@ class UsageTrackingService:
 
         total_result = await self.usage_model_repo.get_total(columns_to_sum=columns_to_sum, filter=filter_expr)
 
-        total = BasicUsageDTO(
+        total = TokenUsageDTO(
             prompt_tokens=total_result.get("prompt_tokens", 0) or 0,
             completion_tokens=total_result.get("completion_tokens", 0) or 0,
             total_tokens=total_result.get("total_tokens", 0) or 0,

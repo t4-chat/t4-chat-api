@@ -13,7 +13,7 @@ class BudgetService:
         self.budget_repo = budget_repo
 
     async def add_usage(self, cost: float) -> None:
-        budget = await self.budget_repo.get_first(order_by=Budget.created_at.desc())
+        budget = await self.budget_repo.get(order_by=Budget.created_at.desc())
         if not budget:
             raise errors.NotFoundError("Budget", "No budget found")
 
@@ -25,7 +25,7 @@ class BudgetService:
 
     @convert_to_dto
     async def get_budget(self) -> BudgetDTO:
-        budget = await self.budget_repo.get_first(order_by=Budget.created_at.desc())
+        budget = await self.budget_repo.get(order_by=Budget.created_at.desc())
         if not budget:
             raise errors.NotFoundError("Budget", "No budget found")
         return budget
