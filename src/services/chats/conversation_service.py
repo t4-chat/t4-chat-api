@@ -16,7 +16,7 @@ from src.services.inference import InferenceService
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
 from src.services.prompts.prompts_service import PromptsService
 
-from src.services.ai_providers.dto import AiProviderDTO, AiProviderModelDTO
+from src.services.ai_providers.dto import AiProviderModelDTO
 
 from src.config import settings
 from src.logging.logging_config import get_logger

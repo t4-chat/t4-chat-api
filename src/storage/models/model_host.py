@@ -14,4 +14,5 @@ class ModelHost(BaseModel):
 
     is_active = Column(Boolean, nullable=False, default=True)
 
-    models = relationship("AiProviderModel", back_populates="host", cascade="all, delete-orphan", lazy="noload")
+    model_associations = relationship("ModelHostAssociation", back_populates="host", cascade="all, delete-orphan", lazy="noload", overlaps="hosts")
+    models = relationship("AiProviderModel", secondary="agg_ai.model_host_associations", lazy="noload", overlaps="host_associations,hosts,model_associations")

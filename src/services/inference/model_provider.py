@@ -10,7 +10,7 @@ from src.services.common.errors import BudgetExceededError
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
 from src.services.usage_tracking.dto import TokenUsageDTO
 
-from src.services.ai_providers.dto import AiProviderDTO, AiProviderModelDTO
+from src.services.ai_providers.dto import AiProviderModelDTO
 
 from src.config import settings
 from src.logging.logging_config import get_logger
@@ -75,9 +75,9 @@ class ModelProvider:
     ) -> Optional[TextGenerationDTO]:
         try:
             response = await acompletion(
-                model=f"{model.host.slug}/{model.slug}",
+                model=f"{model.hosts[0].slug}/{model.slug}",
                 messages=self._prepare_messages(messages, model),
-                api_key=settings.MODEL_HOSTS[model.host.slug].api_key,
+                api_key=settings.MODEL_HOSTS[model.hosts[0].slug].api_key,
                 **kwargs,
             )
             return TextGenerationDTO(
@@ -109,10 +109,10 @@ class ModelProvider:
         """
         try:
             response = await acompletion(
-                model=f"{model.host.slug}/{model.slug}",
+                model=f"{model.hosts[0].slug}/{model.slug}",
                 messages=self._prepare_messages(messages, model),
                 stream=True,
-                api_key=settings.MODEL_HOSTS[model.host.slug].api_key,
+                api_key=settings.MODEL_HOSTS[model.hosts[0].slug].api_key,
                 stream_options={"include_usage": True},
                 **kwargs,
             )
@@ -146,7 +146,7 @@ class ModelProvider:
         messages: List[Dict[str, Any]],
         model: AiProviderModelDTO,
     ) -> int:
-        return token_counter(model=f"{model.host.slug}/{model.slug}", messages=messages)
+        return token_counter(model=f"{model.hosts[0].slug}/{model.slug}", messages=messages)
 
     async def cost_per_token(self, model: AiProviderModelDTO, usage: TokenUsageDTO) -> float:
         prompt_tokens_cost_usd = model.price_input_token * usage.prompt_tokens

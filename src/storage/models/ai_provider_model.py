@@ -17,8 +17,6 @@ class AiProviderModel(BaseModel):
         Integer, ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE")
     )
 
-    host_id = Column(Integer, ForeignKey("agg_ai.model_hosts.id", ondelete="CASCADE"))
-
     prompt_path = Column(String, nullable=False)
 
     price_input_token = Column(Float, nullable=False)
@@ -28,4 +26,5 @@ class AiProviderModel(BaseModel):
     is_active = Column(Boolean, nullable=False, default=True)
 
     provider = relationship("AiProvider", back_populates="models", lazy="noload")
-    host = relationship("ModelHost", back_populates="models", lazy="noload")
+    host_associations = relationship("ModelHostAssociation", back_populates="model", cascade="all, delete-orphan", lazy="noload")
+    hosts = relationship("ModelHost", secondary="agg_ai.model_host_associations", lazy="noload", overlaps="host_associations")

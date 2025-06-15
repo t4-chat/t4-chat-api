@@ -4,7 +4,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
@@ -25,6 +25,7 @@ from src.storage.models import (
     WhiteList,
 )
 from src.storage.models.budget import Budget
+from src.storage.models.model_host_association import ModelHostAssociation
 
 from src.config import settings
 
@@ -40,8 +41,8 @@ def load_seed_data(env: str, filename: str) -> Dict[str, Any]:
         return json.load(f)
 
 
-async def handle_host(db: AsyncSession, host_data: Dict[str, Any], update: bool = False) -> Optional[int]:
-    """Process a host record and return its ID."""
+async def handle_host(db: AsyncSession, host_data: Dict[str, Any], update: bool = False) -> ModelHost:
+    """Process a host record and return the host object."""
     # Check if host already exists
     result = await db.execute(select(ModelHost).where(ModelHost.slug == host_data["slug"]))
     existing_host = result.scalar_one_or_none()
@@ -63,7 +64,7 @@ async def handle_host(db: AsyncSession, host_data: Dict[str, Any], update: bool 
         await db.flush()  # Flush to get the host ID
         print(f"Created host: {host.name}")
 
-    return host.id
+    return host
 
 
 async def handle_model(
@@ -84,36 +85,70 @@ async def handle_model(
     )
     existing_model = result.scalar_one_or_none()
 
-    # Process host data and get host_id
-    host_id = None
-    if "hosts" in model_data and model_data["hosts"] and len(model_data["hosts"]) > 0:
-        # Use the first host if multiple hosts are provided
-        host_data = model_data["hosts"][0]
-        host_id = await handle_host(db, host_data, update)
-
     # Remove hosts from model_data before creating/updating the model
     model_data_copy = {k: v for k, v in model_data.items() if k != "hosts"}
 
+    # Create or update the model first
     if existing_model:
         if update:
             # Update existing model
             for key, value in model_data_copy.items():
                 setattr(existing_model, key, value)
-
-            # Update host_id separately if we have one
-            if host_id is not None:
-                existing_model.host_id = host_id
-
-            print(f"Updated model: {existing_model.name}")
+            model = existing_model
+            print(f"Updated model: {model.name}")
         else:
-            print(f"Model already exists: {existing_model.name}")
+            model = existing_model
+            print(f"Model already exists: {model.name}")
     else:
-        # Create new model and set host_id if available
+        # Create new model
         model = AiProviderModel(provider_id=provider_id, **model_data_copy)
-        if host_id is not None:
-            model.host_id = host_id
         db.add(model)
+        await db.flush()  # Flush to get the model ID
         print(f"Created model: {model.name}")
+
+    # Process hosts data and create associations
+    if "hosts" in model_data and model_data["hosts"]:
+        # Get existing host associations for this model
+        result = await db.execute(
+            select(ModelHostAssociation).where(ModelHostAssociation.model_id == model.id)
+        )
+        existing_associations = {assoc.host_id: assoc for assoc in result.scalars().all()}
+        
+        # Track processed host IDs to handle removals
+        processed_host_ids = set()
+        
+        # Process each host with its priority
+        for priority, host_data in enumerate(model_data["hosts"]):
+            # Extract priority if specified, otherwise use the list order
+            host_priority = host_data.pop("priority", priority)
+            
+            # Get or create the host
+            host = await handle_host(db, host_data, update)
+            processed_host_ids.add(host.id)
+            
+            # Check if association already exists
+            if host.id in existing_associations:
+                assoc = existing_associations[host.id]
+                if update or assoc.priority != host_priority:
+                    # Update priority if needed
+                    assoc.priority = host_priority
+                    print(f"Updated priority for host {host.name} to {host_priority}")
+            else:
+                # Create new association
+                assoc = ModelHostAssociation(
+                    model_id=model.id,
+                    host_id=host.id,
+                    priority=host_priority
+                )
+                db.add(assoc)
+                print(f"Created association between model {model.name} and host {host.name} with priority {host_priority}")
+        
+        # Remove associations for hosts that are no longer associated with this model
+        if update:
+            for host_id, assoc in existing_associations.items():
+                if host_id not in processed_host_ids:
+                    await db.delete(assoc)
+                    print(f"Removed association for host ID {host_id} from model {model.name}")
 
 
 async def handle_provider(db: AsyncSession, provider_data: Dict[str, Any], update: bool = False) -> None:
