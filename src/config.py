@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     MOCK_AI_RESPONSE: bool = Field(False, env="MOCK_AI_RESPONSE")
 
-    ADMIN_EMAILS: List[str] = Field(..., env="ADMIN_EMAILS")
+    ADMIN_EMAILS: List[str] = Field([], env="ADMIN_EMAILS")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

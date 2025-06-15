@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.extensions.app_extensions import configure_openapi
 from src.storage.db import lifespan
 
 from src.api.middleware.auth import create_auth_middleware
@@ -24,6 +25,18 @@ def create_app():
         lifespan=lifespan,
     )
 
+    app.include_router(health_checks.router)
+    app.include_router(ai_providers.router)
+    app.include_router(chats.router)
+    app.include_router(auth.router)
+    app.include_router(users.router)
+    app.include_router(ai_models.router)
+    app.include_router(files.router)
+    app.include_router(utilization.router)
+    app.include_router(admin.router)
+
+    configure_openapi(app)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -34,16 +47,6 @@ def create_app():
 
     app.middleware("http")(create_auth_middleware(get_token_service()))
     app.middleware("http")(error_handling_middleware)
-
-    app.include_router(health_checks.router)
-    app.include_router(ai_providers.router)
-    app.include_router(chats.router)
-    app.include_router(auth.router)
-    app.include_router(users.router)
-    app.include_router(ai_models.router)
-    app.include_router(files.router)
-    app.include_router(utilization.router)
-    app.include_router(admin.router)
 
     return app
 
