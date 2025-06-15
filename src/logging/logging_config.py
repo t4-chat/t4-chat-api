@@ -21,6 +21,7 @@ class JSONFormatter(logging.Formatter):
             "level": record.levelname,
             "name": record.name,
             "message": record.getMessage(),
+            "severity": record.levelname, # required for GCP logging
         }
         
         if record.exc_info:
