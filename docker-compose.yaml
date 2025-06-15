@@ -23,6 +23,7 @@ services:
       - GCP_PROJECT_ID=dev-agg-ai
       - GCP_BUCKET_NAME=dev-agg-ai-resources
       - MOCK_AI_RESPONSE=True
+      - ADMIN_EMAILS=["stepun.tita@gmail.com","pxlxpenko@gmail.com","ostashko4@gmail.com","avdieiev.oleksii@gmail.com"]
     depends_on:
       - db
       - jaeger
