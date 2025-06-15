@@ -17,6 +17,7 @@ class TokenService:
 
     def create_token_from_user(self, user: User) -> str:
         dict = {
+            "admin": user.email in settings.ADMIN_EMAILS,
             "sub": str(user.id),
             "email": user.email,
         }

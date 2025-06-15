@@ -83,17 +83,20 @@ class ConversationService:
         # Send done event
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-    async def _rewrite_chat_history(self, message: ChatMessageDTO) -> None:
+    async def _rewrite_chat_history(self, message: ChatMessageDTO) -> ChatMessageDTO:
         """
         Rewrite the entire message history for a chat.
         This deletes all existing messages and adds the new ones.
+
+        Returns the new message.
         """
 
         if message.id:
+            # TODO: safe delete
             await self.chat_service.delete_all_later_messages(message)
 
         message.role = "user"
-        await self.chat_service.add_message(message)
+        return await self.chat_service.add_message(message)
 
     async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:
         model = await self.ai_model_service.get_model_by_path(settings.TITLE_GENERATION_MODEL)
@@ -203,7 +206,7 @@ class ConversationService:
         }
         yield f"data: {json.dumps(chat_metadata)}\n\n"
 
-        await self._rewrite_chat_history(message=message)
+        new_message = await self._rewrite_chat_history(message=message)
 
         prev_messages = await self.chat_service.get_messages(chat_id)
 
@@ -216,6 +219,7 @@ class ConversationService:
         )
 
         message_metadata = {
+            "reply_to": new_message.id,
             "id": str(assistant_message.id),
             "role": assistant_message.role,
         }
