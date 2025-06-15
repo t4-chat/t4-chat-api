@@ -58,6 +58,31 @@ class Settings(BaseSettings):
             api_key=os.getenv("ANTHROPIC_API_KEY"),
         )
 
+        # DeepSeek
+        self.MODEL_PROVIDERS["deepseek"] = ModelProviderSettings(
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
+        )
+
+        # Gemini
+        self.MODEL_PROVIDERS["gemini"] = ModelProviderSettings(
+            api_key=os.getenv("GEMINI_API_KEY"),
+        )
+
+        # XAI
+        self.MODEL_PROVIDERS["xai"] = ModelProviderSettings(
+            api_key=os.getenv("XAI_API_KEY"),
+        )
+
+        # Groq
+        self.MODEL_PROVIDERS["groq"] = ModelProviderSettings(
+            api_key=os.getenv("GROQ_API_KEY"),
+        )
+        
+        # Together AI
+        self.MODEL_PROVIDERS["together_ai"] = ModelProviderSettings(
+            api_key=os.getenv("TOGETHERAI_API_KEY"),
+        )
+
     class Config:
         env_file = ".env"
         case_sensitive = True

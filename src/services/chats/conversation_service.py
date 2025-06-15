@@ -141,7 +141,6 @@ class ConversationService:
             {
                 "role": "system",
                 "content": await self.prompts_service.get_prompt(model.prompt_path),
-                "cache_control": {"type": "ephemeral"},
             }
         ]
 
@@ -219,7 +218,7 @@ class ConversationService:
         )
 
         message_metadata = {
-            "reply_to": new_message.id,
+            "reply_to": str(new_message.id),
             "id": str(assistant_message.id),
             "role": assistant_message.role,
         }

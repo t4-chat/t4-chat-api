@@ -2,9 +2,9 @@ import argparse
 import asyncio
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from datetime import datetime
 
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.storage.db import db_session_manager
-from src.storage.models import AiProvider, AiProviderModel, Limits, User, UserGroup, UserGroupLimits, WhiteList, Usage
+from src.storage.models import AiProvider, AiProviderModel, Limits, Usage, User, UserGroup, UserGroupLimits, WhiteList
 from src.storage.models.budget import Budget
 
 from src.config import settings
@@ -286,26 +286,57 @@ async def seed_usage(db: AsyncSession, env: str, update: bool = False) -> None:
             print(f"Warning: Model with ID {model_id} not found, skipping usage record")
             continue
 
-        # Create usage record
-        usage = Usage(
-            user_id=user.id,
-            model_id=model_id,
-            prompt_tokens=usage_data.get("input_tokens", 0),
-            completion_tokens=usage_data.get("output_tokens", 0),
-            total_tokens=usage_data.get("input_tokens", 0) + usage_data.get("output_tokens", 0),
-        )
+        # Calculate tokens
+        prompt_tokens = usage_data.get("input_tokens", 0)
+        completion_tokens = usage_data.get("output_tokens", 0)
+        total_tokens = prompt_tokens + completion_tokens
 
-        # Set creation date if provided
+        # Parse date if provided
+        usage_date = None
         if date_str:
             try:
                 usage_date = datetime.strptime(date_str, "%Y-%m-%d")
-                usage.created_at = usage_date
-                usage.updated_at = usage_date
             except ValueError:
                 print(f"Warning: Invalid date format {date_str}, using current time")
 
-        db.add(usage)
-        print(f"Created usage record for user {email} and model {model_id}")
+        # Check if usage record already exists for this user, model, and date
+        query = select(Usage).where(
+            Usage.user_id == user.id,
+            Usage.model_id == model_id
+        )
+        
+        if usage_date:
+            query = query.where(Usage.created_at == usage_date)
+            
+        result = await db.execute(query)
+        existing_usage = result.scalar_one_or_none()
+
+        if existing_usage:
+            if update:
+                # Update existing usage record
+                existing_usage.prompt_tokens = prompt_tokens
+                existing_usage.completion_tokens = completion_tokens
+                existing_usage.total_tokens = total_tokens
+                print(f"Updated usage record for user {email} and model {model_id}")
+            else:
+                print(f"Usage record already exists for user {email} and model {model_id}")
+        else:
+            # Create new usage record
+            usage = Usage(
+                user_id=user.id,
+                model_id=model_id,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+            )
+
+            # Set creation date if provided
+            if usage_date:
+                usage.created_at = usage_date
+                usage.updated_at = usage_date
+
+            db.add(usage)
+            print(f"Created usage record for user {email} and model {model_id}")
 
     print("Usage data seeding complete.")
 

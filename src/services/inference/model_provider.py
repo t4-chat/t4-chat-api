@@ -3,6 +3,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 from litellm import acompletion, token_counter
+from litellm.utils import supports_prompt_caching
 
 from src.services.common.context import Context
 from src.services.common.errors import BudgetExceededError
@@ -29,6 +30,11 @@ class ModelProvider:
     def __init__(self, context: Context):
         self.logger = get_logger(__name__)
         self.context = context
+        
+    def _prepare_messages(self, messages: List[Dict[str, Any]], model: AiProviderModelDTO) -> List[Dict[str, Any]]:
+        if supports_prompt_caching(model.slug):
+            messages[0]["cache_control"] = {"type": "ephemeral"}
+        return messages
 
     async def generate_response(
         self,
