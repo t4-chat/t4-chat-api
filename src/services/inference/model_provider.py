@@ -19,7 +19,6 @@ from src.logging.logging_config import get_logger
 # - add prompt caching when supported by the model provider
 # - Citations API
 
-
 class ModelProvider:
     """
     This is an absraction for a model provider.
@@ -33,6 +32,8 @@ class ModelProvider:
 
     # TODO: this might be a bit slow, we should somehow come up with a better way to do this
     def _prepare_messages(self, messages: List[Dict[str, Any]], model: AiProviderModelDTO) -> List[Dict[str, Any]]:
+        self.logger.info(f"Preparing messages for model: {model.slug}")
+
         if litellm_utils.supports_prompt_caching(model.slug):
             messages[0]["cache_control"] = {"type": "ephemeral"}
 
@@ -64,6 +65,8 @@ class ModelProvider:
             else:
                 processed_messages.append(message)
 
+        self.logger.info(f"Finished preparing messages for model: {model.slug}")
+
         return processed_messages
 
     async def generate_response(
@@ -74,12 +77,26 @@ class ModelProvider:
         **kwargs,
     ) -> Optional[TextGenerationDTO]:
         try:
+            model_host = model.hosts[0]
+            model_key = f"{model_host.slug}/{model.slug}"
+            api_key = settings.MODEL_HOSTS[model_host.slug].api_key
+            self.logger.info(f"ModelProvider: Generating response for model: {model_key}, api_key: {api_key[:3]}......{api_key[-3:]}")
+
             response = await acompletion(
-                model=f"{model.hosts[0].slug}/{model.slug}",
+                model=model_key,
                 messages=self._prepare_messages(messages, model),
-                api_key=settings.MODEL_HOSTS[model.hosts[0].slug].api_key,
+                api_key=api_key,
                 **kwargs,
             )
+
+            # response = await acompletion(
+            #     model=f"{model.hosts[0].slug}/{model.slug}",
+            #     messages=self._prepare_messages(messages, model),
+            #     api_key=settings.MODEL_HOSTS[model.hosts[0].slug].api_key,
+            #     **kwargs,
+            # )
+
+            self.logger.info(f"ModelProvider: Finished generating response for model: {model_key}, api_key: {api_key[:3]}......{api_key[-3:]}")
             return TextGenerationDTO(
                 text=response.choices[0].message.content,
                 usage=TokenUsageDTO(
