@@ -39,12 +39,13 @@ class AuthService:
 
     async def authenticate_with_google(self, google_token: str) -> str:
         google_user_info = self.verify_google_token(google_token)
+        email = google_user_info["email"].lower() if google_user_info["email"] else None
 
-        if not await self._is_in_white_list(google_user_info["email"]):
+        if not await self._is_in_white_list(email):
             raise ForbiddenError("Forbidden")
 
         user = User(
-            email=google_user_info["email"],
+            email=email,
             first_name=google_user_info.get("given_name"),
             last_name=google_user_info.get("family_name"),
             profile_image_url=google_user_info.get("picture"),
