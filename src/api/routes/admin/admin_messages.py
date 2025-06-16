@@ -45,11 +45,7 @@ async def generate_response_stream(
                 if chunk.text:
                     yield f"data: {json.dumps({'text': chunk.text})}\n\n"
                 if chunk.usage:
-                    yield f"data: {json.dumps({'usage': {
-                        'prompt_tokens': chunk.usage.prompt_tokens,
-                        'completion_tokens': chunk.usage.completion_tokens,
-                        'total_tokens': chunk.usage.total_tokens
-                    }})}\n\n"
+                    yield f"data: {json.dumps({'usage': {'prompt_tokens': chunk.usage.prompt_tokens, 'completion_tokens': chunk.usage.completion_tokens, 'total_tokens': chunk.usage.total_tokens}})}\n\n"
             # Send a done event
             yield "data: [DONE]\n\n"
         except Exception as e:
