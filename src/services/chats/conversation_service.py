@@ -181,12 +181,10 @@ class ConversationService:
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
         if not message.chat_id:
-            logger.info(f"Generating chat title for message: {message.content}")
             title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
             chat = await self.chat_service.create_chat(title=title)
             chat_id = chat.id
             message.chat_id = chat_id
-            logger.info(f"Generated chat title for message: {message.content}, chat_id: {chat_id}")
         else:
             chat = await self.chat_service.get_chat(chat_id=message.chat_id)
             if not chat:
@@ -201,16 +199,10 @@ class ConversationService:
             },
         }
         yield f"data: {json.dumps(chat_metadata)}\n\n"
-        
-        logger.info(f"Rewriting chat history for chat_id: {chat_id}")
 
         new_message = await self._rewrite_chat_history(message=message)
-        
-        logger.info(f"Getting messages for chat_id: {chat_id}")
 
         prev_messages = await self.chat_service.get_messages(chat_id)
-
-        logger.info(f"Adding assistant message for chat_id: {chat_id}")
 
         assistant_message = await self.chat_service.add_message(
             ChatMessageDTO(
@@ -226,21 +218,14 @@ class ConversationService:
             "role": assistant_message.role,
         }
         yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata })}\n\n"
-        
-        logger.info(f"Getting model for chat_id: {chat_id}, with model_id: {model_id}")
 
         model = await self.ai_model_service.get_model(model_id)
         if not model:
             raise errors.NotFoundError(resource_name="Model", message=f"Model with id {model_id} not found")
 
-        logger.info(f"Preparing messages for chat_id: {chat_id}, with model_id: {model_id}")
-
         inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
 
         assistant_content = ""
-
-        logger.info(f"Generating stream for chat_id: {chat_id}, with model_id: {model_id}")
-
         generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
 
         async for chunk in generate_stream_func(
@@ -249,7 +234,6 @@ class ConversationService:
             options=options,
             background_tasks=background_tasks,
         ):
-            logger.info(f"Sending chunk: {chunk.text}, Chat_id: {chat_id}, Model_id: {model_id}")
             assistant_content += chunk.text
             content_metadata = {"type": "text", "text": chunk.text}
             yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
