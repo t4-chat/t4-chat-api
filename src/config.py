@@ -53,42 +53,42 @@ class Settings(BaseSettings):
     def _load_model_providers(self):
         # OpenAI
         self.MODEL_HOSTS["openai"] = ModelHostSettings(
-            api_key=os.getenv("OPENAI_API_KEY", ""),
+            api_key=os.getenv("OPENAI_API_KEY"),
         )
 
         # Anthropic
         self.MODEL_HOSTS["anthropic"] = ModelHostSettings(
-            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
         )
 
         # DeepSeek
         self.MODEL_HOSTS["deepseek"] = ModelHostSettings(
-            api_key=os.getenv("DEEPSEEK_API_KEY", ""),
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
         )
 
         # Gemini
         self.MODEL_HOSTS["gemini"] = ModelHostSettings(
-            api_key=os.getenv("GEMINI_API_KEY", ""),
+            api_key=os.getenv("GEMINI_API_KEY"),
         )
 
         # XAI
         self.MODEL_HOSTS["xai"] = ModelHostSettings(
-            api_key=os.getenv("XAI_API_KEY", ""),
+            api_key=os.getenv("XAI_API_KEY"),
         )
 
         # Groq
         self.MODEL_HOSTS["groq"] = ModelHostSettings(
-            api_key=os.getenv("GROQ_API_KEY", ""),
+            api_key=os.getenv("GROQ_API_KEY"),
         )
 
         # Together AI
         self.MODEL_HOSTS["together_ai"] = ModelHostSettings(
-            api_key=os.getenv("TOGETHERAI_API_KEY", ""),
+            api_key=os.getenv("TOGETHERAI_API_KEY"),
         )
         
         # Llama
         self.MODEL_HOSTS["meta_llama"] = ModelHostSettings(
-            api_key=os.getenv("LLAMA_API_KEY", ""),
+            api_key=os.getenv("LLAMA_API_KEY"),
         )
 
     class Config:

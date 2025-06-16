@@ -94,12 +94,7 @@ class ConversationService:
         message.role = "user"
         return await self.chat_service.add_message(message)
 
-    async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:
-        # TODO: remove this
-        if True:
-            logger.info(f"Generating mock chat title for message: {message.content}")
-            return "New Mock Chat Title"
-        
+    async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:        
         model = await self.ai_model_service.get_model_by_path(settings.TITLE_GENERATION_MODEL)
         if not model:
             raise errors.NotFoundError(

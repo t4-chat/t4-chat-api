@@ -18,12 +18,18 @@ services:
       - JWT_SECRET_KEY=your_jwt_secret_key
       - JWT_EXPIRATION_MINUTES=86400
       - ANTHROPIC_API_KEY=test-key
-      - OPENAI_API_KEY=test-key
       - STORAGE_EMULATOR_HOST=http://gcp-storage-emulator:4443
       - GCP_PROJECT_ID=dev-agg-ai
       - GCP_BUCKET_NAME=dev-agg-ai-resources
       - MOCK_AI_RESPONSE=True
       - ADMIN_EMAILS=["stepun.tita@gmail.com","pxlxpenko@gmail.com","ostashko4@gmail.com","avdieiev.oleksii@gmail.com"]
+      - OPENAI_API_KEY=test-key
+      - DEEPSEEK_API_KEY=test-key
+      - GEMINI_API_KEY=test-key
+      - XAI_API_KEY=test-key
+      - GROQ_API_KEY=test-key
+      - TOGETHERAI_API_KEY=test-key
+      - LLAMA_API_KEY=test-key
     depends_on:
       - db
       - jaeger
