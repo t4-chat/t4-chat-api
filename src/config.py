@@ -1,4 +1,3 @@
-import os
 from functools import lru_cache
 from typing import Dict, List
 
@@ -6,8 +5,11 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
+from src.logging.logging_config import get_logger
+
 load_dotenv()  # need this to load model keys
 
+logger = get_logger(__name__)
 
 class ModelHostSettings(BaseModel):
     api_key: str
@@ -46,50 +48,56 @@ class Settings(BaseSettings):
         env="ADMIN_EMAILS"
     )
 
+    # Model api keys
+    OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
+    ANTHROPIC_API_KEY: str = Field(..., env="ANTHROPIC_API_KEY") 
+    DEEPSEEK_API_KEY: str = Field(..., env="DEEPSEEK_API_KEY")
+    GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
+    XAI_API_KEY: str = Field(..., env="XAI_API_KEY")
+    GROQ_API_KEY: str = Field(..., env="GROQ_API_KEY")
+    TOGETHERAI_API_KEY: str = Field(..., env="TOGETHERAI_API_KEY")
+    LLAMA_API_KEY: str = Field(..., env="LLAMA_API_KEY")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._load_model_providers()
 
     def _load_model_providers(self):
+        def mask_api_key(key: str) -> str:
+            return f"{key[:3]}......{key[-3:]}" if key else "null"
+
+        logger.info(f"OpenAI API Key: {mask_api_key(self.OPENAI_API_KEY)}")
+        logger.info(f"Anthropic API Key: {mask_api_key(self.ANTHROPIC_API_KEY)}")
+        logger.info(f"DeepSeek API Key: {mask_api_key(self.DEEPSEEK_API_KEY)}")
+        logger.info(f"Gemini API Key: {mask_api_key(self.GEMINI_API_KEY)}")
+        logger.info(f"XAI API Key: {mask_api_key(self.XAI_API_KEY)}")
+        logger.info(f"Groq API Key: {mask_api_key(self.GROQ_API_KEY)}")
+        logger.info(f"Together AI API Key: {mask_api_key(self.TOGETHERAI_API_KEY)}")
+        logger.info(f"Llama API Key: {mask_api_key(self.LLAMA_API_KEY)}")
+
         # OpenAI
-        self.MODEL_HOSTS["openai"] = ModelHostSettings(
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
+        self.MODEL_HOSTS["openai"] = ModelHostSettings(api_key=self.OPENAI_API_KEY)
 
         # Anthropic
-        self.MODEL_HOSTS["anthropic"] = ModelHostSettings(
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-        )
+        self.MODEL_HOSTS["anthropic"] = ModelHostSettings(api_key=self.ANTHROPIC_API_KEY)
 
         # DeepSeek
-        self.MODEL_HOSTS["deepseek"] = ModelHostSettings(
-            api_key=os.getenv("DEEPSEEK_API_KEY"),
-        )
+        self.MODEL_HOSTS["deepseek"] = ModelHostSettings(api_key=self.DEEPSEEK_API_KEY)
 
         # Gemini
-        self.MODEL_HOSTS["gemini"] = ModelHostSettings(
-            api_key=os.getenv("GEMINI_API_KEY"),
-        )
+        self.MODEL_HOSTS["gemini"] = ModelHostSettings(api_key=self.GEMINI_API_KEY)
 
         # XAI
-        self.MODEL_HOSTS["xai"] = ModelHostSettings(
-            api_key=os.getenv("XAI_API_KEY"),
-        )
+        self.MODEL_HOSTS["xai"] = ModelHostSettings(api_key=self.XAI_API_KEY)
 
         # Groq
-        self.MODEL_HOSTS["groq"] = ModelHostSettings(
-            api_key=os.getenv("GROQ_API_KEY"),
-        )
+        self.MODEL_HOSTS["groq"] = ModelHostSettings(api_key=self.GROQ_API_KEY)
 
         # Together AI
-        self.MODEL_HOSTS["together_ai"] = ModelHostSettings(
-            api_key=os.getenv("TOGETHERAI_API_KEY"),
-        )
+        self.MODEL_HOSTS["together_ai"] = ModelHostSettings(api_key=self.TOGETHERAI_API_KEY)
         
         # Llama
-        self.MODEL_HOSTS["meta_llama"] = ModelHostSettings(
-            api_key=os.getenv("LLAMA_API_KEY"),
-        )
+        self.MODEL_HOSTS["meta_llama"] = ModelHostSettings(api_key=self.LLAMA_API_KEY)
 
     class Config:
         env_file = ".env"
