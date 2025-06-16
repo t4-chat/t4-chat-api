@@ -11,6 +11,12 @@
             "first_name": "Test",
             "last_name": "User",
             "group_name": "basic"
+        },
+        {
+            "email": "pxlxpenko@gmail.com",
+            "first_name": "Pavel",
+            "last_name": "Penko",
+            "group_name": "basic"
         }
     ]
 } 

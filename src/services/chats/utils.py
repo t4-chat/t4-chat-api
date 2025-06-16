@@ -46,23 +46,14 @@ def stream_error_handler(func):
         except errors.NotFoundError as e:
             error_message = {"type": "error", "error": str(e), "code": 404}
             yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(message_id=assistant_message["id"], content=f"Error: {str(e)}")
-                except Exception as update_error:
-                    logger.error(f"Failed to update error message: {str(update_error)}")
 
         except errors.BudgetExceededError as e:
             error_message = {"type": "error", "error": str(e), "code": 402}
             yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(
-                        message_id=assistant_message["id"],
-                        content=f"Budget exceeded: {str(e)}",
-                    )
-                except Exception as update_error:
-                    logger.error(f"Failed to update budget error message: {str(update_error)}")
+        
+        except errors.LimitsExceededError as e:
+            error_message = {"type": "error", "error": str(e), "code": 402}
+            yield f"data: {json.dumps(error_message)}\n\n"
 
         except Exception as e:
             logger.error(f"Stream error: {str(e)}")
@@ -73,14 +64,6 @@ def stream_error_handler(func):
                 "code": 500,
             }
             yield f"data: {json.dumps(error_message)}\n\n"
-            if assistant_message:
-                try:
-                    await self.chat_service.update_message(
-                        message_id=assistant_message["id"],
-                        content=f"Internal error during response generation",
-                    )
-                except Exception as update_error:
-                    logger.error(f"Failed to update error message: {str(update_error)}")
 
         finally:
             # Always send done event

@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 
-@router.get("")
+@router.get("", response_model=UtilizationsResponseSchema)
 async def get_utilizations(
     limits_service: LimitsServiceDep,
 ):
@@ -18,7 +18,7 @@ async def get_utilizations(
     )
 
 
-@router.get("/limits")
+@router.get("/limits", response_model=LimitsResponseSchema)
 async def get_limits(
     limits_service: LimitsServiceDep,
 ) -> LimitsResponseSchema:

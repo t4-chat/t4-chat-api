@@ -32,3 +32,8 @@ class BadRequestError(Exception):
         self.message = message
         self.status_code = 400
         super().__init__(self.message)
+
+class NoAvailableHostError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)

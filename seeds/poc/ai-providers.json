@@ -7,7 +7,6 @@
       "models": [
         {
           "name": "gpt-4.1",
-          "slug": "gpt-4.1",
           "price_input_token": 0.000002,
           "price_output_token": 0.000008,
           "context_length": 1047576,
@@ -16,13 +15,18 @@
           "hosts": [
             {
               "name": "openai",
-              "slug": "openai"
+              "slug": "openai",
+              "model_slug": "gpt-4.1"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/gpt-4.1"
             }
           ]
         },
         {
           "name": "gpt-4.1-mini",
-          "slug": "gpt-4.1-mini",
           "price_input_token": 0.0000004,
           "price_output_token": 0.0000016,
           "context_length": 1047576,
@@ -31,13 +35,18 @@
           "hosts": [
             {
               "name": "openai",
-              "slug": "openai"
+              "slug": "openai",
+              "model_slug": "gpt-4.1-mini"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/gpt-4.1-mini"
             }
           ]
         },
         {
           "name": "gpt-4.1-nano",
-          "slug": "gpt-4.1-nano",
           "price_input_token": 0.0000001,
           "price_output_token": 0.0000004,
           "context_length": 1047576,
@@ -46,7 +55,13 @@
           "hosts": [
             {
               "name": "openai",
-              "slug": "openai"
+              "slug": "openai",
+              "model_slug": "gpt-4.1-nano"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/gpt-4.1-nano"
             }
           ]
         }
@@ -59,7 +74,6 @@
       "models": [
         {
           "name": "claude-sonnet-4",
-          "slug": "claude-sonnet-4-20250514",
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,
           "context_length": 200000,
@@ -68,13 +82,18 @@
           "hosts": [
             {
               "name": "anthropic",
-              "slug": "anthropic"
+              "slug": "anthropic",
+              "model_slug": "claude-sonnet-4-20250514"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "anthropic/claude-sonnet-4"
             }
           ]
         },
         {
           "name": "claude-3-5-haiku",
-          "slug": "claude-3-5-haiku-20241022",
           "price_input_token": 0.000005,
           "price_output_token": 0.000025,
           "context_length": 200000,
@@ -83,7 +102,13 @@
           "hosts": [
             {
               "name": "anthropic",
-              "slug": "anthropic"
+              "slug": "anthropic",
+              "model_slug": "claude-3-5-haiku-20241022"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "anthropic/claude-3-5-haiku"
             }
           ]
         }
@@ -96,7 +121,6 @@
       "models": [
         {
           "name": "deepseek-r1",
-          "slug": "deepseek-reasoner",
           "price_input_token": 0.00000055,
           "price_output_token": 0.000004,
           "context_length": 64000,
@@ -105,13 +129,18 @@
           "hosts": [
             {
               "name": "deepseek",
-              "slug": "deepseek"
+              "slug": "deepseek",
+              "model_slug": "deepseek-reasoner"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "deepseek/deepseek-r1-0528"
             }
           ]
         },
         {
           "name": "deepseek-v3",
-          "slug": "deepseek-chat",
           "price_input_token": 0.00000027,
           "price_output_token": 0.0000011,
           "context_length": 64000,
@@ -120,7 +149,13 @@
           "hosts": [
             {
               "name": "deepseek",
-              "slug": "deepseek"
+              "slug": "deepseek",
+              "model_slug": "deepseek-chat"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "deepseek/deepseek-chat-v3-0324"
             }
           ]
         }
@@ -133,7 +168,6 @@
       "models": [
         {
           "name": "gemini-2.5-flash",
-          "slug": "gemini-2.5-flash-preview-05-20",
           "price_input_token": 0.00000015,
           "price_output_token": 0.0000035,
           "context_length": 1048576,
@@ -142,13 +176,18 @@
           "hosts": [
             {
               "name": "gemini",
-              "slug": "gemini"
+              "slug": "gemini",
+              "model_slug": "gemini-2.5-flash-preview-05-20"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "google/gemini-2.5-flash-preview-05-20"
             }
           ]
         },
         {
           "name": "gemini-2.5-pro",
-          "slug": "gemini-2.5-pro-preview-05-06",
           "price_input_token": 0.00000125,
           "price_output_token": 0.00001,
           "context_length": 1048576,
@@ -157,7 +196,13 @@
           "hosts": [
             {
               "name": "gemini",
-              "slug": "gemini"
+              "slug": "gemini",
+              "model_slug": "gemini-2.5-pro-preview-05-06"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "google/gemini-2.5-pro"
             }
           ]
         }
@@ -170,7 +215,6 @@
       "models": [
         {
           "name": "grok-3",
-          "slug": "grok-3",
           "price_input_token": 0.000003,
           "price_output_token": 0.000015,
           "context_length": 131072,
@@ -179,13 +223,18 @@
           "hosts": [
             {
               "name": "xai",
-              "slug": "xai"
+              "slug": "xai",
+              "model_slug": "grok-3"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "x-ai/grok-3-beta"
             }
           ]
         },
         {
           "name": "grok-3-mini",
-          "slug": "grok-3-mini",
           "price_input_token": 0.0000003,
           "price_output_token": 0.0000005,
           "context_length": 131072,
@@ -194,7 +243,13 @@
           "hosts": [
             {
               "name": "xai",
-              "slug": "xai"
+              "slug": "xai",
+              "model_slug": "grok-3-mini"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "x-ai/grok-3-mini-beta"
             }
           ]
         }
@@ -207,7 +262,6 @@
       "models": [
         {
           "name": "llama-4-scout-17B",
-          "slug": "meta-llama/llama-4-scout-17b-16e-instruct",
           "price_input_token": 0.00000011,
           "price_output_token": 0.00000034,
           "context_length": 128000,
@@ -216,13 +270,18 @@
           "hosts": [
             {
               "name": "Groq",
-              "slug": "groq"
+              "slug": "groq",
+              "model_slug": "meta-llama/llama-4-scout-17b-16e-instruct"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "meta-llama/llama-4-scout:free"
             }
           ]
         },
         {
           "name": "llama-4-maverick-17B",
-          "slug": "meta-llama/llama-4-maverick-17b-128e-instruct",
           "price_input_token": 0.0000002,
           "price_output_token": 0.0000006,
           "context_length": 128000,
@@ -231,7 +290,13 @@
           "hosts": [
             {
               "name": "Groq",
-              "slug": "groq"
+              "slug": "groq",
+              "model_slug": "meta-llama/llama-4-maverick-17b-128e-instruct"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "meta-llama/llama-4-maverick:free"
             }
           ]
         }

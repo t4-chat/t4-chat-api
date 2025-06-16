@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import BackgroundTasks
@@ -15,6 +15,7 @@ from src.services.files import utils
 from src.services.files.files_service import FilesService
 from src.services.inference import InferenceService
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
+from src.services.limits.limits_service import LimitsService
 from src.services.prompts.prompts_service import PromptsService
 
 from src.services.ai_providers.dto import AiProviderModelDTO
@@ -34,6 +35,7 @@ class ConversationService:
         prompts_service: PromptsService,
         files_service: FilesService,
         ai_model_service: AiModelService,
+        limits_service: LimitsService,
     ):
         self.context = context
         self.chat_service = chat_service
@@ -41,6 +43,7 @@ class ConversationService:
         self.prompts_service = prompts_service
         self.files_service = files_service
         self.ai_model_service = ai_model_service
+        self.limits_service = limits_service
 
     async def _generate_completion(
         self,
@@ -229,6 +232,10 @@ class ConversationService:
 
         return chat, new_message, prev_messages, models, assistant_messages
 
+    async def _ensure_limits(self, model: AiProviderModelDTO, messages: List[Dict[str, Any]]):
+        if await self.limits_service.check_utilization(model.id, messages):
+            raise errors.LimitsExceededError(f"Model {model.id} has exceeded its limit")
+
     async def _generate_model_response_stream(self, model, assistant_message, prev_messages, chunk_queue, background_tasks=None):
         """Generate response for a single model and put chunks in queue for real-time streaming"""
         inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
@@ -281,6 +288,12 @@ class ConversationService:
                 "model_name": model.name,
             }
             yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata})}\n\n"
+
+        # TODO: move this to tasks to remove duplication of _prepare_messages. 
+        # Check limits for all models first - this will raise LimitsExceededError immediately if needed
+        for model in models:
+            inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
+            await self._ensure_limits(model, inference_messages)
 
         chunk_queue = asyncio.Queue()
 

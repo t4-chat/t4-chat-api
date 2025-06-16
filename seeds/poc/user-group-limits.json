@@ -7,6 +7,7 @@
                 "gpt-4.1-mini",
                 "gpt-4.1-nano",
                 "claude-sonnet-4",
+                "claude-3-5-haiku",
                 "deepseek-v3",
                 "deepseek-r1",
                 "gemini-2.5-flash",

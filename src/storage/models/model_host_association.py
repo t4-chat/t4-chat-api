@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
@@ -15,6 +15,7 @@ class ModelHostAssociation(BaseModel):
     host_id = Column(
         PGUUID(as_uuid=True), ForeignKey("agg_ai.model_hosts.id", ondelete="CASCADE"), nullable=False
     )
+    model_slug = Column(String, nullable=False) # for different hosts, the same model can have different slugs
     
     priority = Column(Integer, nullable=False, default=0)
     

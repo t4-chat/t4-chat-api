@@ -17,6 +17,10 @@
             "max_tokens": 1000000
         },
         {
+            "model_name": "claude-3-5-haiku",
+            "max_tokens": 100
+        },
+        {
             "model_name": "deepseek-v3",
             "max_tokens": 5000000
         },

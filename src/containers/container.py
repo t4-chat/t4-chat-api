@@ -15,6 +15,7 @@ from src.services.chats.conversation_service import ConversationService
 from src.services.common.context import Context, get_context
 from src.services.files.cloud_storage_service import CloudStorageService
 from src.services.files.files_service import FilesService
+from src.services.host_api_keys.host_api_key_service import HostApiKeyService
 from src.services.inference.inference_service import InferenceService
 from src.services.inference.model_provider import ModelProvider
 from src.services.inference.tools_service import ToolsService
@@ -31,6 +32,7 @@ from src.storage.models import (
     Budget,
     Chat,
     ChatMessage,
+    HostApiKey,
     Limits,
     Resource,
     Usage,
@@ -67,6 +69,8 @@ get_chat_message_repo = create_repo_factory(ChatMessage)
 get_white_list_repo = create_repo_factory(WhiteList)
 get_ai_model_host_repo = create_repo_factory(ModelHost)
 get_user_group_repo = create_repo_factory(UserGroup)
+get_host_api_key_repo = create_repo_factory(HostApiKey)
+
 
 # Services
 def get_tools_service(context: Context = Depends(get_context)) -> ToolsService:
@@ -76,8 +80,20 @@ def get_tools_service(context: Context = Depends(get_context)) -> ToolsService:
 ToolsServiceDep = Annotated[ToolsService, Depends(get_tools_service)]
 
 
-def get_model_provider(context: Context = Depends(get_context), tools_service: ToolsService = Depends(get_tools_service)) -> ModelProvider:
-    return ModelProvider(context=context, tools_service=tools_service)
+def get_host_api_key_service(
+    context: Context = Depends(get_context),
+    host_api_key_repo: BaseRepository[HostApiKey] = Depends(get_host_api_key_repo),
+) -> HostApiKeyService:
+    return HostApiKeyService(context=context, host_api_key_repo=host_api_key_repo)
+
+
+HostApiKeyServiceDep = Annotated[HostApiKeyService, Depends(get_host_api_key_service)]
+
+
+def get_model_provider(
+    context: Context = Depends(get_context), tools_service: ToolsService = Depends(get_tools_service), host_api_key_service: HostApiKeyService = Depends(get_host_api_key_service)
+) -> ModelProvider:
+    return ModelProvider(context=context, tools_service=tools_service, host_api_key_service=host_api_key_service)
 
 
 ModelProviderServiceDep = Annotated[ModelProvider, Depends(get_model_provider)]
@@ -131,8 +147,9 @@ def get_ai_model_service(
     ai_model_repo: BaseRepository[AiProviderModel] = Depends(get_ai_model_repo),
     limits_repo: BaseRepository[Limits] = Depends(get_limits_repo),
     usage_repo: BaseRepository[Usage] = Depends(get_usage_model_repo),
+    host_api_key_service: HostApiKeyService = Depends(get_host_api_key_service),
 ) -> AiModelService:
-    return AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo)
+    return AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo, host_api_key_service=host_api_key_service)
 
 
 AiModelServiceDep = Annotated[AiModelService, Depends(get_ai_model_service)]
@@ -252,6 +269,7 @@ def get_conversation_service(
     prompts_service: PromptsService = Depends(get_prompts_service),
     files_service: FilesService = Depends(get_files_service),
     ai_model_service: AiModelService = Depends(get_ai_model_service),
+    limits_service: LimitsService = Depends(get_limits_service),
 ) -> ConversationService:
     return ConversationService(
         context=context,
@@ -260,6 +278,7 @@ def get_conversation_service(
         prompts_service=prompts_service,
         files_service=files_service,
         ai_model_service=ai_model_service,
+        limits_service=limits_service,
     )
 
 

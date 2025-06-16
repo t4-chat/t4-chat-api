@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.extensions.app_extensions import configure_openapi
 from src.storage.db import lifespan
 
+from src.api.extensions.app_extensions import configure_openapi
 from src.api.middleware.auth import create_auth_middleware
 from src.api.middleware.errors import error_handling_middleware
-from src.api.routes import ai_models, ai_providers, auth, chats, files, health_checks, users, utilization
+from src.api.routes import ai_models, ai_providers, auth, chats, files, health_checks, host_api_keys, users, utilization
 from src.api.routes.admin import admin_ai_models, admin_ai_models_hosts, admin_messages, admin_tools, admin_usage
 from src.config import get_settings
 from src.containers.container import get_token_service
@@ -36,6 +36,7 @@ def create_app():
     app.include_router(admin_usage.router)
     app.include_router(ai_models.router)
     app.include_router(files.router)
+    app.include_router(host_api_keys.router)
     app.include_router(utilization.router)
     app.include_router(admin_messages.router)
     app.include_router(admin_tools.router)

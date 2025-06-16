@@ -15,6 +15,7 @@ class AiProviderResponseSchema(BaseModel):
 
 class ModelHostAssociationSchema(BaseModel):
     host_id: UUID = Field(..., description="The id of the host")
+    model_slug: str = Field(..., description="The slug of the model on this host")
     priority: int = Field(..., description="The priority of the host")
 
     class Config:
@@ -25,6 +26,7 @@ class AiModelResponseSchema(BaseModel):
     id: UUID = Field(..., description="The id of the model")
     name: str = Field(..., description="The name of the model")
     tags: List[str] = Field(..., description="The tags of the model")
+    has_api_key: bool = Field(False, description="Whether the model has an API key") # TODO: fix mock
     provider: Optional[AiProviderResponseSchema] = Field(None, description="The provider of the model")
 
     class Config:
@@ -33,7 +35,6 @@ class AiModelResponseSchema(BaseModel):
 
 class EditAiModelRequestSchema(BaseModel):
     name: str = Field(..., description="The name of the model")
-    slug: str = Field(..., description="The slug of the model")
     provider_id: UUID = Field(..., description="The id of the provider")
     prompt_path: str = Field(..., description="The path to the prompt")
     price_input_token: float = Field(..., description="The price of the input token")
@@ -46,6 +47,7 @@ class EditAiModelRequestSchema(BaseModel):
 
 class HostAiModelAssociationSchema(BaseModel):
     model_id: UUID = Field(..., description="The id of the model")
+    model_slug: str = Field(..., description="The slug of the model")
     priority: int = Field(..., description="The priority of the model")
 
 
@@ -64,7 +66,7 @@ class AiModelHostResponseSchema(BaseModel):
 class AiModelResponseForAdminSchema(BaseModel):
     id: UUID = Field(..., description="The id of the model")
     name: str = Field(..., description="The name of the model")
-    slug: str = Field(..., description="The slug of the model")
+
     prompt_path: str = Field(..., description="The path to the prompt")
     price_input_token: float = Field(..., description="The price of the input token")
     price_output_token: float = Field(..., description="The price of the output token")

@@ -10,10 +10,7 @@ class AiProviderModel(BaseModel):
     __table_args__ = {"schema": "agg_ai"}
 
     name = Column(String, nullable=False)  # this is what the user sees
-    slug = Column(
-        String, nullable=False
-    )  # this is what we need to use to call the model
-
+    
     provider_id = Column(
         PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE")
     )

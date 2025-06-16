@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = Field("development", env="ENVIRONMENT")
     GOOGLE_CLIENT_ID: str = Field(..., env="GOOGLE_CLIENT_ID")
     JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
+    API_KEY_ENCRYPTION_KEY: str = Field(..., env="API_KEY_ENCRYPTION_KEY")
     JWT_EXPIRATION_MINUTES: int = Field(60 * 24 * 60, env="JWT_EXPIRATION_MINUTES")
 
     TITLE_GENERATION_MODEL: str = Field("openai/gpt-4.1-nano", env="TITLE_GENERATION_MODEL")
@@ -55,6 +56,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = Field(..., env="GROQ_API_KEY")
     TOGETHERAI_API_KEY: str = Field(..., env="TOGETHERAI_API_KEY")
     LLAMA_API_KEY: str = Field(..., env="LLAMA_API_KEY")
+    OPENROUTER_API_KEY: str = Field(..., env="OPENROUTER_API_KEY")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -84,6 +86,9 @@ class Settings(BaseSettings):
         
         # Llama
         self.MODEL_HOSTS["meta_llama"] = ModelHostSettings(api_key=self.LLAMA_API_KEY)
+        
+        # OpenRouter
+        self.MODEL_HOSTS["openrouter"] = ModelHostSettings(api_key=self.OPENROUTER_API_KEY)
 
     class Config:
         env_file = ".env"

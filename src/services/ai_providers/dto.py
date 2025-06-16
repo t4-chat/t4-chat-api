@@ -10,6 +10,7 @@ class ModelHostDTO(BaseModel):
     slug: str
     priority: Optional[int] = None
     is_active: bool
+    model_slug: Optional[str] = None  # The slug used for this model on this host
     model_associations: Optional[List["HostAiModelAssociationDTO"]] = []
     
     class Config:
@@ -30,7 +31,7 @@ class AiProviderDTO(BaseModel):
 class AiProviderModelDTO(BaseModel):
     id: UUID
     name: str
-    slug: str
+
     price_input_token: float
     price_output_token: float
     context_length: int
@@ -39,6 +40,7 @@ class AiProviderModelDTO(BaseModel):
     provider: Optional[AiProviderDTO]
     hosts: Optional[List[ModelHostDTO]]
     tags: List[str]
+    has_api_key: bool = False
 
     class Config:
         from_attributes = True
@@ -70,7 +72,8 @@ class AiProviderModelDTO(BaseModel):
                 'name': host.name,
                 'slug': host.slug,
                 'priority': assoc.priority,
-                'is_active': host.is_active
+                'is_active': host.is_active,
+                'model_slug': assoc.model_slug  # Include model_slug from association
             })
         
         # Return a dictionary that Pydantic can use to construct the model
@@ -78,7 +81,6 @@ class AiProviderModelDTO(BaseModel):
         return {
             'id': data.id,
             'name': data.name,
-            'slug': data.slug,
             'price_input_token': data.price_input_token,
             'price_output_token': data.price_output_token,
             'context_length': data.context_length,
@@ -91,6 +93,7 @@ class AiProviderModelDTO(BaseModel):
     
 class ModelHostAssociationDTO(BaseModel):
     host_id: UUID
+    model_slug: str
     priority: int
 
     class Config:
@@ -98,7 +101,6 @@ class ModelHostAssociationDTO(BaseModel):
 
 class EditAiModelDTO(BaseModel):
     name: str
-    slug: str
     provider_id: UUID
     prompt_path: str
     price_input_token: float
@@ -113,6 +115,7 @@ class EditAiModelDTO(BaseModel):
 
 class HostAiModelAssociationDTO(BaseModel):
     model_id: UUID
+    model_slug: str
     priority: int
 
     class Config:

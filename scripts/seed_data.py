@@ -75,12 +75,12 @@ async def handle_model(
     update: bool = False
 ) -> None:
     """Process a model record."""
-    model_slug = model_data["slug"]
+    model_name = model_data["name"]
 
     # Check if model already exists
     result = await db.execute(
         select(AiProviderModel).where(
-            AiProviderModel.slug == model_slug,
+            AiProviderModel.name == model_name,
             AiProviderModel.provider_id == provider_id,
         )
     )
@@ -120,8 +120,9 @@ async def handle_model(
         
         # Process each host with its priority
         for priority, host_data in enumerate(model_data["hosts"]):
-            # Extract priority if specified, otherwise use the list order
+            # Extract priority and model_slug if specified, otherwise use defaults
             host_priority = host_data.pop("priority", priority)
+            model_slug = host_data.pop("model_slug", None)
             
             # Get or create the host
             host = await handle_host(db, host_data, update)
@@ -130,19 +131,22 @@ async def handle_model(
             # Check if association already exists
             if host.id in existing_associations:
                 assoc = existing_associations[host.id]
-                if update or assoc.priority != host_priority:
-                    # Update priority if needed
+                if update or assoc.priority != host_priority or assoc.model_slug != model_slug:
+                    # Update fields if needed
                     assoc.priority = host_priority
-                    print(f"Updated priority for host {host.name} to {host_priority}")
+                    if model_slug:
+                        assoc.model_slug = model_slug
+                    print(f"Updated association for host {host.name}: priority={host_priority}, model_slug={model_slug}")
             else:
                 # Create new association
                 assoc = ModelHostAssociation(
                     model_id=model.id,
                     host_id=host.id,
-                    priority=host_priority
+                    priority=host_priority,
+                    model_slug=model_slug
                 )
                 db.add(assoc)
-                print(f"Created association between model {model.name} and host {host.name} with priority {host_priority}")
+                print(f"Created association between model {model.name} and host {host.name} with priority {host_priority} and model_slug {model_slug}")
         
         # Remove associations for hosts that are no longer associated with this model
         if update:

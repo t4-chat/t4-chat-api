@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import and_
@@ -62,13 +62,13 @@ class LimitsService:
         self,
         model: AiProviderModelDTO,
         limits: LimitDTO,
-        messages: Optional[List[ChatMessageDTO]] = None,
+        messages: Optional[List[Dict[str, Any]]] = None,
     ) -> UtilizationDTO:
         usage = await self.usage_tracking_service.get_usage(model.id)
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(messages, model)
+            input_tokens = await self.model_provider.count_tokens(model, messages)
 
         return UtilizationDTO(
             model_id=model.id,
@@ -80,25 +80,33 @@ class LimitsService:
         self,
         model: AiProviderModelDTO,
         limits: LimitDTO,
-        messages: Optional[List[ChatMessageDTO]] = None,
+        messages: Optional[List[Dict[str, Any]]] = None,
     ) -> UtilizationDTO:
         group_usages = await self.usage_tracking_service.get_group_usages(model.id)
         total_tokens = sum(usage.total_tokens for usage in group_usages)
 
         input_tokens = 0
         if messages:
-            input_tokens = await self.model_provider.count_tokens(messages, model)
+            input_tokens = await self.model_provider.count_tokens(model, messages)
 
         return UtilizationDTO(
             model_id=model.id,
             total_tokens=total_tokens + input_tokens,
+            max_tokens=limits.max_tokens,
             percentage=(total_tokens + input_tokens) / limits.max_tokens,
         )
 
-    async def get_utilization(self, model_id: UUID, messages: Optional[List[ChatMessageDTO]] = None) -> UtilizationDTO:
+    async def get_utilization(self, model_id: UUID, messages: Optional[List[Dict[str, Any]]] = None) -> UtilizationDTO:
         model = await self.ai_model_service.get_model(model_id)
 
         limits = await self.get_limits_by_model(model_id)
+        if not limits: # have no limits for this model, so we can't check utilization
+            return UtilizationDTO(
+                model_id=model_id,
+                total_tokens=0,
+                max_tokens=0,
+                percentage=0,
+            )
 
         user = await self.user_service.get_user_by_id(self.context.user_id, user_group=True)
 
@@ -106,6 +114,10 @@ class LimitsService:
             return await self._get_individual_utilization(model, limits, messages)
         elif user.user_group.type == UserGroupType.TEAM:
             return await self._get_team_utilization(model, limits, messages)
+        
+    async def check_utilization(self, model_id: UUID, messages: Optional[List[Dict[str, Any]]] = None) -> bool:
+        utilization = await self.get_utilization(model_id, messages)
+        return utilization.percentage > 0.9
 
     async def get_utilizations(self) -> List[UtilizationDTO]:
         usages = await self.usage_tracking_service.get_usages()

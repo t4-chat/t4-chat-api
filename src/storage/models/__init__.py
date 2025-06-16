@@ -3,6 +3,7 @@ from .ai_provider_model import AiProviderModel
 from .base import Base
 from .budget import Budget
 from .chat import Chat, ChatMessage
+from .host_api_key import HostApiKey
 from .limits import Limits
 from .model_host import ModelHost
 from .model_host_association import ModelHostAssociation
@@ -19,6 +20,7 @@ __all__ = [
     "AiProviderModel",
     "Chat",
     "ChatMessage",
+    "HostApiKey",
     "User",
     "Usage",
     "Resource",

@@ -1,9 +1,12 @@
 from typing import List
 from uuid import UUID
-from src.services.ai_providers.dto import EditAiModelHostDTO, ModelHostDTO
+
 from src.services.common.context import Context
 from src.services.common.decorators import convert_to_dto
 from src.services.common.errors import BadRequestError
+
+from src.services.ai_providers.dto import EditAiModelHostDTO, ModelHostDTO
+
 from src.storage.base_repo import BaseRepository
 from src.storage.models.model_host import ModelHost
 from src.storage.models.model_host_association import ModelHostAssociation
@@ -33,7 +36,7 @@ class AiModelHostService:
             name=host_dto.name,
             slug=host_dto.slug,
             is_active=host_dto.is_active,
-            model_associations=[ModelHostAssociation(model_id=assoc.model_id, priority=assoc.priority) for assoc in host_dto.model_associations],
+            model_associations=[ModelHostAssociation(model_id=assoc.model_id, model_slug=assoc.model_slug, priority=assoc.priority) for assoc in host_dto.model_associations],
         )
 
         return await self.ai_model_host_repo.add(host)
@@ -49,7 +52,7 @@ class AiModelHostService:
         existing_host.slug = host_dto.slug
         existing_host.is_active = host_dto.is_active
         existing_host.model_associations.clear()
-        existing_host.model_associations = [ModelHostAssociation(model_id=assoc.model_id, priority=assoc.priority) for assoc in host_dto.model_associations]
+        existing_host.model_associations = [ModelHostAssociation(model_id=assoc.model_id, model_slug=assoc.model_slug, priority=assoc.priority) for assoc in host_dto.model_associations]
 
         return await self.ai_model_host_repo.update(existing_host)
     

@@ -23,6 +23,7 @@ services:
       - GCP_BUCKET_NAME=dev-agg-ai-resources
       - MOCK_AI_RESPONSE=True
       - ADMIN_EMAILS=["stepun.tita@gmail.com","pxlxpenko@gmail.com","ostashko4@gmail.com","avdieiev.oleksii@gmail.com"]
+      - API_KEY_ENCRYPTION_KEY=test-key
       - OPENAI_API_KEY=test-key
       - DEEPSEEK_API_KEY=test-key
       - GEMINI_API_KEY=test-key
@@ -30,6 +31,7 @@ services:
       - GROQ_API_KEY=test-key
       - TOGETHERAI_API_KEY=test-key
       - LLAMA_API_KEY=test-key
+      - OPENROUTER_API_KEY=test-key
     depends_on:
       - db
       - jaeger
