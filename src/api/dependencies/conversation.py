@@ -16,7 +16,7 @@ from src.services.prompts.prompts_service import PromptsService
 
 from src.storage.base_repo import BaseRepository
 from src.storage.db import db_session_manager
-from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Resource
+from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Resource, Limits, Usage
 
 from src.api.schemas.chat import MultiModelCompletionRequestSchema
 
@@ -30,6 +30,8 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     ai_model_repo = BaseRepository(AiProviderModel, db)
     resource_repo = BaseRepository(Resource, db)
     budget_repo = BaseRepository(Budget, db)
+    limits_repo = BaseRepository(Limits, db)
+    usage_repo = BaseRepository(Usage, db)
 
     # Create dependent services
     cloud_storage_service = CloudStorageService(context=context)
@@ -46,7 +48,7 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
 
     files_service = FilesService(context=context, resource_repo=resource_repo, cloud_storage_service=cloud_storage_service)
 
-    ai_model_service = AiModelService(context=context, ai_model_repo=ai_model_repo)
+    ai_model_service = AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo)
 
     return ConversationService(
         context=context,
