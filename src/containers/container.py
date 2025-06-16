@@ -17,6 +17,7 @@ from src.services.files.cloud_storage_service import CloudStorageService
 from src.services.files.files_service import FilesService
 from src.services.inference.inference_service import InferenceService
 from src.services.inference.model_provider import ModelProvider
+from src.services.inference.tools_service import ToolsService
 from src.services.limits.limits_service import LimitsService
 from src.services.prompts.prompts_service import PromptsService
 from src.services.usage_tracking.usage_tracking_service import UsageTrackingService
@@ -67,9 +68,16 @@ get_white_list_repo = create_repo_factory(WhiteList)
 get_ai_model_host_repo = create_repo_factory(ModelHost)
 get_user_group_repo = create_repo_factory(UserGroup)
 
+# Services
+def get_tools_service(context: Context = Depends(get_context)) -> ToolsService:
+    return ToolsService(context=context)
 
-def get_model_provider(context: Context = Depends(get_context)) -> ModelProvider:
-    return ModelProvider(context=context)
+
+ToolsServiceDep = Annotated[ToolsService, Depends(get_tools_service)]
+
+
+def get_model_provider(context: Context = Depends(get_context), tools_service: ToolsService = Depends(get_tools_service)) -> ModelProvider:
+    return ModelProvider(context=context, tools_service=tools_service)
 
 
 ModelProviderServiceDep = Annotated[ModelProvider, Depends(get_model_provider)]

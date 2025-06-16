@@ -44,3 +44,13 @@ class UnifiedAggregatedUsage(BaseAggregatedUsage):
 class UsageAggregationResponseSchema(BaseModel):
     data: List[UnifiedAggregatedUsage]
     total: BaseAggregatedUsage = Field(..., description="Total usage across all aggregated data")
+
+class AdminMessageRequestSchema(BaseModel):
+    content: str
+
+class AdminSendMessageRequestSchema(BaseModel):
+    model_id: UUID
+    message: AdminMessageRequestSchema
+
+class AdminSendMessageResponseSchema(BaseModel):
+    text: str

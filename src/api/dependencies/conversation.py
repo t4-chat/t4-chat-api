@@ -12,6 +12,7 @@ from src.services.files.cloud_storage_service import CloudStorageService
 from src.services.files.files_service import FilesService
 from src.services.inference.inference_service import InferenceService
 from src.services.inference.model_provider import ModelProvider
+from src.services.inference.tools_service import ToolsService
 from src.services.prompts.prompts_service import PromptsService
 
 from src.storage.base_repo import BaseRepository
@@ -36,7 +37,8 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     # Create dependent services
     cloud_storage_service = CloudStorageService(context=context)
     background_task_service = BackgroundTaskService(context=context)
-    model_provider = ModelProvider(context=context)
+    tools_service = ToolsService(context=context)
+    model_provider = ModelProvider(context=context, tools_service=tools_service)
     budget_service = BudgetService(context=context, budget_repo=budget_repo)
 
     # Create main services
