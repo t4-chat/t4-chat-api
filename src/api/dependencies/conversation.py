@@ -18,7 +18,7 @@ from src.storage.base_repo import BaseRepository
 from src.storage.db import db_session_manager
 from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Resource
 
-from src.api.schemas.chat import ChatCompletionRequestSchema
+from src.api.schemas.chat import MultiModelCompletionRequestSchema
 
 
 async def get_conversation_service(request: Request, db: AsyncSession) -> ConversationService:
@@ -58,13 +58,12 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     )
 
 
-async def stream_conversation(request: Request, input: ChatCompletionRequestSchema, background_tasks: BackgroundTasks):
+async def stream_conversation(request: Request, input: MultiModelCompletionRequestSchema, background_tasks: BackgroundTasks):
     async with db_session_manager.session() as db:
         conversation_service = await get_conversation_service(request, db)
         async for chunk in conversation_service.chat_completion_stream(
-            model_id=input.model_id,
+            model_ids=input.model_ids,
             message=ChatMessageDTO.model_validate(input.message),
-            options=input.options,
             background_tasks=background_tasks,
         ):
             yield chunk

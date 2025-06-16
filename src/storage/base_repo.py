@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy import select as sqlalchemy_select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy.sql import Select, delete, select
+from sqlalchemy.sql import Select, and_, delete, select, update
 from sqlalchemy.sql.elements import ClauseElement
 
 T = TypeVar("T")
@@ -36,7 +36,7 @@ class BaseRepository(Generic[T]):
         joins: Optional[Sequence[JoinTarget]] = None,
         filter: Optional[ClauseElement] = None,
         includes: Optional[Sequence[Any]] = None,
-        order_by: Optional[Any] = None,
+        order_by: Optional[Union[Any, Sequence[Any]]] = None,
     ) -> Optional[T]:
         stmt = select(self.model)
         stmt = self._apply_joins(stmt, joins)
@@ -49,7 +49,10 @@ class BaseRepository(Generic[T]):
             stmt = stmt.where(filter)
 
         if order_by is not None:
-            stmt = stmt.order_by(order_by)
+            if isinstance(order_by, (list, tuple)):
+                stmt = stmt.order_by(*order_by)
+            else:
+                stmt = stmt.order_by(order_by)
 
         result = await self.session.execute(stmt)
         return result.scalars().first()
@@ -62,7 +65,7 @@ class BaseRepository(Generic[T]):
         filter: Optional[ClauseElement] = None,
         includes: Optional[Sequence[Any]] = None,
         group_by: Optional[List[Any]] = None,
-        order_by: Optional[Any] = None,
+        order_by: Optional[Union[Any, Sequence[Any]]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         as_dict: bool = False,
@@ -76,7 +79,7 @@ class BaseRepository(Generic[T]):
             filter: Optional filter condition
             includes: Optional sequence of relationships to include (eager loading)
             group_by: Optional list of columns/expressions to group by
-            order_by: Optional ordering
+            order_by: Optional ordering (single expression or sequence of expressions)
             limit: Optional limit for number of results
             offset: Optional offset for results
             as_dict: Whether to return results as dictionaries (True) or model instances (False)
@@ -117,7 +120,10 @@ class BaseRepository(Generic[T]):
 
         # Apply ordering
         if order_by is not None:
-            stmt = stmt.order_by(order_by)
+            if isinstance(order_by, (list, tuple)):
+                stmt = stmt.order_by(*order_by)
+            else:
+                stmt = stmt.order_by(order_by)
 
         # Apply limit and offset
         if limit is not None:
@@ -186,6 +192,11 @@ class BaseRepository(Generic[T]):
 
     async def delete_by_filter(self, filter: ClauseElement) -> None:
         stmt = delete(self.model).where(filter)
+        await self.session.execute(stmt)
+        await self.session.flush()
+
+    async def bulk_update(self, filter: ClauseElement, values: Dict[str, Any]) -> None:
+        stmt = update(self.model).where(filter).values(**values)
         await self.session.execute(stmt)
         await self.session.flush()
 

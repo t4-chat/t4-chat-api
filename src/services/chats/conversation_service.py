@@ -1,6 +1,7 @@
 import asyncio
 import json
 from typing import AsyncGenerator, List, Optional
+from uuid import UUID
 
 from fastapi import BackgroundTasks
 
@@ -88,13 +89,30 @@ class ConversationService:
         """
 
         if message.id:
-            # TODO: safe delete
-            await self.chat_service.delete_all_later_messages(message)
+            await self.chat_service.delete_conversation_turn_from_point(message)
+
+        # For user messages, we need to determine the previous message and sequence
+        last_assistant = None
+        seq_num = 1  # Default for first message
+
+        # Get the last assistant message to link to
+        messages = await self.chat_service.get_messages(message.chat_id)
+        assistant_messages = [msg for msg in messages if msg.role == "assistant"]
+        if assistant_messages:
+            last_assistant = assistant_messages[-1]  # Get the last one
+            seq_num = last_assistant.seq_num + 1
+        else:
+            # No assistant messages, get max seq_num + appropriate increment
+            max_seq = await self.chat_service.get_max_sequence_number(message.chat_id)
+            if max_seq == 0:
+                seq_num = 1  # Very first message
+            else:
+                seq_num = max_seq + 2  # User messages increment by 2 when no assistant responses
 
         message.role = "user"
-        return await self.chat_service.add_message(message)
+        return await self.chat_service.add_message(message, seq_num=seq_num)
 
-    async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:        
+    async def _generate_chat_title(self, message: ChatMessageDTO, background_tasks: BackgroundTasks = None) -> str:
         model = await self.ai_model_service.get_model_by_path(settings.TITLE_GENERATION_MODEL)
         if not model:
             raise errors.NotFoundError(
@@ -172,14 +190,7 @@ class ConversationService:
             yield StreamGenerationDTO(text=part)
             await asyncio.sleep(0.5)  # Add delay between chunks
 
-    @stream_error_handler
-    async def chat_completion_stream(
-        self,
-        model_id: int,
-        message: ChatMessageDTO,
-        options: Optional[DefaultResponseGenerationOptionsDTO] = None,
-        background_tasks: BackgroundTasks = None,
-    ) -> AsyncGenerator[str, None]:
+    async def _setup_multi_model_chat(self, model_ids: List[int], message: ChatMessageDTO, background_tasks: BackgroundTasks = None):
         if not message.chat_id:
             title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
             chat = await self.chat_service.create_chat(title=title)
@@ -191,53 +202,116 @@ class ConversationService:
                 raise errors.NotFoundError(resource_name="Chat", message=f"Chat with id {message.chat_id} not found")
             chat_id = chat.id
 
+        new_message = await self._rewrite_chat_history(message=message)
+        msgs = await self.chat_service.get_messages(chat_id)
+        prev_messages = [msg for msg in msgs if msg.selected or msg.selected is None]  # only get selected messages
+
+        assistant_messages = []
+        models = []
+
+        for idx, model_id in enumerate(model_ids):
+            model = await self.ai_model_service.get_model(model_id)
+            if not model:
+                raise errors.NotFoundError(resource_name="Model", message=f"Model with id {model_id} not found")
+            models.append(model)
+
+            assistant_message = await self.chat_service.add_message(
+                ChatMessageDTO(
+                    chat_id=chat_id,
+                    role="assistant",
+                    model_id=model_id,
+                    selected=idx == 0,  # First model is selected by default
+                ),
+                seq_num=new_message.seq_num + 1,
+                previous_message_id=new_message.id,
+            )
+            assistant_messages.append(assistant_message)
+
+        return chat, new_message, prev_messages, models, assistant_messages
+
+    async def _generate_model_response_stream(self, model, assistant_message, prev_messages, chunk_queue, background_tasks=None):
+        """Generate response for a single model and put chunks in queue for real-time streaming"""
+        inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
+        assistant_content = ""
+
+        generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
+
+        try:
+            async for chunk in generate_stream_func(
+                model=model,
+                messages=inference_messages,
+                background_tasks=background_tasks,
+            ):
+                assistant_content += chunk.text
+                chunk_data = {"type": "message_content", "model_id": model.id, "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.text}}
+                await chunk_queue.put(chunk_data)
+
+            # Send stop chunk with final content
+            stop_chunk = {"type": "message_content_stop", "model_id": model.id, "message_id": str(assistant_message.id), "final_content": assistant_content}
+            await chunk_queue.put(stop_chunk)
+
+        except Exception as e:
+            logger.error(f"Error in model {model.id} generation: {e}")
+            error_chunk = {"type": "error", "model_id": model.id, "message_id": str(assistant_message.id), "error": str(e)}
+            await chunk_queue.put(error_chunk)
+
+    @stream_error_handler
+    async def chat_completion_stream(
+        self,
+        model_ids: List[int],
+        message: ChatMessageDTO,
+        background_tasks: BackgroundTasks = None,
+    ) -> AsyncGenerator[str, None]:
+        # TODO: we are aware that there could be a race condition here
+        chat, new_message, prev_messages, models, assistant_messages = await self._setup_multi_model_chat(model_ids, message, background_tasks)
+
         chat_metadata = {
             "type": "chat_metadata",
-            "chat": {
-                "id": str(chat_id),
-                "title": chat.title,
-            },
+            "chat": {"id": str(chat.id), "title": chat.title},
         }
         yield f"data: {json.dumps(chat_metadata)}\n\n"
 
-        new_message = await self._rewrite_chat_history(message=message)
+        # Send message start metadata for all models
+        for model, assistant_message in zip(models, assistant_messages):
+            message_metadata = {
+                "reply_to": str(new_message.id),
+                "id": str(assistant_message.id),
+                "role": assistant_message.role,
+                "model_id": model.id,
+                "model_name": model.name,
+            }
+            yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata})}\n\n"
 
-        prev_messages = await self.chat_service.get_messages(chat_id)
+        chunk_queue = asyncio.Queue()
 
-        assistant_message = await self.chat_service.add_message(
-            ChatMessageDTO(
-                chat_id=chat_id,
-                role="assistant",
-                model_id=model_id,
-            )
-        )
+        tasks = [
+            asyncio.create_task(self._generate_model_response_stream(model, assistant_message, prev_messages, chunk_queue, background_tasks))
+            for model, assistant_message in zip(models, assistant_messages)
+        ]
 
-        message_metadata = {
-            "reply_to": str(new_message.id),
-            "id": str(assistant_message.id),
-            "role": assistant_message.role,
-        }
-        yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata })}\n\n"
+        # Track final contents for database updates
+        final_contents = {}
+        completed_models = 0
+        total_models = len(models)
 
-        model = await self.ai_model_service.get_model(model_id)
-        if not model:
-            raise errors.NotFoundError(resource_name="Model", message=f"Model with id {model_id} not found")
+        while completed_models < total_models:
+            chunk = await chunk_queue.get()
 
-        inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
+            if chunk.get("type") == "message_content_stop" and "final_content" in chunk:
+                # Store final content for later database update
+                final_contents[chunk["message_id"]] = chunk["final_content"]
+                completed_models += 1
+                # Remove final_content from the chunk before sending to client
+                chunk_to_send = {k: v for k, v in chunk.items() if k != "final_content"}
+                yield f"data: {json.dumps(chunk_to_send)}\n\n"
+            elif chunk.get("type") == "error":
+                completed_models += 1
+                yield f"data: {json.dumps(chunk)}\n\n"
+            else:
+                yield f"data: {json.dumps(chunk)}\n\n"
 
-        assistant_content = ""
-        generate_stream_func = self._generate_completion_stream if not settings.MOCK_AI_RESPONSE else self._fake_stream_response
+        await asyncio.gather(*tasks, return_exceptions=True)
 
-        async for chunk in generate_stream_func(
-            model=model,
-            messages=inference_messages,
-            options=options,
-            background_tasks=background_tasks,
-        ):
-            assistant_content += chunk.text
-            content_metadata = {"type": "text", "text": chunk.text}
-            yield f"data: {json.dumps({'type': 'message_content', 'content': content_metadata })}\n\n"
-
-        yield f"data: {json.dumps({'type': 'message_content_stop' })}\n\n"
-
-        await self.chat_service.update_message(message_id=assistant_message.id, content=assistant_content)
+        # Now update all messages sequentially to avoid session conflicts
+        for message_id, content in final_contents.items():
+            await self.chat_service.update_message(message_id=UUID(message_id), content=content)

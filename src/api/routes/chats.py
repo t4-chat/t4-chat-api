@@ -7,10 +7,12 @@ from fastapi.responses import StreamingResponse
 from src.api.dependencies.budget import check_budget
 from src.api.dependencies.conversation import stream_conversation
 from src.api.schemas.chat import (
-    ChatCompletionRequestSchema,
     ChatListItemResponseSchema,
+    ChatMessageResponseSchema,
     ChatMessagesResponseSchema,
     ChatResponseSchema,
+    DeleteChatsRequestSchema,
+    MultiModelCompletionRequestSchema,
     UpdateChatTitleRequestSchema,
 )
 from src.containers.container import ChatServiceDep
@@ -36,12 +38,10 @@ async def get_chat(chat_id: UUID, chat_service: ChatServiceDep):
     return chat
 
 
-@router.delete("/{chat_id}")
-async def delete_chat(chat_id: UUID, chat_service: ChatServiceDep):
-    success = await chat_service.delete_chat(chat_id=chat_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Chat not found")
-    return {"status": "success", "message": "Chat deleted"}
+@router.delete("")
+async def delete_chats(delete_chats_request: DeleteChatsRequestSchema, chat_service: ChatServiceDep):
+    await chat_service.delete_chats(chat_ids=delete_chats_request.chat_ids)
+    return {"status": "success"}
 
 
 @router.get("/{chat_id}/messages", response_model=ChatMessagesResponseSchema)
@@ -51,12 +51,7 @@ async def get_messages(chat_id: UUID, chat_service: ChatServiceDep):
 
 
 @router.post("/conversation", response_class=StreamingResponse)
-async def send_message(
-    message: ChatCompletionRequestSchema,
-    background_tasks: BackgroundTasks,
-    request: Request,
-    _: bool = Depends(check_budget)
-):
+async def send_message(message: MultiModelCompletionRequestSchema, background_tasks: BackgroundTasks, request: Request, _: bool = Depends(check_budget)):
     return StreamingResponse(
         stream_conversation(request, message, background_tasks),
         media_type="text/event-stream",
@@ -64,12 +59,15 @@ async def send_message(
 
 
 @router.patch("/{chat_id}/title")
-async def update_chat_title(
-    chat_id: UUID, request: UpdateChatTitleRequestSchema, chat_service: ChatServiceDep
-):
+async def update_chat_title(chat_id: UUID, request: UpdateChatTitleRequestSchema, chat_service: ChatServiceDep):
     return await chat_service.update_chat_title(chat_id=chat_id, title=request.title)
 
 
 @router.patch("/{chat_id}/pin")
 async def pin_chat(chat_id: UUID, chat_service: ChatServiceDep):
     return await chat_service.pin_chat(chat_id=chat_id)
+
+
+@router.patch("/{chat_id}/messages/{message_id}/select", response_model=ChatMessageResponseSchema)
+async def select_message(chat_id: UUID, message_id: UUID, chat_service: ChatServiceDep):
+    return await chat_service.select_message(chat_id=chat_id, message_id=message_id)

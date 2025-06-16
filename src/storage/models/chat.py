@@ -29,10 +29,15 @@ class ChatMessage(BaseModel):
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chat_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chats.id", ondelete="CASCADE"), nullable=False)
     model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
+    previous_message_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chat_messages.id", ondelete="SET NULL"), nullable=True)
+    
+    seq_num = Column(Integer, nullable=False)
     
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=True)
+    selected = Column(Boolean, nullable=True)
     attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)
     
     chat = relationship("Chat", back_populates="messages", lazy="noload")
     model = relationship("AiProviderModel", lazy="noload") # we don't need have all messages that are associated with a model, so we don't have a back_populates
+    previous_message = relationship("ChatMessage", remote_side=[id], lazy="noload")

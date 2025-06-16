@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import and_
+from sqlalchemy import and_, func, select
 
 from src.services.chats.dto import ChatDTO, ChatMessageDTO
 from src.services.common import errors
@@ -46,7 +46,17 @@ class ChatService:
     @convert_to_dto
     async def get_messages(self, chat_id: UUID) -> List[ChatMessageDTO]:
         return await self.chat_message_repo.select(
-            joins=[(Chat, Chat.id == ChatMessage.chat_id)], filter=and_(ChatMessage.chat_id == chat_id, Chat.user_id == self.context.user_id)
+            joins=[(Chat, Chat.id == ChatMessage.chat_id)],
+            filter=and_(ChatMessage.chat_id == chat_id, Chat.user_id == self.context.user_id, ChatMessage.content.isnot(None)),
+            order_by=[ChatMessage.seq_num.asc()],
+        )
+
+    @convert_to_dto
+    async def get_last_message(self, chat_id: UUID) -> Optional[ChatMessageDTO]:
+        return await self.chat_message_repo.get(
+            joins=[(Chat, Chat.id == ChatMessage.chat_id)],
+            filter=and_(ChatMessage.chat_id == chat_id, Chat.user_id == self.context.user_id),
+            order_by=[ChatMessage.seq_num.desc()],
         )
 
     @convert_to_dto
@@ -57,13 +67,19 @@ class ChatService:
     async def add_message(
         self,
         message: ChatMessageDTO,
+        seq_num: int,
+        previous_message_id: Optional[UUID] = None,
     ) -> ChatMessageDTO:
         # Verify the chat exists and belongs to the user
         chat = await self.chat_repo.get(filter=and_(Chat.id == message.chat_id, Chat.user_id == self.context.user_id))
         if not chat:
             raise errors.NotFoundError(resource_name="Chat", message=f"Chat with id {message.chat_id} not found")
 
-        return await self.chat_message_repo.add(ChatMessage(**message.model_dump()))
+        chat_message = ChatMessage(**message.model_dump(exclude={"seq_num", "previous_message_id"}))
+        chat_message.seq_num = seq_num
+        chat_message.previous_message_id = previous_message_id
+
+        return await self.chat_message_repo.add(chat_message)
 
     @convert_to_dto
     async def update_message(self, message_id: UUID, content: str) -> ChatMessageDTO:
@@ -81,14 +97,8 @@ class ChatService:
         message.content = content
         return await self.chat_message_repo.update(message)
 
-    async def delete_chat(self, chat_id: UUID) -> bool:
-        chat = await self.chat_repo.get(filter=and_(Chat.id == chat_id, Chat.user_id == self.context.user_id))
-
-        if not chat:
-            return False
-
-        await self.chat_repo.delete(chat)
-        return True
+    async def delete_chats(self, chat_ids: List[UUID]) -> None:
+        await self.chat_repo.delete_by_filter(filter=and_(Chat.id.in_(chat_ids), Chat.user_id == self.context.user_id))
 
     @convert_to_dto
     async def update_chat_title(self, chat_id: UUID, title: str) -> Optional[ChatDTO]:
@@ -120,14 +130,60 @@ class ChatService:
 
         return chat.title
 
-    async def delete_all_later_messages(self, message: ChatMessageDTO) -> bool:
-        """
-        Delete all messages after the given message (including the given message).
-        """
+    async def delete_conversation_turn_from_point(self, message: ChatMessageDTO) -> bool:
+        if not message.id:
+            return False
 
         chat = await self.chat_repo.get(filter=and_(Chat.id == message.chat_id, Chat.user_id == self.context.user_id))
         if not chat:
             return False
 
-        await self.chat_message_repo.delete_by_filter(filter=and_(ChatMessage.chat_id == message.chat_id, ChatMessage.created_at >= message.created_at))
+        # Get the message to delete from
+        db_message = await self.chat_message_repo.get(
+            joins=[(Chat, Chat.id == ChatMessage.chat_id)],
+            filter=and_(ChatMessage.id == message.id, Chat.user_id == self.context.user_id),
+            includes=[ChatMessage.previous_message],
+        )
+
+        if not db_message:
+            return False
+
+        if db_message.role == "user":
+            # For user messages, delete this message and everything after it (>=)
+            await self.chat_message_repo.delete_by_filter(filter=and_(ChatMessage.chat_id == message.chat_id, ChatMessage.seq_num >= db_message.seq_num))
+        else:
+            user_message = db_message.previous_message
+
+            # Delete everything after the user message, but not the user message itself (>)
+            await self.chat_message_repo.delete_by_filter(filter=and_(ChatMessage.chat_id == message.chat_id, ChatMessage.seq_num > user_message.seq_num))
+
         return True
+
+    @convert_to_dto
+    async def select_message(self, chat_id: UUID, message_id: UUID) -> ChatMessageDTO:
+        # TODO: we are aware that if we change selection - then previous_message_id for the next user message will be wrong
+        message = await self.chat_message_repo.get(
+            joins=[(Chat, Chat.id == ChatMessage.chat_id)],
+            filter=and_(ChatMessage.id == message_id, ChatMessage.chat_id == chat_id, Chat.user_id == self.context.user_id),
+        )
+
+        if not message:
+            raise errors.NotFoundError(
+                resource_name="Message",
+                message=f"Message with id {message_id} not found in chat {chat_id}",
+            )
+
+        # Unselect all other messages with the same previous_message_id (same generation batch)
+        if message.previous_message_id:
+            await self.chat_message_repo.bulk_update(
+                filter=and_(ChatMessage.previous_message_id == message.previous_message_id, ChatMessage.id != message_id), values={"selected": False}
+            )
+
+        # Select the target message
+        message.selected = True
+        return await self.chat_message_repo.update(message)
+
+    async def get_max_sequence_number(self, chat_id: UUID) -> int:
+        stmt = select(func.coalesce(func.max(ChatMessage.seq_num), 0)).where(ChatMessage.chat_id == chat_id)
+        result = await self.chat_message_repo.session.execute(stmt)
+        return result.scalar()

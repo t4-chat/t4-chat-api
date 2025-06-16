@@ -9,10 +9,13 @@ class ChatMessageDTO(BaseModel):
     id: Optional[UUID] = None
     
     chat_id: Optional[UUID] = None
-    model_id: Optional[int] = None # None for user messages
+    model_id: Optional[int] = None
+    previous_message_id: Optional[UUID] = None
+    seq_num: Optional[int] = None
     
     role: Optional[Literal["user", "assistant"]] = None
     content: Optional[str] = None
+    selected: Optional[bool] = None
     attachments: Optional[List[UUID]] = None
     created_at: Optional[datetime] = None
 

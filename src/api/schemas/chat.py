@@ -4,8 +4,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.services.inference.dto import DefaultResponseGenerationOptionsDTO
-
 
 class ChatMessageRequestSchema(BaseModel):
     id: Optional[UUID] = Field(None, description="The id of the message")
@@ -21,7 +19,11 @@ class ChatMessageResponseSchema(BaseModel):
 
     role: Literal["user", "assistant"] = Field(..., description="The role of the message")
     content: str = Field(..., description="The content of the message")
+    selected: Optional[bool] = Field(None, description="Whether the message is selected")
+    model_id: Optional[int] = Field(None, description="The id of the model")
+
     attachments: Optional[List[UUID]] = Field(None, description="The attachments of the message")
+    previous_message_id: Optional[UUID] = Field(None, description="The ID of the previous message in the conversation chain")
     created_at: datetime = Field(..., description="The creation date of the message")
 
     class Config:
@@ -35,10 +37,9 @@ class ChatMessagesResponseSchema(BaseModel):
         from_attributes = True
 
 
-class ChatCompletionRequestSchema(BaseModel):
-    model_id: int = Field(..., description="The id of the model to generate the response")
+class MultiModelCompletionRequestSchema(BaseModel):
+    model_ids: List[int] = Field(..., description="The ids of the models to compare (minimum 2)")
     message: ChatMessageRequestSchema = Field(..., description="The message of the chat")
-    options: Optional[DefaultResponseGenerationOptionsDTO] = Field(None, description="The options of the chat")
 
 
 class ChatListItemResponseSchema(BaseModel):
@@ -73,3 +74,6 @@ class StreamChunkSchema(BaseModel):
 
 class UpdateChatTitleRequestSchema(BaseModel):
     title: str = Field(..., description="The title of the chat")
+
+class DeleteChatsRequestSchema(BaseModel):
+    chat_ids: List[UUID] = Field(..., description="The ids of the chats to delete")
