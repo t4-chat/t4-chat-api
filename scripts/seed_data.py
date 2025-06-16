@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
+from uuid import UUID
 
 root_dir = Path(__file__).parent.parent
 sys.path.append(str(root_dir))
@@ -70,7 +71,7 @@ async def handle_host(db: AsyncSession, host_data: Dict[str, Any], update: bool 
 async def handle_model(
     db: AsyncSession,
     model_data: Dict[str, Any],
-    provider_id: int,
+    provider_id: UUID,
     update: bool = False
 ) -> None:
     """Process a model record."""
@@ -304,7 +305,7 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
             # Check if association already exists
             result = await db.execute(
                 select(UserGroupLimits).where(
-                    UserGroupLimits.user_group_name == user_group_name,
+                    UserGroupLimits.user_group_id == user_group.id,
                     UserGroupLimits.limits_id == limit.id,
                 )
             )
@@ -314,7 +315,7 @@ async def seed_user_group_limits(db: AsyncSession, env: str, update: bool = Fals
                 print(f"Association between '{user_group_name}' and limit for model '{model_name}' already exists")
             else:
                 # Create new association
-                association = UserGroupLimits(user_group_name=user_group_name, limits_id=limit.id)
+                association = UserGroupLimits(user_group_id=user_group.id, limits_id=limit.id)
                 db.add(association)
                 print(f"Created association between '{user_group_name}' and limit for model '{model_name}'")
 
@@ -329,6 +330,19 @@ async def seed_test_users(db: AsyncSession, env: str, update: bool = False) -> N
         return
 
     for user_data in data.get("users", []):
+        # Get the group name from the user data and find the corresponding group
+        group_name = user_data.pop("group_name", None)
+        if group_name:
+            # Find the group by name
+            result = await db.execute(select(UserGroup).where(UserGroup.name == group_name))
+            group = result.scalar_one_or_none()
+            if not group:
+                print(f"Warning: User group '{group_name}' not found for user {user_data['email']}, skipping")
+                continue
+            
+            # Set the group_id field
+            user_data["group_id"] = group.id
+
         # Check if user already exists
         result = await db.execute(select(User).where(User.email == user_data["email"]))
         existing_user = result.scalar_one_or_none()

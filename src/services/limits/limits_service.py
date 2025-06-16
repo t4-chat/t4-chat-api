@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import UUID
 
 from sqlalchemy import and_
 
@@ -44,14 +45,14 @@ class LimitsService:
     @convert_to_dto
     async def get_limits(self) -> List[LimitDTO]:
         return await self.limits_repo.select(
-            joins=[Limits.user_groups, (User, User.group_name == UserGroup.name)],
+            joins=[Limits.user_groups, (User, User.group_id == UserGroup.id)],
             filter=User.id == self.context.user_id,
         )
 
     @convert_to_dto
-    async def get_limits_by_model(self, model_id: int) -> LimitDTO:
+    async def get_limits_by_model(self, model_id: UUID) -> LimitDTO:
         results = await self.limits_repo.get(
-            joins=[Limits.user_groups, (User, User.group_name == UserGroup.name)],
+            joins=[Limits.user_groups, (User, User.group_id == UserGroup.id)],
             filter=and_(User.id == self.context.user_id, Limits.model_id == model_id),
         )
         return results
@@ -94,7 +95,7 @@ class LimitsService:
             percentage=(total_tokens + input_tokens) / limits.max_tokens,
         )
 
-    async def get_utilization(self, model_id: int, messages: Optional[List[ChatMessageDTO]] = None) -> UtilizationDTO:
+    async def get_utilization(self, model_id: UUID, messages: Optional[List[ChatMessageDTO]] = None) -> UtilizationDTO:
         model = await self.ai_model_service.get_model(model_id)
 
         limits = await self.get_limits_by_model(model_id)

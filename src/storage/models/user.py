@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
@@ -11,9 +9,7 @@ class User(BaseModel):
     __tablename__ = "users"
     __table_args__ = {"schema": "agg_ai"}
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
-    group_name = Column(String, ForeignKey("agg_ai.user_group.name"), nullable=False)
+    group_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.user_group.id"), nullable=False)
 
     email = Column(String, nullable=False, unique=True)
     first_name = Column(String, nullable=True)

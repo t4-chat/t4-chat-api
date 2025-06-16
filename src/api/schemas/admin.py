@@ -34,7 +34,7 @@ class BaseAggregatedUsage(BaseModel):
 class UnifiedAggregatedUsage(BaseAggregatedUsage):
     date: Optional[datetime] = None
     
-    model_id: Optional[int] = None
+    model_id: Optional[UUID] = None
     model_name: Optional[str] = None
     
     user_id: Optional[UUID] = None

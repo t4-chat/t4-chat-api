@@ -3,15 +3,17 @@ from uuid import UUID
 from src.services.common.context import Context
 from src.services.common.enums import UserGroupName
 from src.services.user.dto import UserDTO
+from src.storage.models.user_group import UserGroup
 
 from src.storage.base_repo import BaseRepository
 from src.storage.models import User
 
 
 class UserService:
-    def __init__(self, context: Context = None, user_repo: BaseRepository[User] = None):
+    def __init__(self, context: Context = None, user_repo: BaseRepository[User] = None, user_group_repo: BaseRepository[UserGroup] = None):
         self.context = context
         self.user_repo = user_repo
+        self.user_group_repo = user_group_repo
 
     async def create_if_not_exists(self, user: User) -> User:
         existing_user = await self.user_repo.get(filter=User.email == user.email)
@@ -19,9 +21,10 @@ class UserService:
         if existing_user:
             return existing_user
 
-        # Assign default "basic" user group if no group_name is set
-        if user.group_name is None:
-            user.group_name = UserGroupName.BASIC
+        if user.group_id is None:
+            basic_group = await self.user_group_repo.get(filter=UserGroup.name == UserGroupName.BASIC)
+            if basic_group:
+                user.group_id = basic_group.id
 
         user = await self.user_repo.add(user)
         return user

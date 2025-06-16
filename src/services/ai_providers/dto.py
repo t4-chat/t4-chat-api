@@ -1,20 +1,23 @@
-from typing import Any, List
+from typing import Any, List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, model_validator
 
 
 class ModelHostDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
     slug: str
-    priority: int
+    priority: Optional[int] = None
+    is_active: bool
+    model_associations: Optional[List["HostAiModelAssociationDTO"]] = []
     
     class Config:
         from_attributes = True
 
 
 class AiProviderDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
     slug: str
     
@@ -25,16 +28,16 @@ class AiProviderDTO(BaseModel):
 
 
 class AiProviderModelDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
     slug: str
-    
     price_input_token: float
     price_output_token: float
-
+    context_length: int
+    is_active: bool
     prompt_path: str
-    provider: AiProviderDTO
-    hosts: List[ModelHostDTO]
+    provider: Optional[AiProviderDTO]
+    hosts: Optional[List[ModelHostDTO]]
     tags: List[str]
 
     class Config:
@@ -47,12 +50,14 @@ class AiProviderModelDTO(BaseModel):
         if isinstance(data, dict):
             return data
             
-        # Extract provider data
-        provider_data = {
-            'id': data.provider.id,
-            'name': data.provider.name,
-            'slug': data.provider.slug,
-        }
+        if data.provider is None:
+            provider_data = None
+        else:
+            provider_data = {
+                'id': data.provider.id,
+                'name': data.provider.name,
+                'slug': data.provider.slug,
+            }
         
         keyed_hosts = {host.id: host for host in data.hosts}
         
@@ -64,7 +69,8 @@ class AiProviderModelDTO(BaseModel):
                 'id': host.id,
                 'name': host.name,
                 'slug': host.slug,
-                'priority': assoc.priority
+                'priority': assoc.priority,
+                'is_active': host.is_active
             })
         
         # Return a dictionary that Pydantic can use to construct the model
@@ -75,8 +81,49 @@ class AiProviderModelDTO(BaseModel):
             'slug': data.slug,
             'price_input_token': data.price_input_token,
             'price_output_token': data.price_output_token,
+            'context_length': data.context_length,
+            'is_active': data.is_active,
             'prompt_path': data.prompt_path,
             'provider': provider_data,
             'hosts': hosts_data,
             'tags': data.tags
         }
+    
+class ModelHostAssociationDTO(BaseModel):
+    host_id: UUID
+    priority: int
+
+    class Config:
+        from_attributes = True
+
+class EditAiModelDTO(BaseModel):
+    name: str
+    slug: str
+    provider_id: UUID
+    prompt_path: str
+    price_input_token: float
+    price_output_token: float
+    context_length: int
+    is_active: bool
+    tags: List[str]
+    host_associations: List[ModelHostAssociationDTO]
+
+    class Config:
+        from_attributes = True
+
+class HostAiModelAssociationDTO(BaseModel):
+    model_id: UUID
+    priority: int
+
+    class Config:
+        from_attributes = True
+
+
+class EditAiModelHostDTO(BaseModel):
+    name: str
+    slug: str
+    is_active: bool
+    model_associations: List[HostAiModelAssociationDTO]
+
+    class Config:
+        from_attributes = True

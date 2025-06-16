@@ -12,7 +12,6 @@ class Chat(BaseModel):
     __tablename__ = "chats"
     __table_args__ = {"schema": "agg_ai"}
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=True)
     pinned = Column(Boolean, nullable=False, default=False)
@@ -28,12 +27,12 @@ class ChatMessage(BaseModel):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chat_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chats.id", ondelete="CASCADE"), nullable=False)
-    model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
+    model_id = Column(PGUUID, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
     previous_message_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chat_messages.id", ondelete="SET NULL"), nullable=True)
     
     seq_num = Column(Integer, nullable=False)
     
-    role = Column(String, nullable=False)  # 'user' or 'assistant'
+    role = Column(String, nullable=False)
     content = Column(Text, nullable=True)
     selected = Column(Boolean, nullable=True)
     attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)

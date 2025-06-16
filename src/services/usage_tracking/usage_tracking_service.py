@@ -20,7 +20,7 @@ class UsageTrackingService:
         self.context = context
         self.usage_model_repo = usage_model_repo
 
-    async def track_usage(self, user_id: UUID, model_id: int, usage: TokenUsageDTO):
+    async def track_usage(self, user_id: UUID, model_id: UUID, usage: TokenUsageDTO):
         existing_usage = await self.usage_model_repo.get(filter=and_(Usage.user_id == user_id, Usage.model_id == model_id))
 
         if existing_usage:
@@ -42,7 +42,7 @@ class UsageTrackingService:
             )
 
     @convert_to_dto
-    async def get_usage(self, model_id: int) -> UsageDTO:
+    async def get_usage(self, model_id: UUID) -> UsageDTO:
         return await self.usage_model_repo.get(filter=and_(Usage.user_id == self.context.user_id, Usage.model_id == model_id))
 
     @convert_to_dto
@@ -50,13 +50,15 @@ class UsageTrackingService:
         return await self.usage_model_repo.select(filter=Usage.user_id == self.context.user_id)
 
     @convert_to_dto
-    async def get_group_usages(self, model_id: int) -> List[UsageDTO]:
-        # TODO: verify this subquery is correct
+    async def get_group_usages(self, model_id: UUID) -> List[UsageDTO]:
+        # Get the current user's group_id
+        current_user_subquery = select(User.group_id).where(User.id == self.context.user_id).scalar_subquery()
+        
         return await self.usage_model_repo.select(
             joins=[(User, User.id == Usage.user_id)],
             filter=and_(
                 Usage.model_id == model_id,
-                User.group_name == select(User.group_name).where(User.id == self.context.user_id).scalar_subquery(),
+                User.group_id == current_user_subquery,
             ),
         )
 
@@ -66,7 +68,7 @@ class UsageTrackingService:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         user_id: Optional[UUID] = None,
-        model_id: Optional[int] = None,
+        model_id: Optional[UUID] = None,
     ) -> UsageAggregationDTO:
         filter_conditions = []
         if start_date:

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from src.storage.models.base import BaseModel
@@ -6,14 +6,12 @@ from src.storage.models.base import BaseModel
 
 class UserGroup(BaseModel):
     __tablename__ = "user_group"
-    __table_args__ = {"schema": "agg_ai"}
-    # Override the primary key from BaseModel
-    __mapper_args__ = {"primary_key": ["name"]}
+    __table_args__ = (
+        UniqueConstraint("name", name="uq_user_group_name"),
+        {"schema": "agg_ai"}
+    )
 
-    id = None
-
-    name = Column(String, primary_key=True)
-
+    name = Column(String, nullable=False, unique=True)
     type = Column(String, nullable=False)
 
     # Relationships

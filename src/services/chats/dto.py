@@ -9,7 +9,7 @@ class ChatMessageDTO(BaseModel):
     id: Optional[UUID] = None
     
     chat_id: Optional[UUID] = None
-    model_id: Optional[int] = None
+    model_id: Optional[UUID] = None
     previous_message_id: Optional[UUID] = None
     seq_num: Optional[int] = None
     

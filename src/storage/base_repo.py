@@ -204,3 +204,8 @@ class BaseRepository(Generic[T]):
         stmt = select(self.model).where(filter).exists()
         result = await self.session.execute(select(stmt))
         return result.scalar()
+    
+    async def count(self, filter: ClauseElement) -> int:
+        stmt = select(func.count()).select_from(self.model).where(filter)
+        result = await self.session.execute(stmt)
+        return result.scalar()

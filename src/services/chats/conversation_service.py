@@ -190,7 +190,7 @@ class ConversationService:
             yield StreamGenerationDTO(text=part)
             await asyncio.sleep(0.5)  # Add delay between chunks
 
-    async def _setup_multi_model_chat(self, model_ids: List[int], message: ChatMessageDTO, background_tasks: BackgroundTasks = None):
+    async def _setup_multi_model_chat(self, model_ids: List[UUID], message: ChatMessageDTO, background_tasks: BackgroundTasks = None):
         if not message.chat_id:
             title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
             chat = await self.chat_service.create_chat(title=title)
@@ -243,22 +243,22 @@ class ConversationService:
                 background_tasks=background_tasks,
             ):
                 assistant_content += chunk.text
-                chunk_data = {"type": "message_content", "model_id": model.id, "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.text}}
+                chunk_data = {"type": "message_content", "model_id": str(model.id), "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.text}}
                 await chunk_queue.put(chunk_data)
 
             # Send stop chunk with final content
-            stop_chunk = {"type": "message_content_stop", "model_id": model.id, "message_id": str(assistant_message.id), "final_content": assistant_content}
+            stop_chunk = {"type": "message_content_stop", "model_id": str(model.id), "message_id": str(assistant_message.id), "final_content": assistant_content}
             await chunk_queue.put(stop_chunk)
 
         except Exception as e:
             logger.error(f"Error in model {model.id} generation: {e}")
-            error_chunk = {"type": "error", "model_id": model.id, "message_id": str(assistant_message.id), "error": str(e)}
+            error_chunk = {"type": "error", "model_id": str(model.id), "message_id": str(assistant_message.id), "error": str(e)}
             await chunk_queue.put(error_chunk)
 
     @stream_error_handler
     async def chat_completion_stream(
         self,
-        model_ids: List[int],
+        model_ids: List[UUID],
         message: ChatMessageDTO,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
@@ -277,7 +277,7 @@ class ConversationService:
                 "reply_to": str(new_message.id),
                 "id": str(assistant_message.id),
                 "role": assistant_message.role,
-                "model_id": model.id,
+                "model_id": str(model.id),
                 "model_name": model.name,
             }
             yield f"data: {json.dumps({'type': 'message_start', 'message': message_metadata})}\n\n"

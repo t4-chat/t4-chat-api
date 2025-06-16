@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import UUID
 
 from src.services.common.context import Context
 from src.services.common.decorators import convert_to_dto
@@ -19,7 +20,7 @@ class AiProviderService:
         return await self.ai_provider_repo.select(includes=[AiProvider.models])
 
     @convert_to_dto
-    async def get_provider(self, provider_id: int) -> Optional[AiProviderDTO]:
+    async def get_provider(self, provider_id: UUID) -> Optional[AiProviderDTO]:
         return await self.ai_provider_repo.get(
             filter=AiProvider.id == provider_id, includes=[AiProvider.models]
         )

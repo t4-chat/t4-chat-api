@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -10,8 +11,8 @@ class UsageSchema(BaseModel):
 
 
 class ResponseGenerationRequest(BaseModel):
-    provider_id: int = Field(..., description="The id of the provider")
-    model_id: int = Field(..., description="The id of the model")
+    provider_id: UUID = Field(..., description="The id of the provider")
+    model_id: UUID = Field(..., description="The id of the model")
     prompt: str = Field(..., description="The input text prompt for generation")
 
 

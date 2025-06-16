@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
 from src.storage.models.base import BaseModel
@@ -9,10 +10,10 @@ class ModelHostAssociation(BaseModel):
     __table_args__ = {"schema": "agg_ai"}
 
     model_id = Column(
-        Integer, ForeignKey("agg_ai.ai_provider_models.id", ondelete="CASCADE"), nullable=False
+        PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_provider_models.id", ondelete="CASCADE"), nullable=False
     )
     host_id = Column(
-        Integer, ForeignKey("agg_ai.model_hosts.id", ondelete="CASCADE"), nullable=False
+        PGUUID(as_uuid=True), ForeignKey("agg_ai.model_hosts.id", ondelete="CASCADE"), nullable=False
     )
     
     priority = Column(Integer, nullable=False, default=0)

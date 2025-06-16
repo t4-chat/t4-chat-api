@@ -1,4 +1,5 @@
 from sqlalchemy import ARRAY, Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 
 from src.storage.models.base import BaseModel
@@ -14,7 +15,7 @@ class AiProviderModel(BaseModel):
     )  # this is what we need to use to call the model
 
     provider_id = Column(
-        Integer, ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE")
+        PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE")
     )
 
     prompt_path = Column(String, nullable=False)

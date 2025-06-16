@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 from src.api.schemas.admin import AggregationType, BudgetResponseSchema, UsageAggregationResponseSchema
 from src.containers.container import BudgetServiceDep, UsageTrackingServiceDep
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
+router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 
 @router.get("/budget", response_model=BudgetResponseSchema)
@@ -24,7 +24,7 @@ async def get_usage(
     start_date: Optional[datetime] = Query(None, description="Start date for filtering"),
     end_date: Optional[datetime] = Query(None, description="End date for filtering"),
     user_id: Optional[UUID] = Query(None, description="Filter by user ID"),
-    model_id: Optional[int] = Query(None, description="Filter by model ID"),
+    model_id: Optional[UUID] = Query(None, description="Filter by model ID"),
 ):
     return await usage_tracking_service.get_aggregated_usage(
         aggregation=aggregation,

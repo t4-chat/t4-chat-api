@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from src.api.schemas.ai_models import AiModelResponseSchema
 from src.containers.container import AiModelServiceDep
 
-router = APIRouter(prefix="/api/ai-models", tags=["ai-models"])
+router = APIRouter(prefix="/api/ai-models", tags=["AI Models"])
 
 
 @router.get("", response_model=List[AiModelResponseSchema])

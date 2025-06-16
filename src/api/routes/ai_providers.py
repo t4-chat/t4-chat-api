@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from src.api.schemas.ai_providers import AiProviderResponseSchema
 from src.containers.container import AiProviderServiceDep
 
-router = APIRouter(prefix="/api/ai-providers", tags=["ai-providers"])
+router = APIRouter(prefix="/api/ai-providers", tags=["AI Providers"])
 
 # DEPRECATED not working
 @router.get("", response_model=List[AiProviderResponseSchema])

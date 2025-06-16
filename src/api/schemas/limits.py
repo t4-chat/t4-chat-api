@@ -1,10 +1,11 @@
 from typing import List
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
 class UtilizationResponseSchema(BaseModel):
-    model_id: int = Field(..., description="The id of the model used")
+    model_id: UUID = Field(..., description="The id of the model used")
     total_tokens: int = Field(..., description="The total number of tokens used")
     percentage: float = Field(..., description="The percentage of the limit used")
 
@@ -22,7 +23,7 @@ class UtilizationsResponseSchema(BaseModel):
 
 
 class LimitResponseSchema(BaseModel):
-    model_id: int = Field(..., description="The id of the model used")
+    model_id: UUID = Field(..., description="The id of the model used")
     max_tokens: int = Field(..., description="The maximum number of tokens allowed")
 
     class Config:

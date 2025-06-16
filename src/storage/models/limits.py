@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
@@ -11,9 +9,8 @@ class Limits(BaseModel):
     __tablename__ = "limits"
     __table_args__ = {"schema": "agg_ai"}
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     model_id = Column(
-        Integer, ForeignKey("agg_ai.ai_provider_models.id"), nullable=True
+        PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_provider_models.id"), nullable=True
     )  # limit may not be per model, but rather per host
 
     # TODO: add host here, to limit per host

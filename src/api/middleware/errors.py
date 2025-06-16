@@ -20,6 +20,8 @@ async def error_handling_middleware(request: Request, call_next: Callable):
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"detail": str(e)})
     except errors.BudgetExceededError as e:
         return JSONResponse(status_code=status.HTTP_402_PAYMENT_REQUIRED, content={"detail": str(e)})
+    except errors.BadRequestError as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(e)})
     except errors.InvalidInputError as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(e)})
     except Exception as e:

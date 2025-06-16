@@ -17,7 +17,7 @@ from src.api.schemas.chat import (
 )
 from src.containers.container import ChatServiceDep
 
-router = APIRouter(prefix="/api/chats", tags=["chats"])
+router = APIRouter(prefix="/api/chats", tags=["Chats"])
 
 
 @router.post("", response_model=ChatResponseSchema)

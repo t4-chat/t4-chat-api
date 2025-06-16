@@ -24,7 +24,7 @@ class BackgroundTaskService:
     def __init__(self, context: Context):
         self.context = context
 
-    async def track_model_usage(self, user_id: UUID, model_id: int, usage: TokenUsageDTO):
+    async def track_model_usage(self, user_id: UUID, model_id: UUID, usage: TokenUsageDTO):
         try:
             async with db_session_manager.session() as session:
                 usage_model_repo = BaseRepository(Usage, session)

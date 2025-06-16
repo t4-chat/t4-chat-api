@@ -20,7 +20,7 @@ class ChatMessageResponseSchema(BaseModel):
     role: Literal["user", "assistant"] = Field(..., description="The role of the message")
     content: str = Field(..., description="The content of the message")
     selected: Optional[bool] = Field(None, description="Whether the message is selected")
-    model_id: Optional[int] = Field(None, description="The id of the model")
+    model_id: Optional[UUID] = Field(None, description="The id of the model")
 
     attachments: Optional[List[UUID]] = Field(None, description="The attachments of the message")
     previous_message_id: Optional[UUID] = Field(None, description="The ID of the previous message in the conversation chain")
@@ -38,7 +38,7 @@ class ChatMessagesResponseSchema(BaseModel):
 
 
 class MultiModelCompletionRequestSchema(BaseModel):
-    model_ids: List[int] = Field(..., description="The ids of the models to compare (minimum 2)")
+    model_ids: List[UUID] = Field(..., description="The ids of the models to compare (minimum 2)")
     message: ChatMessageRequestSchema = Field(..., description="The message of the chat")
 
 

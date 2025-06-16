@@ -3,6 +3,7 @@ from typing import Annotated, Callable, Type, TypeVar
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.services.ai_providers.ai_model_host import AiModelHostService
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.ai_providers.ai_provider_service import AiProviderService
 from src.services.auth.auth_service import AuthService
@@ -35,6 +36,8 @@ from src.storage.models import (
     User,
     WhiteList,
 )
+from src.storage.models.model_host import ModelHost
+from src.storage.models.user_group import UserGroup
 
 db = Annotated[AsyncSession, Depends(get_db_session)]
 
@@ -52,24 +55,17 @@ def create_repo_factory(
 
 
 get_ai_model_repo = create_repo_factory(AiProviderModel)
-
 get_user_repo = create_repo_factory(User)
-
 get_ai_provider_repo = create_repo_factory(AiProvider)
-
 get_resource_repo = create_repo_factory(Resource)
-
 get_budget_repo = create_repo_factory(Budget)
-
 get_limits_repo = create_repo_factory(Limits)
-
 get_usage_model_repo = create_repo_factory(Usage)
-
 get_chat_repo = create_repo_factory(Chat)
-
 get_chat_message_repo = create_repo_factory(ChatMessage)
-
 get_white_list_repo = create_repo_factory(WhiteList)
+get_ai_model_host_repo = create_repo_factory(ModelHost)
+get_user_group_repo = create_repo_factory(UserGroup)
 
 
 def get_model_provider(context: Context = Depends(get_context)) -> ModelProvider:
@@ -125,8 +121,10 @@ ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
 def get_ai_model_service(
     context: Context = Depends(get_context),
     ai_model_repo: BaseRepository[AiProviderModel] = Depends(get_ai_model_repo),
+    limits_repo: BaseRepository[Limits] = Depends(get_limits_repo),
+    usage_repo: BaseRepository[Usage] = Depends(get_usage_model_repo),
 ) -> AiModelService:
-    return AiModelService(context=context, ai_model_repo=ai_model_repo)
+    return AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo)
 
 
 AiModelServiceDep = Annotated[AiModelService, Depends(get_ai_model_service)]
@@ -145,8 +143,9 @@ BudgetServiceDep = Annotated[BudgetService, Depends(get_budget_service)]
 def get_user_service(
     user_repo: BaseRepository[User] = Depends(get_user_repo),
     context: Context = Depends(get_context),
+    user_group_repo: BaseRepository[UserGroup] = Depends(get_user_group_repo),
 ) -> UserService:
-    return UserService(context=context, user_repo=user_repo)
+    return UserService(context=context, user_repo=user_repo, user_group_repo=user_group_repo)
 
 
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
@@ -257,3 +256,13 @@ def get_conversation_service(
 
 
 ConversationServiceDep = Annotated[ConversationService, Depends(get_conversation_service)]
+
+
+def get_ai_model_host_service(
+    context: Context = Depends(get_context),
+    ai_model_host_repo: BaseRepository[ModelHost] = Depends(get_ai_model_host_repo),
+) -> AiModelHostService:
+    return AiModelHostService(context=context, ai_model_host_repo=ai_model_host_repo)
+
+
+AiModelHostServiceDep = Annotated[AiModelHostService, Depends(get_ai_model_host_service)]

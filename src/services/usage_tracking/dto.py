@@ -17,7 +17,7 @@ class TokenUsageDTO(BaseModel):
 
 class UsageDTO(TokenUsageDTO):
     user_id: UUID
-    model_id: int
+    model_id: UUID
 
     created_at: datetime
 
@@ -28,7 +28,7 @@ class UsageDTO(TokenUsageDTO):
 class AggregatedUsageItemDTO(TokenUsageDTO):
     date: Optional[datetime] = None
     
-    model_id: Optional[int] = None
+    model_id: Optional[UUID] = None
     model_name: Optional[str] = None
 
     user_id: Optional[UUID] = None

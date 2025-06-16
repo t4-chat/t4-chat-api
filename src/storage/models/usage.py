@@ -14,7 +14,7 @@ class Usage(BaseModel):
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.users.id"))
-    model_id = Column(Integer, ForeignKey("agg_ai.ai_provider_models.id"))
+    model_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_provider_models.id"))
 
     prompt_tokens = Column(Integer)
     completion_tokens = Column(Integer)
