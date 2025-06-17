@@ -13,7 +13,7 @@ def create_auth_middleware(token_service_instance: TokenService) -> Callable:
     def extract_and_validate_token(auth_header: Optional[str]) -> Optional[dict]:
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
-        
+
         token = auth_header.replace("Bearer ", "")
         return token_service_instance.validate_token(token)
 
@@ -26,16 +26,21 @@ def create_auth_middleware(token_service_instance: TokenService) -> Callable:
             return await call_next(request)
 
         # Skip authentication for public endpoints
-        if request.url.path in [
-            "/",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/health/live",
-            "/health/logs",
-            "/api/auth/google",
-            "/api/ai-providers",
-        ] or request.url.path.startswith("/static/"):
+        if (
+            request.url.path
+            in [
+                "/",
+                "/docs",
+                "/redoc",
+                "/openapi.json",
+                "/health/live",
+                "/health/logs",
+                "/api/auth/google",
+                "/api/ai-providers",
+            ]
+            or request.url.path.startswith("/static/")
+            or request.url.path.startswith("/api/chats/shared/")
+        ):
             return await call_next(request)
 
         # Handle optional authentication for /api/ai-models
@@ -51,9 +56,7 @@ def create_auth_middleware(token_service_instance: TokenService) -> Callable:
         if not auth_header or not auth_header.startswith("Bearer "):
             return JSONResponse(
                 status_code=401,
-                content={
-                    "detail": "Unauthorized: Missing or invalid authentication token"
-                },
+                content={"detail": "Unauthorized: Missing or invalid authentication token"},
             )
 
         payload = extract_and_validate_token(auth_header)

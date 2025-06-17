@@ -71,7 +71,7 @@ class LimitsService:
             input_tokens = await self.model_provider.count_tokens(model, messages)
 
         return UtilizationDTO(
-            model_id=model.id,
+            model=model,
             total_tokens=usage.prompt_tokens + input_tokens,
             percentage=(usage.prompt_tokens + input_tokens) / limits.max_tokens,
         )
@@ -90,7 +90,7 @@ class LimitsService:
             input_tokens = await self.model_provider.count_tokens(model, messages)
 
         return UtilizationDTO(
-            model_id=model.id,
+            model=model,
             total_tokens=total_tokens + input_tokens,
             max_tokens=limits.max_tokens,
             percentage=(total_tokens + input_tokens) / limits.max_tokens,
@@ -102,10 +102,8 @@ class LimitsService:
         limits = await self.get_limits_by_model(model_id)
         if not limits: # have no limits for this model, so we can't check utilization
             return UtilizationDTO(
-                model_id=model_id,
-                total_tokens=0,
-                max_tokens=0,
-                percentage=0,
+                model=model,
+                max_tokens=-1,
             )
 
         user = await self.user_service.get_user_by_id(self.context.user_id, user_group=True)

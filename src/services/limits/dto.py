@@ -3,9 +3,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.services.ai_providers.dto import AiProviderModelDTO
+
 
 class UtilizationDTO(BaseModel):
-    model_id: UUID
+    model: AiProviderModelDTO
+    
     total_tokens: int
     max_tokens: int
     percentage: float
