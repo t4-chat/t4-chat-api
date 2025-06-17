@@ -1,4 +1,4 @@
-name: Build and Push Docker ImageAdd commentMore actions
+name: Build and Push Docker
 
 on:
   workflow_dispatch:
