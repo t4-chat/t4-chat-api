@@ -43,14 +43,19 @@ class LimitsService:
         self.model_provider = model_provider
 
     @convert_to_dto
-    async def get_limits(self) -> List[LimitDTO]:
+    async def get_limits(self, model_ids: Optional[List[UUID]] = None) -> List[LimitDTO]:
+        if model_ids and len(model_ids) > 0:
+            filter = and_(Limits.model_id.in_(model_ids), User.id == self.context.user_id)
+        else:
+            filter = User.id == self.context.user_id
+
         return await self.limits_repo.select(
             joins=[Limits.user_groups, (User, User.group_id == UserGroup.id)],
-            filter=User.id == self.context.user_id,
+            filter=filter,
         )
 
     @convert_to_dto
-    async def get_limits_by_model(self, model_id: UUID) -> LimitDTO:
+    async def get_limits_by_model(self, model_id: UUID) -> Optional[LimitDTO]:
         results = await self.limits_repo.get(
             joins=[Limits.user_groups, (User, User.group_id == UserGroup.id)],
             filter=and_(User.id == self.context.user_id, Limits.model_id == model_id),
@@ -104,6 +109,8 @@ class LimitsService:
             return UtilizationDTO(
                 model=model,
                 max_tokens=-1,
+                percentage=1000, # to fail check utilization
+                total_tokens=-1,
             )
 
         user = await self.user_service.get_user_by_id(self.context.user_id, user_group=True)

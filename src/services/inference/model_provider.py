@@ -7,7 +7,7 @@ from litellm import acompletion, token_counter
 from litellm import utils as litellm_utils
 
 from src.services.common.context import Context
-from src.services.common.errors import BudgetExceededError, NoAvailableHostError
+from src.services.common.errors import BudgetExceededError, ModelApiError, NoAvailableHostError, NotFoundError
 from src.services.host_api_keys.host_api_key_service import HostApiKeyService
 from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO, ThinkingContentDTO
 from src.services.inference.tools_service import ToolsService
@@ -37,14 +37,7 @@ class ModelProvider:
         self.host_api_key_service = host_api_key_service
 
     async def _get_api_key_for_host(self, host: ModelHostDTO) -> str:
-
-        # Use host.id (UUID) for user API key lookup
-        user_key = await self.host_api_key_service.get_user_api_key_for_host(host.id)
-        if user_key:
-            return user_key
-
-        # Fallback to system API key using host.slug
-        return settings.MODEL_HOSTS[host.slug].api_key
+        return await self.host_api_key_service.get_user_api_key_for_host(host.id)
 
     async def _select_available_host(self, model: AiProviderModelDTO) -> ModelHostDTO:
         """Select the first host (by priority) that has an available API key."""
@@ -100,6 +93,7 @@ class ModelProvider:
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
         **kwargs,
     ) -> Optional[TextGenerationDTO]:
+        # TODO: extract generic try catch logic with catching exceptions
         try:
             selected_host = await self._select_available_host(model)
 
@@ -166,10 +160,14 @@ class ModelProvider:
             )
         except litellm.BudgetExceededError as e:
             raise BudgetExceededError(e)
+        except litellm.APIError as e:
+            raise ModelApiError(e)
+        except litellm.NotFoundError as e:
+            raise NotFoundError(resource_name="AiModel API", message=e)
         except Exception as e:
             self.logger.error(f"Error in generate_response: {str(e)}")
             self.logger.error(traceback.format_exc())
-            raise e
+            raise ModelApiError(e)
 
     # TODO: try to extract common processing tool method
     async def generate_response_stream(
@@ -276,10 +274,14 @@ class ModelProvider:
 
         except litellm.BudgetExceededError as e:
             raise BudgetExceededError(e)
+        except litellm.APIError as e:
+            raise ModelApiError(e)
+        except litellm.NotFoundError as e:
+            raise NotFoundError(e)
         except Exception as e:
             self.logger.error(f"Error in generate_response_stream: {str(e)}")
             self.logger.error(traceback.format_exc())
-            raise e
+            raise ModelApiError(e)
 
     async def count_tokens(
         self,

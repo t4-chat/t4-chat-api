@@ -27,6 +27,7 @@ class AiModelResponseSchema(BaseModel):
     name: str = Field(..., description="The name of the model")
     tags: List[str] = Field(..., description="The tags of the model")
     has_api_key: bool = Field(False, description="Whether the model has an API key") # TODO: fix mock
+    only_with_byok: bool = Field(False, description="Whether the model is only available with BYOK")
     provider: Optional[AiProviderResponseSchema] = Field(None, description="The provider of the model")
 
     class Config:

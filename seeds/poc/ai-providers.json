@@ -64,6 +64,46 @@
               "model_slug": "openai/gpt-4.1-nano"
             }
           ]
+        },
+        {
+          "name": "o3",
+          "price_input_token": 0.000002,
+          "price_output_token": 0.000008,
+          "context_length": 200000,
+          "prompt_path": "default",
+          "tags": ["general"],
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai",
+              "model_slug": "o3"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/o3"
+            }
+          ]
+        },
+        {
+          "name": "o3-pro",
+          "price_input_token": 0.00002,
+          "price_output_token": 0.00008,
+          "context_length": 200000,
+          "prompt_path": "default",
+          "tags": ["general"],
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai",
+              "model_slug": "o3-pro"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/o3-pro"
+            }
+          ]
         }
       ]
     },

@@ -257,6 +257,9 @@ class ConversationService:
         return chat, new_message, prev_messages, models, assistant_messages
 
     async def _ensure_limits(self, model: AiProviderModelDTO, messages: List[Dict[str, Any]]):
+        # if model has api key, we don't need to check limits
+        if model.has_api_key:
+            return
         if await self.limits_service.check_utilization(model.id, messages):
             raise errors.LimitsExceededError(f"Model {model.id} has exceeded its limit")
 
@@ -292,7 +295,8 @@ class ConversationService:
 
         except Exception as e:
             logger.error(f"Error in model {model.id} generation: {e}")
-            error_chunk = {"type": "error", "model_id": str(model.id), "message_id": str(assistant_message.id), "error": str(e)}
+            error_code = e.status_code if hasattr(e, "status_code") else 500
+            error_chunk = {"type": "error", "model_id": str(model.id), "message_id": str(assistant_message.id), "error": str(e), "code": error_code}
             await chunk_queue.put(error_chunk)
 
     @stream_error_handler
