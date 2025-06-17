@@ -42,3 +42,12 @@ class ChatDTO(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SharedConversationListItemDTO(BaseModel):
+    id: UUID
+    created_at: datetime
+    chat: ChatDTO
+
+    class Config:
+        from_attributes = True

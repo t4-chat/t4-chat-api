@@ -95,3 +95,17 @@ class UnshareChatsRequestSchema(BaseModel):
 
 class ShareChatResponseSchema(BaseModel):
     shared_conversation_id: UUID = Field(..., description="The id of the shared conversation")
+
+
+class SharedConversationChatResponseSchema(BaseModel):
+    id: UUID = Field(..., description="The id of the chat")
+    title: str = Field(..., description="The title of the chat")
+    
+
+class SharedConversationListItemResponseSchema(BaseModel):
+    id: UUID = Field(..., description="The id of the shared conversation")
+    created_at: datetime = Field(..., description="The creation date of the shared conversation")
+    chat: SharedConversationChatResponseSchema = Field(..., description="The shared chat information")
+
+    class Config:
+        from_attributes = True

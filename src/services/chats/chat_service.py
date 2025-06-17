@@ -4,7 +4,7 @@ import uuid
 
 from sqlalchemy import and_, func, select
 
-from src.services.chats.dto import ChatDTO, ChatMessageDTO
+from src.services.chats.dto import ChatDTO, ChatMessageDTO, SharedConversationListItemDTO
 from src.services.common import errors
 from src.services.common.context import Context
 from src.services.common.decorators import convert_to_dto
@@ -223,6 +223,14 @@ class ChatService:
         shared_conversation = SharedConversation(chat_id=chat_id)
         shared_conversation = await self.shared_conversation_repo.add(shared_conversation)
         return shared_conversation.id
+    
+
+    async def get_shared_chats(self) -> List[SharedConversationListItemDTO]:
+        return await self.shared_conversation_repo.select(
+            joins=[(Chat, Chat.id == SharedConversation.chat_id)],
+            filter=Chat.user_id == self.context.user_id,
+            includes=[SharedConversation.chat]
+        )
 
 
     async def get_shared_chat(self, shared_conversation_id: UUID) -> Optional[ChatDTO]:
