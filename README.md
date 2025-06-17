@@ -1,4 +1,4 @@
-# agg-ai-api
+# t4-chat-api
 
 A FastAPI-based AI API service with PostgreSQL database integration.
 
@@ -12,14 +12,14 @@ A FastAPI-based AI API service with PostgreSQL database integration.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/agg-ai-api.git
-cd agg-ai-api
+git clone https://github.com/t4-chat/t4-chat-api
+cd t4-chat-api
 ```
 
 2. Create and activate a Conda environment:
 ```bash
-conda create -n agg-ai-api python=3.11
-conda activate agg-ai-api
+conda create -n t4-chat-api python=3.11
+conda activate t4-chat-api
 ```
 
 3. Install dependencies:
@@ -30,7 +30,7 @@ pip install -r requirements.txt
 4. Set up environment variables:
 Create a `.env` file in the root directory with the following content:
 ```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agg-ai
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/t4-chat
 ```
 
 ## Database Setup
@@ -42,7 +42,7 @@ sh docker-compose.sh
 ```
 
 ### Manual Setup
-1. Create a PostgreSQL database named `agg-ai`
+1. Create a PostgreSQL database named `t4-chat`
 2. Update the `DATABASE_URL` in `.env` if using different credentials
 
 ## Running Migrations
@@ -90,16 +90,6 @@ The API will be available at `http://localhost:9001`
 
 Once the application is running, you can access:
 - Swagger UI documentation: `http://localhost:9001/docs`
-- ReDoc documentation: `http://localhost:9001/redoc`
-
-## Testing
-
-### Test SSE Endpoint
-```bash
-curl -X POST "http://localhost:9001/api/chats/conversation" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello, how are you?"}'
-```
 
 ## Development
 
@@ -113,8 +103,3 @@ To seed database with data
 ```
 python scripts/setup_test_environment.py
 ```
-
-# Code best practices
-- any inputs and outputs of the service *MUST* be DTO
-- any inputs and outputs of the storage *MUST* be models
-- any outputs of the routes *MUST* be schemas

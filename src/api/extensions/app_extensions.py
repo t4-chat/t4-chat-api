@@ -4,9 +4,9 @@ from fastapi.openapi.utils import get_openapi
 
 def configure_openapi(app: FastAPI):
     openapi_schema = get_openapi(
-        title="Agg-AI API",
+        title="t4-chat API",
         version="1.0.0",
-        description="API for Agg-AI",
+        description="API for t4-chat",
         routes=app.routes,
     )
 

@@ -1,26 +1,26 @@
 version: '3.8'
 
 services:
-  agg-ai-api:
+  t4-chat-api:
     build: 
       context: .
       dockerfile: Dockerfile
-    container_name: agg-ai-api
+    container_name: t4-chat-api
     ports:
       - "9001:8000"
     volumes:
       - .:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agg-ai
-      - OTEL_SERVICE_NAME=agg-ai-api
-      - GOOGLE_CLIENT_ID=485345819112-cc79gm8kscqirc6e71bavk1vvat8ov53.apps.googleusercontent.com
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/t4-chat
+      - OTEL_SERVICE_NAME=t4-chat-api
+      - GOOGLE_CLIENT_ID=test-key
       - JWT_SECRET_KEY=your_jwt_secret_key
       - JWT_EXPIRATION_MINUTES=86400
       - ANTHROPIC_API_KEY=test-key
       - STORAGE_EMULATOR_HOST=http://gcp-storage-emulator:4443
-      - GCP_PROJECT_ID=dev-agg-ai
-      - GCP_BUCKET_NAME=dev-agg-ai-resources
+      - GCP_PROJECT_ID=dev-t4-chat
+      - GCP_BUCKET_NAME=dev-t4-chat-resources
       - MOCK_AI_RESPONSE=True
       - ADMIN_EMAILS=["stepun.tita@gmail.com","pxlxpenko@gmail.com","ostashko4@gmail.com","avdieiev.oleksii@gmail.com"]
       - API_KEY_ENCRYPTION_KEY=test-key
@@ -38,22 +38,22 @@ services:
       - gcp-storage-emulator
     restart: unless-stopped
     networks:
-      - agg-ai-network
+      - t4-chat-network
 
   db:
     image: postgres:17
-    container_name: agg-ai-db
+    container_name: t4-chat-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=agg-ai
+      - POSTGRES_DB=t4-chat
     ports:
       - "5433:5432"
     restart: unless-stopped
     networks:
-      - agg-ai-network
+      - t4-chat-network
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -65,7 +65,7 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
     restart: unless-stopped
     networks:
-      - agg-ai-network
+      - t4-chat-network
 
   gcp-storage-emulator:
     image: oittaa/gcp-storage-emulator:latest
@@ -76,13 +76,13 @@ services:
       - gcp_storage_data:/storage
     restart: unless-stopped
     networks:
-      - agg-ai-network
-    command: ["start", "--default-bucket=agg-ai-bucket"]
+      - t4-chat-network
+    command: ["start", "--default-bucket=t4-chat-bucket"]
 
 volumes:
   postgres_data:
   gcp_storage_data:
 
 networks:
-  agg-ai-network:
+  t4-chat-network:
     driver: bridge
