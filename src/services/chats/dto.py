@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Dict, Any
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatMessageDTO(BaseModel):
@@ -23,6 +23,13 @@ class ChatMessageDTO(BaseModel):
         from_attributes = True
 
 
+class SharedConversationDTO(BaseModel):
+    id: UUID
+
+    class Config:
+        from_attributes = True
+
+
 class ChatDTO(BaseModel):
     id: UUID
     title: Optional[str]
@@ -30,6 +37,7 @@ class ChatDTO(BaseModel):
     created_at: datetime
     updated_at: datetime
     pinned: bool
+    shared_conversation: Optional[SharedConversationDTO] = None
     messages: List[ChatMessageDTO] = []
 
     class Config:

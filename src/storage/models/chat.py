@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 
 from src.storage.models.base import BaseModel
 
@@ -18,6 +18,7 @@ class Chat(BaseModel):
     
     messages = relationship("ChatMessage", back_populates="chat", cascade="all, delete-orphan", lazy="noload")
     user = relationship("User", back_populates="chats", lazy="noload")
+    shared_conversation = relationship("SharedConversation", uselist=False, back_populates="chat", lazy="noload")
 
 
 class ChatMessage(BaseModel):

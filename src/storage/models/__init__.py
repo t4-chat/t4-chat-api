@@ -13,6 +13,7 @@ from .user import User
 from .user_group import UserGroup
 from .user_group_limits import UserGroupLimits
 from .white_list import WhiteList
+from .shared_conversation import SharedConversation
 
 __all__ = [
     "Base",
@@ -31,4 +32,5 @@ __all__ = [
     "WhiteList",
     "ModelHost",
     "ModelHostAssociation",
+    "SharedConversation",
 ]

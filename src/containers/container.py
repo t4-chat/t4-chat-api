@@ -40,6 +40,7 @@ from src.storage.models import (
     WhiteList,
 )
 from src.storage.models.model_host import ModelHost
+from src.storage.models.shared_conversation import SharedConversation
 from src.storage.models.user_group import UserGroup
 
 db = Annotated[AsyncSession, Depends(get_db_session)]
@@ -69,6 +70,7 @@ get_chat_message_repo = create_repo_factory(ChatMessage)
 get_white_list_repo = create_repo_factory(WhiteList)
 get_ai_model_host_repo = create_repo_factory(ModelHost)
 get_user_group_repo = create_repo_factory(UserGroup)
+get_shared_conversation_repo = create_repo_factory(SharedConversation)
 get_host_api_key_repo = create_repo_factory(HostApiKey)
 
 
@@ -134,9 +136,10 @@ TokenServiceDep = Annotated[TokenService, Depends(get_token_service)]
 def get_chat_service(
     chat_repo: BaseRepository[Chat] = Depends(get_chat_repo),
     chat_message_repo: BaseRepository[ChatMessage] = Depends(get_chat_message_repo),
+    shared_conversation_repo: BaseRepository[SharedConversation] = Depends(get_shared_conversation_repo),
     context: Context = Depends(get_context),
 ) -> ChatService:
-    return ChatService(context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo)
+    return ChatService(context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo, shared_conversation_repo=shared_conversation_repo)
 
 
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]

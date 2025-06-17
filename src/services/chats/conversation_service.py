@@ -193,10 +193,20 @@ class ConversationService:
             yield StreamGenerationDTO(text=part)
             await asyncio.sleep(0.5)  # Add delay between chunks
 
-    async def _setup_multi_model_chat(self, model_ids: List[UUID], message: ChatMessageDTO, background_tasks: BackgroundTasks = None):
+    async def _setup_multi_model_chat(
+        self,
+        model_ids: List[UUID],
+        message: ChatMessageDTO,
+        background_tasks: BackgroundTasks = None,
+        shared_conversation_id: Optional[UUID] = None,
+    ):
         if not message.chat_id:
-            title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
-            chat = await self.chat_service.create_chat(title=title)
+            if shared_conversation_id:
+                chat = await self.chat_service.create_chat_from_shared_conversation(shared_conversation_id=shared_conversation_id)
+            else:
+                title = await self._generate_chat_title(message=message, background_tasks=background_tasks)
+                chat = await self.chat_service.create_chat(title=title)
+            
             chat_id = chat.id
             message.chat_id = chat_id
         else:
@@ -267,10 +277,11 @@ class ConversationService:
         self,
         model_ids: List[UUID],
         message: ChatMessageDTO,
+        shared_conversation_id: Optional[UUID] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
         # TODO: we are aware that there could be a race condition here
-        chat, new_message, prev_messages, models, assistant_messages = await self._setup_multi_model_chat(model_ids, message, background_tasks)
+        chat, new_message, prev_messages, models, assistant_messages = await self._setup_multi_model_chat(model_ids, message, background_tasks, shared_conversation_id)
 
         chat_metadata = {
             "type": "chat_metadata",

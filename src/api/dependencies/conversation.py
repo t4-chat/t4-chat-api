@@ -21,7 +21,7 @@ from src.services.user.user_service import UserService
 
 from src.storage.base_repo import BaseRepository
 from src.storage.db import db_session_manager
-from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Limits, Resource, Usage, User
+from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Limits, Resource, Usage, User, SharedConversation
 from src.storage.models.host_api_key import HostApiKey
 
 from src.api.schemas.chat import MultiModelCompletionRequestSchema
@@ -42,6 +42,7 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     host_api_key_repo = BaseRepository(HostApiKey, db)
 
     host_api_key_service = HostApiKeyService(context=context, host_api_key_repo=host_api_key_repo)
+    shared_conversation_repo = BaseRepository(SharedConversation, db)
 
     # Create dependent services
     user_service = UserService(context=context, user_repo=user_repo)
@@ -53,7 +54,7 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     usage_tracking_service = UsageTrackingService(context=context, usage_model_repo=usage_repo)
 
     # Create main services
-    chat_service = ChatService(context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo)
+    chat_service = ChatService(context=context, chat_repo=chat_repo, chat_message_repo=chat_message_repo, shared_conversation_repo=shared_conversation_repo)
 
     inference_service = InferenceService(context=context, models_provider=model_provider, background_task_service=background_task_service, budget_service=budget_service)
 
@@ -90,6 +91,7 @@ async def stream_conversation(request: Request, input: MultiModelCompletionReque
         async for chunk in conversation_service.chat_completion_stream(
             model_ids=input.model_ids,
             message=ChatMessageDTO.model_validate(input.message),
+            shared_conversation_id=input.shared_conversation_id,
             background_tasks=background_tasks,
         ):
             yield chunk

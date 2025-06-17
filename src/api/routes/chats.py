@@ -13,6 +13,8 @@ from src.api.schemas.chat import (
     ChatResponseSchema,
     DeleteChatsRequestSchema,
     MultiModelCompletionRequestSchema,
+    ShareChatResponseSchema,
+    UnshareChatsRequestSchema,
     UpdateChatTitleRequestSchema,
 )
 from src.containers.container import ChatServiceDep
@@ -71,3 +73,23 @@ async def pin_chat(chat_id: UUID, chat_service: ChatServiceDep):
 @router.patch("/{chat_id}/messages/{message_id}/select", response_model=ChatMessageResponseSchema)
 async def select_message(chat_id: UUID, message_id: UUID, chat_service: ChatServiceDep):
     return await chat_service.select_message(chat_id=chat_id, message_id=message_id)
+
+
+@router.post("/{chat_id}/share", response_model=ShareChatResponseSchema)
+async def share_chat(chat_id: UUID, chat_service: ChatServiceDep):
+    shared_conversation_id = await chat_service.share_chat(chat_id=chat_id)
+    return ShareChatResponseSchema(shared_conversation_id=shared_conversation_id)
+
+
+@router.get("/shared/{shared_conversation_id}", response_model=ChatResponseSchema)
+async def get_shared_chat(shared_conversation_id: UUID, chat_service: ChatServiceDep):
+    chat = await chat_service.get_shared_chat(shared_conversation_id=shared_conversation_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat
+
+
+@router.delete("/share")
+async def unshare_chats(unshare_chats_request: UnshareChatsRequestSchema, chat_service: ChatServiceDep):
+    await chat_service.unshare_chats(shared_conversation_ids=unshare_chats_request.shared_conversation_ids)
+    return {"status": "success"}
