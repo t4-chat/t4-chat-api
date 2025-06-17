@@ -51,3 +51,10 @@ class SharedConversationListItemDTO(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CompletionOptionsRequestDTO(BaseModel):
+    tools: List[str] = Field(..., description="The tools to use for the completion")
+
+    class Config:
+        from_attributes = True

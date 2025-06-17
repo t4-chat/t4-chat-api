@@ -37,10 +37,15 @@ class ChatMessagesResponseSchema(BaseModel):
         from_attributes = True
 
 
+class CompletionOptionsRequestSchema(BaseModel):
+    tools: List[str] = Field([], description="The tools to use for the completion")
+
+
 class MultiModelCompletionRequestSchema(BaseModel):
     model_ids: List[UUID] = Field(..., description="The ids of the models to compare (minimum 2)")
     message: ChatMessageRequestSchema = Field(..., description="The message of the chat")
     shared_conversation_id: Optional[UUID] = Field(None, description="The id of the shared conversation")
+    options: Optional[CompletionOptionsRequestSchema] = Field(None, description="The options for the completion")
 
 
 class SharedConversationResponseSchema(BaseModel):

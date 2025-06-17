@@ -47,6 +47,8 @@ class Settings(BaseSettings):
 
     WEB_SEARCH_CONTEXT_SIZE: str = Field("medium", env="WEB_SEARCH_CONTEXT_SIZE")
 
+    REASONING_EFFORT: str = Field("low", env="REASONING_EFFORT")
+
     # Model api keys
     OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = Field(..., env="ANTHROPIC_API_KEY") 

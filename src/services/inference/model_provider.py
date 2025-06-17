@@ -9,7 +9,7 @@ from litellm import utils as litellm_utils
 from src.services.common.context import Context
 from src.services.common.errors import BudgetExceededError, NoAvailableHostError
 from src.services.host_api_keys.host_api_key_service import HostApiKeyService
-from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO
+from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, StreamGenerationDTO, TextGenerationDTO, ThinkingContentDTO
 from src.services.inference.tools_service import ToolsService
 from src.services.usage_tracking.dto import TokenUsageDTO
 
@@ -216,10 +216,38 @@ class ModelProvider:
                 tool_calls = None
 
                 async for chunk in response:
+                    if (chunk.choices and chunk.choices[0].delta and 
+                        hasattr(chunk.choices[0].delta, "reasoning_content") and 
+                        chunk.choices[0].delta.reasoning_content):
+                        yield StreamGenerationDTO(
+                            text=None, 
+                            usage=None, 
+                            reasoning=chunk.choices[0].delta.reasoning_content
+                        )
+
+                    if (chunk.choices and chunk.choices[0].delta and 
+                        hasattr(chunk.choices[0].delta, "thinking_blocks") and 
+                        chunk.choices[0].delta.thinking_blocks):
+                        yield StreamGenerationDTO(
+                            text=None,
+                            usage=None,
+                            thinking=[
+                                ThinkingContentDTO(
+                                    type=block.get("type"),
+                                    thinking=block.get("thinking"),
+                                    signature=block.get("signature")
+                                )
+                                for block in chunk.choices[0].delta.thinking_blocks
+                            ]
+                        )
+
+                    # Handle regular text content after reasoning
                     if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                         chunk_text = chunk.choices[0].delta.content
                         complete_response_content += chunk_text
                         yield StreamGenerationDTO(text=chunk_text, usage=None)
+                    
+                    # Handle usage tracking
                     elif hasattr(chunk, "usage") and chunk.usage:
                         # Accumulate usage from this iteration
                         total_prompt_tokens += chunk.usage.prompt_tokens
@@ -285,6 +313,9 @@ class ModelProvider:
         if litellm.supports_function_calling(model=model) and function_schemas and len(function_schemas) > 0:
             response["tool_choice"] = "auto"
             response["tools"] = function_schemas
+
+        if litellm.supports_reasoning(model=model):
+            response["reasoning_effort"] = settings.REASONING_EFFORT
 
         return response
 

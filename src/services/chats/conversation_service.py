@@ -7,7 +7,7 @@ from fastapi import BackgroundTasks
 
 from src.services.ai_providers.ai_model_service import AiModelService
 from src.services.chats.chat_service import ChatService
-from src.services.chats.dto import ChatMessageDTO
+from src.services.chats.dto import ChatMessageDTO, CompletionOptionsRequestDTO
 from src.services.chats.utils import stream_error_handler
 from src.services.common import errors
 from src.services.common.context import Context
@@ -145,18 +145,22 @@ class ConversationService:
 
         return title_response.text.strip()
 
-    async def _prepare_messages(self, messages: List[ChatMessageDTO], model: AiProviderModelDTO) -> List[dict]:
+    async def _prepare_messages(self, messages: List[ChatMessageDTO], model: AiProviderModelDTO, options: Optional[CompletionOptionsRequestDTO] = None) -> List[dict]:
         """
         Prepare messages for inference, including processing attachments.
         """
         if not messages:
             return []
+        
+        params = {}
+        if options:
+            params["web_search"] = options.tools and "web_search" in options.tools
 
         # Add system prompt
         model_messages = [
             {
                 "role": "system",
-                "content": await self.prompts_service.get_prompt(model.prompt_path),
+                "content": await self.prompts_service.get_prompt(model.prompt_path, params),
             }
         ]
 
@@ -178,20 +182,30 @@ class ConversationService:
         """
         Generate a fake streaming response for testing purposes.
         """
+        reasoning_parts = [
+            "Analyzing the context of your message...",
+            "Considering relevant information...", 
+            "Formulating a comprehensive response..."
+        ]
+
+        for part in reasoning_parts:
+            yield StreamGenerationDTO(text=None, reasoning=part)
+            await asyncio.sleep(0.5)
+
         response_parts = [
-            "I'm thinking about",
-            " your message regarding",
-            f" '{kwargs['messages'][-1]}'...",
-            "\nHere's my response:",
+            "Based on my analysis,",
+            " I understand you're asking about",
+            f" '{kwargs['messages'][-1]}'.",
+            "\nHere's my detailed response:",
             "\nThis is a mock streaming",
             " response that simulates",
             " real AI behavior",
-            " with delays between chunks.",
+            " with carefully considered output."
         ]
 
         for part in response_parts:
             yield StreamGenerationDTO(text=part)
-            await asyncio.sleep(0.5)  # Add delay between chunks
+            await asyncio.sleep(0.5)
 
     async def _setup_multi_model_chat(
         self,
@@ -259,9 +273,18 @@ class ConversationService:
                 messages=inference_messages,
                 background_tasks=background_tasks,
             ):
-                assistant_content += chunk.text
-                chunk_data = {"type": "message_content", "model_id": str(model.id), "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.text}}
-                await chunk_queue.put(chunk_data)
+                if chunk.reasoning:
+                    chunk_data = {"type": "reasoning_content", "model_id": str(model.id), "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.reasoning}}
+                    await chunk_queue.put(chunk_data)
+                # TODO: check if this is needed
+                # if chunk.thinking and len(chunk.thinking) > 0:
+                #     for thinking_chunk in chunk.thinking:
+                #         chunk_data = {"type": "thinking_content", "model_id": str(model.id), "message_id": str(assistant_message.id), "content": {"type": "text", "text": thinking_chunk.thinking}}
+                #         await chunk_queue.put(chunk_data)
+                if chunk.text:
+                    assistant_content += chunk.text
+                    chunk_data = {"type": "message_content", "model_id": str(model.id), "message_id": str(assistant_message.id), "content": {"type": "text", "text": chunk.text}}
+                    await chunk_queue.put(chunk_data)
 
             # Send stop chunk with final content
             stop_chunk = {"type": "message_content_stop", "model_id": str(model.id), "message_id": str(assistant_message.id), "final_content": assistant_content}
@@ -278,6 +301,7 @@ class ConversationService:
         model_ids: List[UUID],
         message: ChatMessageDTO,
         shared_conversation_id: Optional[UUID] = None,
+        options: Optional[CompletionOptionsRequestDTO] = None,
         background_tasks: BackgroundTasks = None,
     ) -> AsyncGenerator[str, None]:
         # TODO: we are aware that there could be a race condition here
@@ -303,7 +327,7 @@ class ConversationService:
         # TODO: move this to tasks to remove duplication of _prepare_messages. 
         # Check limits for all models first - this will raise LimitsExceededError immediately if needed
         for model in models:
-            inference_messages = await self._prepare_messages(messages=prev_messages, model=model)
+            inference_messages = await self._prepare_messages(messages=prev_messages, model=model, options=options)
             await self._ensure_limits(model, inference_messages)
 
         chunk_queue = asyncio.Queue()

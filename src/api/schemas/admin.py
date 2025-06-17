@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from src.api.schemas.chat import CompletionOptionsRequestSchema
+
 
 class AggregationType(str, Enum):
     minute = "minute"
@@ -51,6 +53,7 @@ class AdminMessageRequestSchema(BaseModel):
 class AdminSendMessageRequestSchema(BaseModel):
     model_id: UUID
     message: AdminMessageRequestSchema
+    options: Optional[CompletionOptionsRequestSchema] = Field(None, description="The options for the completion")
 
 class AdminSendMessageResponseSchema(BaseModel):
     text: str

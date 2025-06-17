@@ -6,7 +6,7 @@ from src.services.background_tasks.background_task_service import BackgroundTask
 from src.services.budget.budget_service import BudgetService
 from src.services.chats.chat_service import ChatService
 from src.services.chats.conversation_service import ConversationService
-from src.services.chats.dto import ChatMessageDTO
+from src.services.chats.dto import ChatMessageDTO, CompletionOptionsRequestDTO
 from src.services.common.context import get_context, get_user_id
 from src.services.files.cloud_storage_service import CloudStorageService
 from src.services.files.files_service import FilesService
@@ -92,6 +92,7 @@ async def stream_conversation(request: Request, input: MultiModelCompletionReque
             model_ids=input.model_ids,
             message=ChatMessageDTO.model_validate(input.message),
             shared_conversation_id=input.shared_conversation_id,
+            options=CompletionOptionsRequestDTO.model_validate(input.options) if input.options else None,
             background_tasks=background_tasks,
         ):
             yield chunk
