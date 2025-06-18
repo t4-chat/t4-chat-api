@@ -41,14 +41,6 @@
             "max_tokens": 1000000
         },
         {
-            "model_name": "gemini-2.5-flash",
-            "max_tokens": 5000000
-        },
-        {
-            "model_name": "gemini-2.5-pro",
-            "max_tokens": 1000000
-        },
-        {
             "model_name": "grok-3",
             "max_tokens": 1000000
         },

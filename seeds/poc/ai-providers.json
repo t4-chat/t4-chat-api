@@ -333,63 +333,6 @@
       ]
     },
     {
-      "name": "Gemini",
-      "slug": "gemini",
-      "base_url": "https://gemini.google.com/app",
-      "models": [
-        {
-          "name": "gemini-2.5-flash",
-          "price_input_token": 0.00000015,
-          "price_output_token": 0.0000035,
-          "context_length": 1048576,
-          "prompt_path": "default",
-          "tags": [
-            "general"
-          ],
-          "modalities": [
-            "text"
-          ],
-          "hosts": [
-            {
-              "name": "gemini",
-              "slug": "gemini",
-              "model_slug": "gemini-2.5-flash-preview-05-20"
-            },
-            {
-              "name": "OpenRouter",
-              "slug": "openrouter",
-              "model_slug": "google/gemini-2.5-flash-preview-05-20"
-            }
-          ]
-        },
-        {
-          "name": "gemini-2.5-pro",
-          "price_input_token": 0.00000125,
-          "price_output_token": 0.00001,
-          "context_length": 1048576,
-          "prompt_path": "default",
-          "tags": [
-            "reasoning"
-          ],
-          "modalities": [
-            "text"
-          ],
-          "hosts": [
-            {
-              "name": "gemini",
-              "slug": "gemini",
-              "model_slug": "gemini-2.5-pro-preview-05-06"
-            },
-            {
-              "name": "OpenRouter",
-              "slug": "openrouter",
-              "model_slug": "google/gemini-2.5-pro"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "XAI",
       "slug": "xai",
       "base_url": "https://x.ai/",
