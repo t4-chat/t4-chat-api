@@ -47,8 +47,7 @@ class ModelProvider:
     For now we will just use litellm, but we can add more implementations in the future.
     """
 
-    def __init__(self, context: Context, tools_service: ToolsService, host_api_key_service: HostApiKeyService,
-                 files_service: FilesService):
+    def __init__(self, context: Context, tools_service: ToolsService, host_api_key_service: HostApiKeyService, files_service: FilesService):
         self.logger = get_logger(__name__)
         self.context = context
         self.tools_service = tools_service
@@ -97,9 +96,8 @@ class ModelProvider:
                         filtered_content.append(content_item)
 
                 # quick hack for llama models
-                if len(filtered_content) == 1 and message.get("role") == "assistant" and filtered_content[0].get(
-                        "type") == "text":
-                    filtered_content = filtered_content[0]['text']
+                if len(filtered_content) == 1 and message.get("role") == "assistant" and filtered_content[0].get("type") == "text":
+                    filtered_content = filtered_content[0]["text"]
 
                 # Update message with filtered content
                 processed_message = message.copy()
@@ -201,7 +199,7 @@ class ModelProvider:
 
     async def generate_response_stream(
         self,
-            models_modalities: AiModelsModalitiesDTO,
+        models_modalities: AiModelsModalitiesDTO,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
         **kwargs,
@@ -223,8 +221,7 @@ class ModelProvider:
             current_messages = self._prepare_messages(messages.copy(), model_slug)
 
             # Initialize accumulated usage tracking per model
-            usage_by_model = {
-                models_modalities.llm.id: TokenUsageDTO(prompt_tokens=0, completion_tokens=0, total_tokens=0)}
+            usage_by_model = {models_modalities.llm.id: TokenUsageDTO(prompt_tokens=0, completion_tokens=0, total_tokens=0)}
 
             while True:  # Loop for handling tool calls
                 response = await acompletion(
@@ -242,21 +239,25 @@ class ModelProvider:
                 accumulated_tool_calls = {}  # Dictionary to accumulate tool calls by index
 
                 async for chunk in response:
-                    if chunk.choices and chunk.choices[0].delta and hasattr(chunk.choices[0].delta,
-                                                                            "reasoning_content") and chunk.choices[
-                        0].delta.reasoning_content:
-                        yield StreamGenerationDTO(text=None, usage=None,
-                                                  reasoning=chunk.choices[0].delta.reasoning_content)
+                    if (
+                        chunk.choices
+                        and chunk.choices[0].delta
+                        and hasattr(chunk.choices[0].delta, "reasoning_content")
+                        and chunk.choices[0].delta.reasoning_content
+                    ):
+                        yield StreamGenerationDTO(text=None, usage=None, reasoning=chunk.choices[0].delta.reasoning_content)
 
-                    if chunk.choices and chunk.choices[0].delta and hasattr(chunk.choices[0].delta,
-                                                                            "thinking_blocks") and chunk.choices[
-                        0].delta.thinking_blocks:
+                    if (
+                        chunk.choices
+                        and chunk.choices[0].delta
+                        and hasattr(chunk.choices[0].delta, "thinking_blocks")
+                        and chunk.choices[0].delta.thinking_blocks
+                    ):
                         yield StreamGenerationDTO(
                             text=None,
                             usage=None,
                             thinking=[
-                                ThinkingContentDTO(type=block.get("type"), thinking=block.get("thinking"),
-                                                   signature=block.get("signature"))
+                                ThinkingContentDTO(type=block.get("type"), thinking=block.get("thinking"), signature=block.get("signature"))
                                 for block in chunk.choices[0].delta.thinking_blocks
                             ],
                         )
@@ -274,8 +275,12 @@ class ModelProvider:
                         usage_by_model[models_modalities.llm.id].total_tokens += chunk.usage.total_tokens
 
                     # Properly accumulate tool calls from streaming chunks
-                    if chunk.choices and chunk.choices[0].delta and hasattr(chunk.choices[0].delta, "tool_calls") and \
-                            chunk.choices[0].delta.tool_calls:
+                    if (
+                        chunk.choices
+                        and chunk.choices[0].delta
+                        and hasattr(chunk.choices[0].delta, "tool_calls")
+                        and chunk.choices[0].delta.tool_calls
+                    ):
 
                         for tool_call_chunk in chunk.choices[0].delta.tool_calls:
                             if tool_call_chunk.index is not None:
@@ -297,8 +302,7 @@ class ModelProvider:
                                     if tool_call_chunk.function.name:
                                         accumulated_tool_calls[index].function.name = tool_call_chunk.function.name
                                     if tool_call_chunk.function.arguments:
-                                        accumulated_tool_calls[
-                                            index].function.arguments += tool_call_chunk.function.arguments
+                                        accumulated_tool_calls[index].function.arguments += tool_call_chunk.function.arguments
 
                 # Convert accumulated tool calls to list
                 final_tool_calls = list(accumulated_tool_calls.values()) if accumulated_tool_calls else None
@@ -351,8 +355,7 @@ class ModelProvider:
         return prompt_tokens_cost_usd + completion_tokens_cost_usd
 
     # TODO: add parallel tools calling
-    def _get_completion_params(self, model: str, options: Optional[DefaultResponseGenerationOptionsDTO] = None) -> Dict[
-        str, Any]:
+    def _get_completion_params(self, model: str, options: Optional[DefaultResponseGenerationOptionsDTO] = None) -> Dict[str, Any]:
         response = {
             "drop_params": True,
         }
@@ -391,12 +394,12 @@ class ModelProvider:
                 return await self.files_service.upload_file(image_data, content_type=content_type)
 
     async def _process_tool_call_result(
-            self,
-            tool_call: Any,
-            tool_call_result: ToolCallResultDTO,
-            messages: List[Dict[str, Any]],
-            usage_by_model: Dict[Any, TokenUsageDTO],
-            models_modalities: Optional[AiModelsModalitiesDTO] = None,
+        self,
+        tool_call: Any,
+        tool_call_result: ToolCallResultDTO,
+        messages: List[Dict[str, Any]],
+        usage_by_model: Dict[Any, TokenUsageDTO],
+        models_modalities: Optional[AiModelsModalitiesDTO] = None,
     ) -> Optional[Any]:
         if tool_call_result.error:
             messages.append(
@@ -452,11 +455,11 @@ class ModelProvider:
 
     async def _handle_tool_calls(
         self,
-            tool_calls: List[ToolCallDTO],
+        tool_calls: List[ToolCallDTO],
         messages: List[Dict[str, Any]],
-            assistant_content: str,
-            usage_by_model: Dict[Any, TokenUsageDTO],
-            models_modalities: Optional[AiModelsModalitiesDTO] = None,
+        assistant_content: str,
+        usage_by_model: Dict[Any, TokenUsageDTO],
+        models_modalities: Optional[AiModelsModalitiesDTO] = None,
     ) -> Optional[Any]:  # TODO: need to refactor this
         if not tool_calls:
             return None
@@ -479,7 +482,6 @@ class ModelProvider:
 
             tool_result = await self.tools_service.execute_function(function_name, function_args)
 
-            result = await self._process_tool_call_result(tool_call, tool_result, messages, usage_by_model,
-                                                          models_modalities)
+            result = await self._process_tool_call_result(tool_call, tool_result, messages, usage_by_model, models_modalities)
             if result:
                 return result

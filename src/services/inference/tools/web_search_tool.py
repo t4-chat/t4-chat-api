@@ -47,7 +47,7 @@ class WebSearchTool(BaseTool):
             }
         }
 
-    async def invoke(self, query: str, num_results: int = 3) -> str:
+    async def invoke(self, query: str, num_results: int = 3) -> ToolCallResultDTO:
         """Execute a web search and return the results."""
         self.logger.debug(f"Performing web search for: {query}")
         
@@ -69,7 +69,9 @@ class WebSearchTool(BaseTool):
             )
         except Exception as e:
             self.logger.error(f"Error during web search: {str(e)}")
-            return json.dumps({"error": f"Web search failed: {str(e)}"})
+            return ToolCallResultDTO(
+                error={"message": f"Web search failed: {str(e)}"}
+            )
             
     def _parse_url_content(self, search_results: List[Dict]) -> List[Dict]:
         """Fetch and parse content from URLs in search results."""

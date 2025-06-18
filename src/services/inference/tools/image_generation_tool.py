@@ -65,5 +65,6 @@ class ImageGenerationTool(BaseTool):
 
         except Exception as e:
             self.logger.error(f"Error during image generation: {str(e)}")
-            error_result = {"success": False, "error": f"Image generation failed: {str(e)}"}
-            return json.dumps(error_result)
+            return ToolCallResultDTO(
+                error={"message": f"Image generation failed: {str(e)}"}
+            )
