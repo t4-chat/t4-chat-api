@@ -38,8 +38,8 @@ class WebSearchTool(BaseTool):
                         },
                         "num_results": {
                             "type": "integer",
-                            "description": "Number of search results to return. Max value is 10.",
-                            "default": 3
+                            "description": "Number of search results to return. Max value is 4.",
+                            "default": 2
                         }
                     },
                     "required": ["query"]
@@ -47,11 +47,12 @@ class WebSearchTool(BaseTool):
             }
         }
 
-    async def invoke(self, query: str, num_results: int = 3) -> ToolCallResultDTO:
+    async def invoke(self, query: str, num_results: int = 2) -> ToolCallResultDTO:
         """Execute a web search and return the results."""
         self.logger.debug(f"Performing web search for: {query}")
         
         try:
+            num_results = min(num_results, 4)
             results = DDGS().text(query, max_results=num_results)
             
             if results:
