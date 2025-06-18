@@ -28,7 +28,11 @@ class ChatMessage(BaseModel):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chat_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chats.id", ondelete="CASCADE"), nullable=False)
-    model_id = Column(PGUUID, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
+    model_id = Column(PGUUID, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"),
+                      nullable=True)  # default model id is for the message text itself
+
+    image_gen_model_id = Column(PGUUID, ForeignKey("agg_ai.ai_provider_models.id", ondelete="SET NULL"), nullable=True)
+    
     previous_message_id = Column(PGUUID(as_uuid=True), ForeignKey("agg_ai.chat_messages.id", ondelete="SET NULL"), nullable=True)
     
     seq_num = Column(Integer, nullable=False)
@@ -39,5 +43,7 @@ class ChatMessage(BaseModel):
     attachments = Column(ARRAY(PGUUID(as_uuid=True)), nullable=True)
     
     chat = relationship("Chat", back_populates="messages", lazy="noload")
-    model = relationship("AiProviderModel", lazy="noload") # we don't need have all messages that are associated with a model, so we don't have a back_populates
+    model = relationship("AiProviderModel", foreign_keys=[model_id],
+                         lazy="noload")  # we don't need have all messages that are associated with a model, so we don't have a back_populates
+    image_gen_model = relationship("AiProviderModel", foreign_keys=[image_gen_model_id], lazy="noload")
     previous_message = relationship("ChatMessage", remote_side=[id], lazy="noload")

@@ -26,8 +26,11 @@ class AiModelResponseSchema(BaseModel):
     id: UUID = Field(..., description="The id of the model")
     name: str = Field(..., description="The name of the model")
     tags: List[str] = Field(..., description="The tags of the model")
-    has_api_key: bool = Field(False, description="Whether the model has an API key") # TODO: fix mock
+    has_api_key: bool = Field(False, description="Whether the model has an API key")
     only_with_byok: bool = Field(False, description="Whether the model is only available with BYOK")
+
+    modalities: List[str] = Field(..., description="The modalities of the model")
+
     provider: Optional[AiProviderResponseSchema] = Field(None, description="The provider of the model")
 
     class Config:
@@ -43,6 +46,7 @@ class EditAiModelRequestSchema(BaseModel):
     context_length: int = Field(..., description="The context length")
     is_active: bool = Field(..., description="Whether the model is active")
     tags: List[str] = Field(..., description="The tags of the model")
+    modalities: List[str] = Field(..., description="The modalities of the model")
     host_associations: List[ModelHostAssociationSchema] = Field(..., description="The model host associations of the model")
 
 
@@ -72,8 +76,12 @@ class AiModelResponseForAdminSchema(BaseModel):
     price_input_token: float = Field(..., description="The price of the input token")
     price_output_token: float = Field(..., description="The price of the output token")
     context_length: int = Field(..., description="The context length")
+
     is_active: bool = Field(..., description="Whether the model is active")
+
     tags: List[str] = Field(..., description="The tags of the model")
+    modalities: List[str] = Field(..., description="The modalities of the model")
+
     provider: Optional[AiProviderResponseSchema] = Field(None, description="The provider of the model")
     hosts: List[AiModelHostResponseSchema] = Field([], description="The hosts of the model")
 

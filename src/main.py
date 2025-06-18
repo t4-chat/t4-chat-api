@@ -6,6 +6,7 @@ from src.storage.db import lifespan
 from src.api.extensions.app_extensions import configure_openapi
 from src.api.middleware.auth import create_auth_middleware
 from src.api.middleware.errors import error_handling_middleware
+from src.api.middleware.rate_limit import rate_limit_middleware
 from src.api.routes import ai_models, ai_providers, auth, chats, files, health_checks, host_api_keys, users, utilization
 from src.api.routes.admin import admin_ai_models, admin_ai_models_hosts, admin_messages, admin_tools, admin_usage
 from src.config import get_settings
@@ -42,6 +43,9 @@ def create_app():
     app.include_router(admin_tools.router)
 
     configure_openapi(app)
+
+    # Add global rate limiting middleware
+    app.middleware("http")(rate_limit_middleware)
 
     app.middleware("http")(error_handling_middleware)
     app.add_middleware(

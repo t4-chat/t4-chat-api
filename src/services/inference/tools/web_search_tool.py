@@ -1,12 +1,15 @@
 import json
-import requests
 from typing import Any, Dict, List
-from bs4 import BeautifulSoup
 
+import requests
+from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 
-from src.logging.logging_config import get_logger
+from src.services.inference.dto import ToolCallResultDTO
 from src.services.inference.tools.base_tool import BaseTool
+from src.services.usage_tracking.dto import TokenUsageDTO
+
+from src.logging.logging_config import get_logger
 
 
 class WebSearchTool(BaseTool):
@@ -43,20 +46,27 @@ class WebSearchTool(BaseTool):
                 }
             }
         }
-    
-    def invoke(self, query: str, num_results: int = 3) -> str:
+
+    async def invoke(self, query: str, num_results: int = 3) -> str:
         """Execute a web search and return the results."""
-        self.logger.info(f"Performing web search for: {query}")
+        self.logger.debug(f"Performing web search for: {query}")
         
         try:
             results = DDGS().text(query, max_results=num_results)
             
             if results:
                 results = self._parse_url_content(results)
-            
-            self.logger.info(f"Web search results: {results}")
-            
-            return json.dumps(results)
+
+            self.logger.debug(f"Web search results: {results}")
+
+            return ToolCallResultDTO(
+                content=results,
+                usage=TokenUsageDTO(
+                    prompt_tokens=0,
+                    completion_tokens=0,
+                    total_tokens=0,
+                ),
+            )
         except Exception as e:
             self.logger.error(f"Error during web search: {str(e)}")
             return json.dumps({"error": f"Web search failed: {str(e)}"})
@@ -67,7 +77,7 @@ class WebSearchTool(BaseTool):
             if "href" in result:
                 try:
                     url = result["href"]
-                    self.logger.info(f"Fetching content from: {url}")
+                    self.logger.debug(f"Fetching content from: {url}")
                     
                     headers = {
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"

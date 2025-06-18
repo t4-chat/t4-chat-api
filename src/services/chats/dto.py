@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional, Dict, Any
+from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -10,6 +10,7 @@ class ChatMessageDTO(BaseModel):
     
     chat_id: Optional[UUID] = None
     model_id: Optional[UUID] = None
+    image_gen_model_id: Optional[UUID] = None
     previous_message_id: Optional[UUID] = None
     seq_num: Optional[int] = None
     

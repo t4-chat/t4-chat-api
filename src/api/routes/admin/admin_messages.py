@@ -1,12 +1,12 @@
+import json
 from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import StreamingResponse
-import json
 
 from src.api.schemas.admin import AdminSendMessageRequestSchema, AdminSendMessageResponseSchema
 from src.api.schemas.chat import CompletionOptionsRequestSchema
-from src.containers.container import InferenceServiceDep, AiModelServiceDep, PromptsServiceDep
-
+from src.containers.container import AiModelServiceDep, InferenceServiceDep, PromptsServiceDep
 
 router = APIRouter(prefix="/api/admin/messages", tags=["Admin"])
 

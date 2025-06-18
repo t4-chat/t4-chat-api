@@ -1,8 +1,9 @@
+import uuid
+
 from sqlalchemy import Column, DateTime
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-import uuid
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
 
 Base = declarative_base()
 

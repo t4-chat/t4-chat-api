@@ -8,12 +8,12 @@ from .limits import Limits
 from .model_host import ModelHost
 from .model_host_association import ModelHostAssociation
 from .resource import Resource
+from .shared_conversation import SharedConversation
 from .usage import Usage
 from .user import User
 from .user_group import UserGroup
 from .user_group_limits import UserGroupLimits
 from .white_list import WhiteList
-from .shared_conversation import SharedConversation
 
 __all__ = [
     "Base",

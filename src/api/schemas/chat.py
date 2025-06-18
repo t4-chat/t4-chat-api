@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -37,12 +37,18 @@ class ChatMessagesResponseSchema(BaseModel):
         from_attributes = True
 
 
+class AiModelsRequestSchema(BaseModel):
+    image_gen_model_id: Optional[UUID] = Field(None, description="The id of the image generation model")
+
+
 class CompletionOptionsRequestSchema(BaseModel):
     tools: List[str] = Field([], description="The tools to use for the completion")
 
 
 class MultiModelCompletionRequestSchema(BaseModel):
     model_ids: List[UUID] = Field(..., description="The ids of the models to compare (minimum 2)")
+    models_auxiliary: Optional[Dict[UUID, AiModelsRequestSchema]] = Field(None,
+                                                                          description="The auxiliary models to use for the chat")
     message: ChatMessageRequestSchema = Field(..., description="The message of the chat")
     shared_conversation_id: Optional[UUID] = Field(None, description="The id of the shared conversation")
     options: Optional[CompletionOptionsRequestSchema] = Field(None, description="The options for the completion")

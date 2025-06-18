@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+from src.services.inference.dto import ToolCallResultDTO
+
 
 class BaseTool(ABC):
     """Base abstract class for all tools."""
     
     @abstractmethod
-    def invoke(self, **kwargs) -> str:
+    async def invoke(self, **kwargs) -> ToolCallResultDTO:
         """Execute the tool's logic with the provided arguments."""
         pass
     

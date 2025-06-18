@@ -1,3 +1,6 @@
+from typing import Dict, List, Optional
+from uuid import UUID
+
 from fastapi import BackgroundTasks, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,12 +22,25 @@ from src.services.prompts.prompts_service import PromptsService
 from src.services.usage_tracking.usage_tracking_service import UsageTrackingService
 from src.services.user.user_service import UserService
 
+from src.services.ai_providers.dto import AiModelsInputDTO
+
 from src.storage.base_repo import BaseRepository
 from src.storage.db import db_session_manager
-from src.storage.models import AiProviderModel, Budget, Chat, ChatMessage, Limits, Resource, Usage, User, SharedConversation
+from src.storage.models import (
+    AiProviderModel,
+    Budget,
+    Chat,
+    ChatMessage,
+    Limits,
+    Resource,
+    SharedConversation,
+    Usage,
+    User,
+)
 from src.storage.models.host_api_key import HostApiKey
 
-from src.api.schemas.chat import MultiModelCompletionRequestSchema
+from src.api.schemas.chat import AiModelsRequestSchema, MultiModelCompletionRequestSchema
+from src.utils import constants
 
 
 async def get_conversation_service(request: Request, db: AsyncSession) -> ConversationService:
@@ -49,7 +65,10 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     cloud_storage_service = CloudStorageService(context=context)
     background_task_service = BackgroundTaskService(context=context)
     tools_service = ToolsService(context=context)
-    model_provider = ModelProvider(context=context, tools_service=tools_service, host_api_key_service=host_api_key_service)
+    files_service = FilesService(context=context, resource_repo=resource_repo,
+                                 cloud_storage_service=cloud_storage_service)
+    model_provider = ModelProvider(context=context, tools_service=tools_service,
+                                   host_api_key_service=host_api_key_service, files_service=files_service)
     budget_service = BudgetService(context=context, budget_repo=budget_repo)
     usage_tracking_service = UsageTrackingService(context=context, usage_model_repo=usage_repo)
 
@@ -59,8 +78,6 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     inference_service = InferenceService(context=context, models_provider=model_provider, background_task_service=background_task_service, budget_service=budget_service)
 
     prompts_service = PromptsService(context=context)
-
-    files_service = FilesService(context=context, resource_repo=resource_repo, cloud_storage_service=cloud_storage_service)
 
     ai_model_service = AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo, host_api_key_service=host_api_key_service)
 
@@ -85,12 +102,28 @@ async def get_conversation_service(request: Request, db: AsyncSession) -> Conver
     )
 
 
+async def _use_default_models(
+        ai_model_service: AiModelService,
+        model_ids: List[UUID],
+        models_auxiliary: Optional[Dict[UUID, AiModelsRequestSchema]] = None,
+) -> Dict[UUID, AiModelsInputDTO]:
+    models_auxiliary = models_auxiliary or {}
+    for model_id in model_ids:
+        if model_id not in models_auxiliary:
+            models_auxiliary[model_id] = AiModelsInputDTO(
+                image_gen_model_id=(await ai_model_service.get_model_by_path(constants.DEFAULT_IMAGE_GEN_MODEL)).id)
+    return models_auxiliary
+
+
 async def stream_conversation(request: Request, input: MultiModelCompletionRequestSchema, background_tasks: BackgroundTasks):
     async with db_session_manager.session() as db:
         conversation_service = await get_conversation_service(request, db)
         async for chunk in conversation_service.chat_completion_stream(
-            model_ids=input.model_ids,
             message=ChatMessageDTO.model_validate(input.message),
+                model_ids=input.model_ids,
+                models_auxiliary=await _use_default_models(
+                    conversation_service.ai_model_service, input.model_ids, input.models_auxiliary
+                ),  # for now let's default it here, later we might want to default it further down the stream
             shared_conversation_id=input.shared_conversation_id,
             options=CompletionOptionsRequestDTO.model_validate(input.options) if input.options else None,
             background_tasks=background_tasks,

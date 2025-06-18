@@ -126,4 +126,10 @@ class LimitsService:
 
     async def get_utilizations(self) -> List[UtilizationDTO]:
         usages = await self.usage_tracking_service.get_usages()
-        return [await self.get_utilization(usage.model_id) for usage in usages]
+        utilizations = []
+        # TODO: make it less hacky
+        for usage in usages:
+            utilization = await self.get_utilization(usage.model_id)
+            if utilization.max_tokens > 0:
+                utilizations.append(utilization)
+        return utilizations

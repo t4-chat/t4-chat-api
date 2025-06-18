@@ -92,15 +92,6 @@ def get_host_api_key_service(
 HostApiKeyServiceDep = Annotated[HostApiKeyService, Depends(get_host_api_key_service)]
 
 
-def get_model_provider(
-    context: Context = Depends(get_context), tools_service: ToolsService = Depends(get_tools_service), host_api_key_service: HostApiKeyService = Depends(get_host_api_key_service)
-) -> ModelProvider:
-    return ModelProvider(context=context, tools_service=tools_service, host_api_key_service=host_api_key_service)
-
-
-ModelProviderServiceDep = Annotated[ModelProvider, Depends(get_model_provider)]
-
-
 def get_cloud_storage_service(
     context: Context = Depends(get_context),
 ) -> CloudStorageService:
@@ -108,6 +99,34 @@ def get_cloud_storage_service(
 
 
 CloudStorageServiceDep = Annotated[CloudStorageService, Depends(get_cloud_storage_service)]
+
+
+def get_files_service(
+        resource_repo: BaseRepository[Resource] = Depends(get_resource_repo),
+        context: Context = Depends(get_context),
+        cloud_storage_service: CloudStorageService = Depends(get_cloud_storage_service),
+) -> FilesService:
+    return FilesService(
+        context=context,
+        resource_repo=resource_repo,
+        cloud_storage_service=cloud_storage_service,
+    )
+
+
+FilesServiceDep = Annotated[FilesService, Depends(get_files_service)]
+
+
+def get_model_provider(
+        context: Context = Depends(get_context),
+        tools_service: ToolsService = Depends(get_tools_service),
+        host_api_key_service: HostApiKeyService = Depends(get_host_api_key_service),
+        files_service: FilesService = Depends(get_files_service),
+) -> ModelProvider:
+    return ModelProvider(context=context, tools_service=tools_service, host_api_key_service=host_api_key_service,
+                         files_service=files_service)
+
+
+ModelProviderServiceDep = Annotated[ModelProvider, Depends(get_model_provider)]
 
 
 def get_prompts_service(context: Context = Depends(get_context)) -> PromptsService:
@@ -152,7 +171,10 @@ def get_ai_model_service(
     usage_repo: BaseRepository[Usage] = Depends(get_usage_model_repo),
     host_api_key_service: HostApiKeyService = Depends(get_host_api_key_service),
 ) -> AiModelService:
-    return AiModelService(context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo, host_api_key_service=host_api_key_service)
+    return AiModelService(
+        context=context, ai_model_repo=ai_model_repo, limits_repo=limits_repo, usage_repo=usage_repo,
+        host_api_key_service=host_api_key_service
+    )
 
 
 AiModelServiceDep = Annotated[AiModelService, Depends(get_ai_model_service)]
@@ -208,21 +230,6 @@ def get_auth_service(
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
-
-
-def get_files_service(
-    resource_repo: BaseRepository[Resource] = Depends(get_resource_repo),
-    context: Context = Depends(get_context),
-    cloud_storage_service: CloudStorageService = Depends(get_cloud_storage_service),
-) -> FilesService:
-    return FilesService(
-        context=context,
-        resource_repo=resource_repo,
-        cloud_storage_service=cloud_storage_service,
-    )
-
-
-FilesServiceDep = Annotated[FilesService, Depends(get_files_service)]
 
 
 def get_inference_service(

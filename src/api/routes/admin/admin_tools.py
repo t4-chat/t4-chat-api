@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from src.services.inference.tools.web_search_tool import WebSearchTool
 
-
 router = APIRouter(prefix="/api/admin/tools", tags=["Admin"])
 
 @router.post("/web-search")

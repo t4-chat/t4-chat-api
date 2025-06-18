@@ -9,7 +9,7 @@ from src.services.inference.dto import DefaultResponseGenerationOptionsDTO, Stre
 from src.services.inference.model_provider import ModelProvider
 from src.services.usage_tracking.dto import TokenUsageDTO
 
-from src.services.ai_providers.dto import AiProviderModelDTO
+from src.services.ai_providers.dto import AiModelsModalitiesDTO, AiProviderModelDTO
 
 from src.logging.logging_config import get_logger
 
@@ -48,39 +48,57 @@ class InferenceService:
             **kwargs,
         )
 
-        background_tasks.add_task(
-            self._background_task_service.track_model_usage,
-            user_id=self._context.user_id,
-            model_id=model.id,
-            usage=resp.usage,
-        )
-        await self._ensure_budget(model, resp.usage)
+        # Track usage for each model separately
+        for model_id, usage in resp.usage.items():
+            background_tasks.add_task(
+                self._background_task_service.track_model_usage,
+                user_id=self._context.user_id,
+                model_id=model_id,
+                usage=usage,
+            )
+
+            # Ensure budget for each model - for single model case, should be the same model
+            if model_id == model.id:
+                await self._ensure_budget(model, usage)
 
         return resp
 
     async def generate_response_stream(
         self,
-        model: AiProviderModelDTO,
+            models_modalities: AiModelsModalitiesDTO,
         messages: List[Dict[str, Any]],
         options: Optional[DefaultResponseGenerationOptionsDTO] = None,
         background_tasks: BackgroundTasks = None,
         **kwargs,
     ) -> AsyncGenerator[StreamGenerationDTO, None]:
-        usage = None
+        usage_by_model = None
         async for chunk in self._models_provider.generate_response_stream(
-            model=model,
+                models_modalities=models_modalities,
             messages=messages,
             options=options,
             **kwargs,
         ):
             if chunk.usage:
-                usage = chunk.usage
+                usage_by_model = chunk.usage
             yield chunk
 
-        background_tasks.add_task(
-            self._background_task_service.track_model_usage,
-            user_id=self._context.user_id,
-            model_id=model.id,
-            usage=usage,
-        )
-        await self._ensure_budget(model, usage)
+        # Track usage for each model separately
+        if usage_by_model:
+            for model_id, usage in usage_by_model.items():
+                background_tasks.add_task(
+                    self._background_task_service.track_model_usage,
+                    user_id=self._context.user_id,
+                    model_id=model_id,
+                    usage=usage,
+                )
+
+                # Ensure budget for each model
+                # Find the model DTO for budget calculation
+                model_dto = None
+                if model_id == models_modalities.llm.id:
+                    model_dto = models_modalities.llm
+                elif model_id == models_modalities.image_gen.id:
+                    model_dto = models_modalities.image_gen
+
+                if model_dto:
+                    await self._ensure_budget(model_dto, usage)

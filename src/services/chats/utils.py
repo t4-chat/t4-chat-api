@@ -43,7 +43,8 @@ def stream_error_handler(func):
                         logger.error("Failed to parse message ID from SSE data")
                         pass
 
-        except (errors.NotFoundError, errors.BudgetExceededError, errors.LimitsExceededError, errors.ModelApiError) as e:
+        except (errors.NotFoundError, errors.BudgetExceededError, errors.LimitsExceededError, errors.ModelApiError,
+                errors.BYOKError) as e:
             error_code = e.status_code if hasattr(e, "status_code") else 500
             error_message = {"type": "error", "error": str(e), "code": error_code}
             yield f"data: {json.dumps(error_message)}\n\n"

@@ -9,9 +9,9 @@ from src.services.user.user_service import UserService
 
 from src.storage.base_repo import BaseRepository
 from src.storage.models.user import User
+from src.storage.models.white_list import WhiteList
 
 from src.config import settings
-from src.storage.models.white_list import WhiteList
 
 
 class AuthService:
@@ -23,9 +23,7 @@ class AuthService:
 
     def verify_google_token(self, token: str) -> Dict[str, Any]:
         try:
-            idinfo = id_token.verify_oauth2_token(
-                token, requests.Request(), self.google_client_id
-            )
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), self.google_client_id)
 
             if idinfo["iss"] not in [
                 "accounts.google.com",
@@ -41,9 +39,6 @@ class AuthService:
         google_user_info = self.verify_google_token(google_token)
         email = google_user_info["email"].lower() if google_user_info["email"] else None
 
-        if not await self._is_in_white_list(email):
-            raise ForbiddenError("Forbidden")
-
         user = User(
             email=email,
             first_name=google_user_info.get("given_name"),
@@ -53,6 +48,6 @@ class AuthService:
 
         user = await self.user_service.create_if_not_exists(user=user)
         return self.token_service.create_token_from_user(user=user)
-    
+
     async def _is_in_white_list(self, email: str) -> bool:
         return await self.white_list_repo.exists(filter=WhiteList.email == email)

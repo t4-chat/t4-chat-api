@@ -1,6 +1,6 @@
+import uuid
 from typing import List, Optional
 from uuid import UUID
-import uuid
 
 from sqlalchemy import and_, func, select
 
@@ -106,7 +106,8 @@ class ChatService:
         return await self.chat_message_repo.add(chat_message)
 
     @convert_to_dto
-    async def update_message(self, message_id: UUID, content: str) -> ChatMessageDTO:
+    async def update_message(self, message_id: UUID, content: str,
+                             attachments: Optional[List[UUID]] = None) -> ChatMessageDTO:
         message = await self.chat_message_repo.get(
             joins=[(Chat, Chat.id == ChatMessage.chat_id)],
             filter=and_(ChatMessage.id == message_id, Chat.user_id == self.context.user_id),
@@ -119,6 +120,7 @@ class ChatService:
             )
 
         message.content = content
+        message.attachments = attachments
         return await self.chat_message_repo.update(message)
 
     async def delete_chats(self, chat_ids: List[UUID]) -> None:

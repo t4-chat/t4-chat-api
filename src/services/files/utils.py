@@ -1,4 +1,6 @@
 import base64
+import random
+import string
 
 
 def get_attachment_type(content_type: str) -> str:
@@ -11,6 +13,10 @@ def get_attachment_type(content_type: str) -> str:
     else:
         # This we just process as text for now
         return "text"
+
+
+def generate_random_filename() -> str:
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 
 def prepare_file(content_type: str, file_data: bytes) -> dict:

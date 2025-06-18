@@ -11,7 +11,12 @@
           "price_output_token": 0.000008,
           "context_length": 1047576,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "openai",
@@ -31,7 +36,12 @@
           "price_output_token": 0.0000016,
           "context_length": 1047576,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "openai",
@@ -51,7 +61,12 @@
           "price_output_token": 0.0000004,
           "context_length": 1047576,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "openai",
@@ -66,12 +81,42 @@
           ]
         },
         {
+          "name": "o4-mini",
+          "price_input_token": 0.0000002,
+          "price_output_token": 0.0000008,
+          "context_length": 200000,
+          "prompt_path": "default",
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "openai",
+              "slug": "openai",
+              "model_slug": "o4-mini"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "openai/o4-mini"
+            }
+          ]
+        },
+        {
           "name": "o3",
           "price_input_token": 0.000002,
           "price_output_token": 0.000008,
           "context_length": 200000,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "openai",
@@ -91,7 +136,12 @@
           "price_output_token": 0.00008,
           "context_length": 200000,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "openai",
@@ -104,6 +154,42 @@
               "model_slug": "openai/o3-pro"
             }
           ]
+        },
+        {
+          "name": "dall-e-3",
+          "price_input_token": 0.0000001,
+          "price_output_token": 0.0000004,
+          "context_length": 1047576,
+          "prompt_path": "default",
+          "modalities": [
+            "image"
+          ],
+          "tags": [],
+          "hosts": []
+        },
+        {
+          "name": "dall-e-2",
+          "price_input_token": 0.0000001,
+          "price_output_token": 0.0000004,
+          "context_length": 1047576,
+          "prompt_path": "default",
+          "modalities": [
+            "image"
+          ],
+          "tags": [],
+          "hosts": []
+        },
+        {
+          "name": "gpt-image-1",
+          "price_input_token": 0.0000001,
+          "price_output_token": 0.0000004,
+          "context_length": 1047576,
+          "prompt_path": "default",
+          "modalities": [
+            "image"
+          ],
+          "tags": [],
+          "hosts": []
         }
       ]
     },
@@ -113,12 +199,42 @@
       "base_url": "https://www.anthropic.com/",
       "models": [
         {
+          "name": "claude-opus-4",
+          "price_input_token": 0.000015,
+          "price_output_token": 0.000075,
+          "context_length": 200000,
+          "prompt_path": "default",
+          "tags": [
+            "coding"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "anthropic",
+              "slug": "anthropic",
+              "model_slug": "claude-opus-4-20250514"
+            },
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "anthropic/claude-opus-4"
+            }
+          ]
+        },
+        {
           "name": "claude-sonnet-4",
           "price_input_token": 0.00003,
           "price_output_token": 0.00015,
           "context_length": 200000,
           "prompt_path": "default",
-          "tags": ["coding"],
+          "tags": [
+            "coding"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "anthropic",
@@ -138,7 +254,12 @@
           "price_output_token": 0.000025,
           "context_length": 200000,
           "prompt_path": "default",
-          "tags": ["coding"],
+          "tags": [
+            "coding"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "anthropic",
@@ -165,7 +286,12 @@
           "price_output_token": 0.000004,
           "context_length": 64000,
           "prompt_path": "default",
-          "tags": ["coding"],
+          "tags": [
+            "coding"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "deepseek",
@@ -185,7 +311,12 @@
           "price_output_token": 0.0000011,
           "context_length": 64000,
           "prompt_path": "default",
-          "tags": ["reasoning"],
+          "tags": [
+            "reasoning"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "deepseek",
@@ -212,7 +343,12 @@
           "price_output_token": 0.0000035,
           "context_length": 1048576,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "gemini",
@@ -232,7 +368,12 @@
           "price_output_token": 0.00001,
           "context_length": 1048576,
           "prompt_path": "default",
-          "tags": ["reasoning"],
+          "tags": [
+            "reasoning"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "gemini",
@@ -259,7 +400,12 @@
           "price_output_token": 0.000015,
           "context_length": 131072,
           "prompt_path": "default",
-          "tags": ["multimodal"],
+          "tags": [
+            "multimodal"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "xai",
@@ -279,7 +425,12 @@
           "price_output_token": 0.0000005,
           "context_length": 131072,
           "prompt_path": "default",
-          "tags": ["general"],
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "xai",
@@ -306,7 +457,12 @@
           "price_output_token": 0.00000034,
           "context_length": 128000,
           "prompt_path": "default",
-          "tags": ["multimodal"],
+          "tags": [
+            "multimodal"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "Groq",
@@ -326,7 +482,12 @@
           "price_output_token": 0.0000006,
           "context_length": 128000,
           "prompt_path": "default",
-          "tags": ["multimodal"],
+          "tags": [
+            "multimodal"
+          ],
+          "modalities": [
+            "text"
+          ],
           "hosts": [
             {
               "name": "Groq",
@@ -341,6 +502,93 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Qwen",
+      "slug": "qwen",
+      "base_url": "https://qwen.aliyun.com/",
+      "models": [
+        {
+          "name": "Qwen: Qwen3 235B A22B",
+          "price_input_token": 0.00000013,
+          "price_output_token": 0.0000006,
+          "context_length": 40960,
+          "prompt_path": "default",
+          "tags": [
+            "coding"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "qwen/qwen3-235b-a22b"
+            }
+          ]
+        },
+        {
+          "name": "Qwen: Qwen3 30B A3B",
+          "price_input_token": 0.00000008,
+          "price_output_token": 0.00000029,
+          "context_length": 40960,
+          "prompt_path": "default",
+          "tags": [
+            "reasoning"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "qwen/qwen3-30b-a3b"
+            }
+          ]
+        },
+        {
+          "name": "Qwen2.5 72B Instruct",
+          "price_input_token": 0.00000012,
+          "price_output_token": 0.00000039,
+          "context_length": 32768,
+          "prompt_path": "default",
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "qwen/qwen-2.5-72b-instruct"
+            }
+          ]
+        },
+        {
+          "name": "Qwen: Qwen3 14B",
+          "price_input_token": 0.0,
+          "price_output_token": 0.0,
+          "context_length": 40960,
+          "prompt_path": "default",
+          "tags": [
+            "general"
+          ],
+          "modalities": [
+            "text"
+          ],
+          "hosts": [
+            {
+              "name": "OpenRouter",
+              "slug": "openrouter",
+              "model_slug": "qwen/qwen3-14b:free"
+            }
+          ]
+        }
+      ]
     }
   ]
-} 
+}

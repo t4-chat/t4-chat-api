@@ -15,14 +15,16 @@ class AiProviderModel(BaseModel):
         PGUUID(as_uuid=True), ForeignKey("agg_ai.ai_providers.id", ondelete="CASCADE")
     )
 
-    prompt_path = Column(String, nullable=False)
+    prompt_path = Column(String, nullable=False)  # TODO: may be nullable for non LLM models
 
-    price_input_token = Column(Float, nullable=False)
-    price_output_token = Column(Float, nullable=False)
-    context_length = Column(Integer, nullable=False)
+    price_input_token = Column(Float, nullable=False)  # TODO: may be nullable for non LLM models
+    price_output_token = Column(Float, nullable=False)  # TODO: may be nullable for non LLM models
+    context_length = Column(Integer, nullable=False)  # TODO: may be nullable for non LLM models
 
     is_active = Column(Boolean, nullable=False, default=True)
     tags = Column(ARRAY(String), nullable=False, default=[])
+
+    modalities = Column(ARRAY(String), nullable=False, default=[])  # text, image, audio, vision, video
 
     provider = relationship("AiProvider", back_populates="models", lazy="noload")
     host_associations = relationship("ModelHostAssociation", back_populates="model", cascade="all, delete-orphan", lazy="noload")

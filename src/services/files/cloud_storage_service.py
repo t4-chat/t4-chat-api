@@ -1,3 +1,4 @@
+import asyncio
 from contextvars import Context
 
 from google.cloud import storage
@@ -18,24 +19,31 @@ class CloudStorageService:
     ) -> str:
         blob = self.bucket.blob(path)
 
-        # Upload the file contents
-        blob.upload_from_string(contents)
+        # Upload the file contents in a thread pool
+        await asyncio.to_thread(blob.upload_from_string, contents)
 
         # Set metadata if provided
         if metadata:
             blob.metadata = metadata
-            blob.patch()
+            await asyncio.to_thread(blob.patch)
 
         return path
 
     async def get_file(self, path: str) -> dict:
         blob = self.bucket.blob(path)
-        return {"data": blob.download_as_bytes(), "metadata": blob.metadata or {}}
+
+        # Download data and get metadata in parallel
+        data_task = asyncio.to_thread(blob.download_as_bytes)
+        metadata_task = asyncio.to_thread(lambda: blob.metadata or {})
+
+        data, metadata = await asyncio.gather(data_task, metadata_task)
+
+        return {"data": data, "metadata": metadata}
 
     async def delete_file(self, path: str) -> bool:
         blob = self.bucket.blob(path)
         try:
-            blob.delete()
+            await asyncio.to_thread(blob.delete)
             return True
         except Exception:
             return False

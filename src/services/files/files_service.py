@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import and_
 
@@ -29,10 +30,14 @@ class FilesService:
         return f"{utils.get_attachment_type(content_type)}/{file_id}_{filename}"
 
     async def upload_file(
-        self, filename: str, content_type: str, contents: bytes
+            self, contents: bytes, content_type: str, filename: Optional[str] = None
     ) -> FileDTO:
         file_id = uuid.uuid4()
         file_path = self._get_file_path(file_id, filename, content_type)
+
+        # TODO: refactor this
+        if not filename:
+            filename = utils.generate_random_filename()
 
         resource = Resource(
             id=file_id,

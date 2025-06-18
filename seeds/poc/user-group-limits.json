@@ -15,7 +15,11 @@
                 "grok-3",
                 "grok-3-mini",
                 "llama-4-scout-17B",
-                "llama-4-maverick-17B"
+                "llama-4-maverick-17B",
+                "Qwen: Qwen3 235B A22B",
+                "Qwen: Qwen3 30B A3B",
+                "Qwen: Qwen3 14B",
+                "Qwen2.5 72B Instruct"
             ]
         }
     ]

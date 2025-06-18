@@ -49,3 +49,10 @@ class ModelApiError(Exception):
         self.message = message
         self.status_code = 424
         super().__init__(self.message)
+
+
+class BYOKError(Exception):
+    def __init__(self, message: str = "This model is only available with BYOK"):
+        self.status_code = 402
+        self.message = message
+        super().__init__(self.message)

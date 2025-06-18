@@ -15,7 +15,7 @@ async def upload_file(
     file: UploadFile = File(...),
 ) -> FileResponseSchema:
     contents = await file.read()
-    resp = await files_service.upload_file(file.filename, file.content_type, contents)
+    resp = await files_service.upload_file(contents, file.content_type, file.filename)
     return resp
 
 

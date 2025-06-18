@@ -3,10 +3,10 @@ from uuid import UUID
 from src.services.common.context import Context
 from src.services.common.enums import UserGroupName
 from src.services.user.dto import UserDTO
-from src.storage.models.user_group import UserGroup
 
 from src.storage.base_repo import BaseRepository
 from src.storage.models import User
+from src.storage.models.user_group import UserGroup
 
 
 class UserService:
