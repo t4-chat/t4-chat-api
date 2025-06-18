@@ -4,6 +4,10 @@
 
 A powerful, feature-rich FastAPI-based AI chat service that brings together multiple LLM providers in one unified platform. Built with ❤️ for the T3 ChatCloneathon competition.
 
+## 🎬 Demo Video
+
+**[🎥 Watch Our Demo Video](https://youtu.be/l3B9tGeLSQg)** - See AI Vibe API in action!
+
 ## 🎯 Competition Features
 
 ### ✅ Core Requirements (All Implemented!)
