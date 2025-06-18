@@ -228,6 +228,18 @@ Open source under MIT License - built for the T3 ChatCloneathon competition! �
 ## 🤝 Team
 
 Built with passion for the T3 ChatCloneathon by our amazing team! 
+* avdieiev.oleksii@gmail.com
+* stepun.tita@gmail.com
+* pxlxpenko@gmail.com
+* ostashko4@gmail.com
+
+## 📱 Follow Us
+
+Stay connected and follow our journey:
+
+* **Instagram:** [ai_viiibe](https://www.instagram.com/ai_viiibe/)
+* **X (Twitter):** [@ai_viiibe](https://x.com/ai_viiibe)
+* **Telegram:** [ai_viiibe](https://t.me/ai_viiibe)
 
 ---
 
