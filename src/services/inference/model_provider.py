@@ -428,7 +428,7 @@ class ModelProvider:
                 # Create content with the uploaded file reference
                 content = [
                     {"type": "text", "text": result["revised_prompt"]},
-                    {"type": "image_url", "image_url": {"url": result["url"]}},
+                    # {"type": "image_url", "image_url": {"url": result["url"]}},
                 ]
                 messages.append(
                     {
